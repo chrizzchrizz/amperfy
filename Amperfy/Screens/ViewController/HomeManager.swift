@@ -79,6 +79,7 @@ class HomeManager: NSObject {
 
   private var albumsRecentlyPlayedFetchController: AlbumFetchedResultsController?
   private var albumsNewestFetchController: AlbumFetchedResultsController?
+  private var albumsLatestReleasedFetchController: AlbumFetchedResultsController?
   private var playlistsLastTimePlayedFetchController: PlaylistFetchedResultsController?
   private var podcastEpisodesFetchedController: PodcastEpisodesReleaseDateFetchedResultsController?
   private var podcastsFetchedController: PodcastFetchedResultsController?
@@ -135,6 +136,25 @@ class HomeManager: NSObject {
     } else {
       albumsNewestFetchController?.delegate = nil
       albumsNewestFetchController = nil
+    }
+
+    if orderedVisibleSections.contains(where: { $0 == .latestReleasedAlbums }) {
+      albumsLatestReleasedFetchController = AlbumFetchedResultsController(
+        coreDataCompanion: storage.main, account: account,
+        sortType: .year,
+        isGroupedInAlphabeticSections: false,
+        fetchLimit: Self.sectionMaxItemCount
+      )
+      albumsLatestReleasedFetchController?.delegate = self
+      albumsLatestReleasedFetchController?.search(
+        searchText: "",
+        onlyCached: isOfflineMode,
+        displayFilter: .all
+      )
+      updateAlbumsLatestReleased()
+    } else {
+      albumsLatestReleasedFetchController?.delegate = nil
+      albumsLatestReleasedFetchController = nil
     }
 
     if orderedVisibleSections.contains(where: { $0 == .randomAlbums }) {
@@ -302,6 +322,16 @@ class HomeManager: NSObject {
     }
   }
 
+  func updateAlbumsLatestReleased() {
+    if let albums = albumsLatestReleasedFetchController?.fetchedObjects as? [AlbumMO] {
+      data[.latestReleasedAlbums] = albums.prefix(Self.sectionMaxItemCount)
+        .compactMap { Album(managedObject: $0) }.compactMap {
+          HomeItem(playableContainable: $0)
+        }
+      applySnapshotCB?()
+    }
+  }
+
   func updateRandomAlbums(isOfflineMode: Bool) async {
     let randomAlbums = storage.main.library.getRandomAlbums(
       for: account,
@@ -402,6 +432,8 @@ extension HomeManager: @preconcurrency NSFetchedResultsControllerDelegate {
         updateAlbumsRecentlyPlayed()
       } else if controller == albumsNewestFetchController?.fetchResultsController {
         updateAlbumsNewest()
+      } else if controller == albumsLatestReleasedFetchController?.fetchResultsController {
+        updateAlbumsLatestReleased()
       } else if controller == playlistsLastTimePlayedFetchController?.fetchResultsController {
         updatePlaylistsLastTimePlayed()
       } else if controller == podcastEpisodesFetchedController?.fetchResultsController {
