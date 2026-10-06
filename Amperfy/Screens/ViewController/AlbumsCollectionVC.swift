@@ -425,10 +425,12 @@ extension AlbumsCollectionVC: UICollectionViewDelegateFlowLayout {
     insetForSectionAt section: Int
   )
     -> UIEdgeInsets {
+    // more room between the albums of a year and the header of the next year
+    let bottom: CGFloat = displayFilter == .latestReleased ? 32 : 8
     if self.collectionView.traitCollection.userInterfaceIdiom == .phone {
-      return UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
+      return UIEdgeInsets(top: 8, left: 16, bottom: bottom, right: 16)
     } else {
-      return UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 32)
+      return UIEdgeInsets(top: 8, left: 16, bottom: bottom, right: 32)
     }
   }
 
