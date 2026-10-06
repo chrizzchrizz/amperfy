@@ -53,6 +53,10 @@ extension LibraryDisplayType {
       let vc = PlaylistAddAlbumsVC(account: account)
       vc.displayFilter = .recent
       return vc
+    case .latestReleasedAlbums:
+      let vc = PlaylistAddAlbumsVC(account: account)
+      vc.displayFilter = .latestReleased
+      return vc
     case .favoriteAlbums:
       let vc = PlaylistAddAlbumsVC(account: account)
       vc.displayFilter = .favorites

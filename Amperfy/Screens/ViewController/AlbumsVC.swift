@@ -27,6 +27,7 @@ import UIKit
 
 class AlbumsDiffableDataSource: BasicUITableViewDiffableDataSource {
   var sortType: AlbumElementSortType = .name
+  var isIndexTitelsHidden = false
 
   func getAlbum(at indexPath: IndexPath) -> Album? {
     guard let objectID = itemIdentifier(for: indexPath) else { return nil }
@@ -74,6 +75,7 @@ class AlbumsDiffableDataSource: BasicUITableViewDiffableDataSource {
   }
 
   override func sectionIndexTitles(for tableView: UITableView) -> [String]? {
+    guard !isIndexTitelsHidden else { return nil }
     let sectionCount = numberOfSections(in: tableView)
     var indexTitles = [String]()
     for i in 0 ... sectionCount {
@@ -170,6 +172,8 @@ class AlbumsVC: SingleSnapshotFetchedResultsTableViewController<AlbumMO> {
     common.rootVC = self
     common.isIndexTitelsHiddenCB = {
       self.isIndexTitelsHidden = self.common.isIndexTitelsHidden
+      self.albumsDataSource?.isIndexTitelsHidden = self.common.isIndexTitelsHidden
+      self.tableView.reloadSectionIndexTitles()
     }
     common.reloadListViewCB = {
       self.tableView.reloadData()

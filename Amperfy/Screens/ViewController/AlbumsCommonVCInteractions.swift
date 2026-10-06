@@ -94,6 +94,7 @@ class AlbumsCommonVCInteractions {
     case .all: "Albums"
     case .newest: "Recently Added"
     case .recent: "Recently Played"
+    case .latestReleased: "Latest Releases"
     case .favorites: "Favorite Albums"
     }
   }
@@ -165,6 +166,10 @@ class AlbumsCommonVCInteractions {
       filterTitle = "Recently Played"
       isIndexTitelsHidden = true
       change(sortType: .recent)
+    case .latestReleased:
+      filterTitle = "Latest Releases"
+      isIndexTitelsHidden = true
+      change(sortType: .year)
     case .favorites:
       filterTitle = "Favorite Albums"
       isIndexTitelsHidden = false
@@ -187,7 +192,8 @@ class AlbumsCommonVCInteractions {
     fetchedResultsController = AlbumFetchedResultsController(
       coreDataCompanion: appDelegate.storage.main, account: account,
       sortType: sortType,
-      isGroupedInAlphabeticSections: isGroupedInAlphabeticSections
+      isGroupedInAlphabeticSections: isGroupedInAlphabeticSections,
+      sortsYearByReleaseDate: displayFilter == .latestReleased
     )
     fetchedResultsController.fetchResultsController.sectionIndexType = sortType.asSectionIndexType
     updateFetchDataSourceCB?()
@@ -245,6 +251,8 @@ class AlbumsCommonVCInteractions {
         }
         self.updateSearchResultsCB?()
       }
+    case .latestReleased:
+      break
     case .favorites:
       Task { @MainActor in
         do {
@@ -264,7 +272,9 @@ class AlbumsCommonVCInteractions {
 
     switch sortType {
     case .artist, .duration, .name, .rating, .year:
-      actions.append(createSortButtonMenu())
+      if displayFilter != .latestReleased {
+        actions.append(createSortButtonMenu())
+      }
     case .newest, .recent:
       break
     }
@@ -470,6 +480,9 @@ class AlbumsCommonVCInteractions {
         case .recent:
           albums = self.appDelegate.storage.main.library
             .getRecentAlbums(for: self.account)
+        case .latestReleased:
+          albums = self.appDelegate.storage.main.library
+            .getLatestReleasedAlbums(for: self.account)
         case .favorites:
           albums = self.appDelegate.storage.main.library
             .getFavoriteAlbums(for: self.account)

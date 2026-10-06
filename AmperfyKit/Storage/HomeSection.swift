@@ -54,7 +54,7 @@ public enum HomeSection: Int, Sendable, CaseIterable, Codable {
     case .randomArtists: return "Random Artists"
     case .randomGenres: return "Random Genres"
     case .randomSongs: return "Random Songs"
-    case .latestReleasedAlbums: return "New Releases"
+    case .latestReleasedAlbums: return "Latest Releases"
     }
   }
 

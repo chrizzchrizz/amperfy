@@ -93,6 +93,7 @@ class AlbumsCollectionDiffableDataSource: BasicUICollectionViewDiffableDataSourc
   }
 
   override func indexTitles(for collectionView: UICollectionView) -> [String]? {
+    guard !vc.common.isIndexTitelsHidden else { return nil }
     switch vc.common.sortType {
     case .artist, .duration, .name, .rating, .year:
       let sectionCount = numberOfSections(in: collectionView)

@@ -76,6 +76,8 @@ class PlaylistAddAlbumsVC: SingleSnapshotFetchedResultsTableViewController<Album
     common.rootVC = self
     common.isIndexTitelsHiddenCB = {
       self.isIndexTitelsHidden = self.common.isIndexTitelsHidden
+      self.albumsDataSource?.isIndexTitelsHidden = self.common.isIndexTitelsHidden
+      self.tableView.reloadSectionIndexTitles()
     }
     common.reloadListViewCB = {
       self.tableView.reloadData()

@@ -152,6 +152,7 @@ public enum DisplayCategoryFilter: Codable {
   case all
   case newest
   case recent
+  case latestReleased
   case favorites
 }
 
