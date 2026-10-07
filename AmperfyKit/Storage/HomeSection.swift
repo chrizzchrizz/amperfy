@@ -43,8 +43,8 @@ public enum HomeSection: Int, Sendable, CaseIterable, Codable {
 
   public var title: String {
     switch self {
-    case .recentlyPlayedAlbums: return "Recently Played Albums"
-    case .newestAlbums: return "Newest Albums"
+    case .recentlyPlayedAlbums: return "Recently Played"
+    case .newestAlbums: return "Recently Added"
     case .randomAlbums: return "Random Albums"
     case .lastTimePlayedPlaylists: return "Recently Played Playlists"
     case .newestPodcastEpisodes: return "Newest Podcast Episodes"

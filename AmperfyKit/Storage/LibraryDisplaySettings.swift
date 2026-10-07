@@ -75,9 +75,9 @@ public enum LibraryDisplayType: Int, CaseIterable, Sendable {
     case .favoriteArtists:
       return "Favorite Artists"
     case .newestAlbums:
-      return "Newest Albums"
+      return "Recently Added"
     case .recentAlbums:
-      return "Recently Played Albums"
+      return "Recently Played"
     case .radios:
       return "Radios"
     }

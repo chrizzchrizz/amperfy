@@ -92,8 +92,8 @@ class AlbumsCommonVCInteractions {
   var sceneTitle: String? {
     switch displayFilter {
     case .all: "Albums"
-    case .newest: "Newest Albums"
-    case .recent: "Recently Played Albums"
+    case .newest: "Recently Added"
+    case .recent: "Recently Played"
     case .favorites: "Favorite Albums"
     }
   }
@@ -158,11 +158,11 @@ class AlbumsCommonVCInteractions {
       isIndexTitelsHidden = false
       change(sortType: appDelegate.storage.settings.user.albumsSortSetting)
     case .newest:
-      filterTitle = "Newest Albums"
+      filterTitle = "Recently Added"
       isIndexTitelsHidden = true
       change(sortType: .newest)
     case .recent:
-      filterTitle = "Recently Played Albums"
+      filterTitle = "Recently Played"
       isIndexTitelsHidden = true
       change(sortType: .recent)
     case .favorites:
