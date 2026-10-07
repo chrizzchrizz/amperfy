@@ -60,7 +60,7 @@ class GenericDetailTableHeader: UIView {
   var playShuffleInfoView: LibraryElementDetailTableHeaderView?
   var isEditing = false
 
-  static let frameHeightCompact: CGFloat = 400.0
+  static let frameHeightCompact: CGFloat = 440.0
   static let frameHeightRegular: CGFloat = 240.0
   static func frameHeight(traitCollection: UITraitCollection) -> CGFloat {
     if traitCollection.horizontalSizeClass == .compact {
@@ -123,6 +123,7 @@ class GenericDetailTableHeader: UIView {
     } else {
       descriptionLabel.isHidden = true
     }
+    applyTraitCollectionChange()
     refresh()
     registerForTraitChanges(
       [UITraitUserInterfaceStyle.self, UITraitHorizontalSizeClass.self],
@@ -183,13 +184,6 @@ class GenericDetailTableHeader: UIView {
     infoLabel.isHidden = infoText.isEmpty
     infoLabel.text = infoText
 
-    titleLabel.textAlignment = (traitCollection.horizontalSizeClass == .compact) ? .center : .left
-    nameTextField
-      .textAlignment = (traitCollection.horizontalSizeClass == .compact) ? .center : .left
-    subtitleLabel
-      .textAlignment = (traitCollection.horizontalSizeClass == .compact) ? .center : .left
-    infoLabel.textAlignment = (traitCollection.horizontalSizeClass == .compact) ? .center : .left
-
     if isEditing {
       titleLabel.isHidden = true
       nameTextField.isHidden = false
@@ -205,6 +199,13 @@ class GenericDetailTableHeader: UIView {
   func applyTraitCollectionChange() {
     guard let config = config else { return }
     let rootView = config.rootView
+
+    let textAlignment: NSTextAlignment = (traitCollection.horizontalSizeClass == .compact) ?
+      .center : .left
+    titleLabel.textAlignment = textAlignment
+    nameTextField.textAlignment = textAlignment
+    subtitleLabel.textAlignment = textAlignment
+    infoLabel.textAlignment = textAlignment
 
     var height = (traitCollection.horizontalSizeClass == .compact) ?
       GenericDetailTableHeader.frameHeightCompact :

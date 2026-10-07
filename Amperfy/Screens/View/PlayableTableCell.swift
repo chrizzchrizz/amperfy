@@ -311,6 +311,17 @@ class PlayableTableCell: BasicTableCell {
     }
   }
 
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    guard isDislayAlbumTrackNumberStyle, let titleLabel else { return }
+    // separator starts at the title/artist text instead of the track number
+    let titleX = titleLabel.convert(titleLabel.bounds, to: self).minX
+    if separatorInset.left != titleX || separatorInset.right != 0 {
+      separatorInset.left = titleX
+      separatorInset.right = 0
+    }
+  }
+
   private func configurePlayIndicator(playable: AbstractPlayable?) {
     guard let playable = playable else {
       playIndicator?.reset()
@@ -402,7 +413,6 @@ class PlayableTableCell: BasicTableCell {
   func refreshCacheAndDuration() {
     guard let playable = playable else { return }
     favoriteIconImage.isHidden = !playable.isFavorite
-    favoriteIconImage.tintColor = contentColorOverride ?? .red
 
     let isDurationVisible = !playable.isRadio &&
       (
@@ -482,6 +492,8 @@ class PlayableTableCell: BasicTableCell {
   }
 
   private func refreshSubtitleColor() {
+    // follows the title's font color
+    favoriteIconImage.tintColor = contentColorOverride ?? UIColor.labelColor
     if let contentColor = contentColorOverride {
       // screens with a custom background color need explicit, readable text colors
       let secondaryColor = contentColor.withAlphaComponent(0.7)
