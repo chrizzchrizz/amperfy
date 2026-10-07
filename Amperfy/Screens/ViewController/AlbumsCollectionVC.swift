@@ -76,6 +76,7 @@ class AlbumsCollectionDiffableDataSource: BasicUICollectionViewDiffableDataSourc
         for: indexPath
       ) as! CommonCollectionSectionHeader
 
+    sectionHeader.applyHorizontalInset(leading: vc.horizontalSectionInset.leading)
     switch vc.common.sortType {
     case .artist, .name:
       sectionHeader
@@ -285,6 +286,12 @@ class AlbumsCollectionVC: SingleSnapshotFetchedResultsCollectionViewController<A
     navigationController?.navigationBar.prefersLargeTitles = true
   }
 
+  override func viewLayoutMarginsDidChange() {
+    super.viewLayoutMarginsDidChange()
+    invalidateItemSizeCache()
+    collectionView.collectionViewLayout.invalidateLayout()
+  }
+
   override func viewIsAppearing(_ animated: Bool) {
     super.viewIsAppearing(animated)
     invalidateItemSizeCache()
@@ -427,11 +434,19 @@ extension AlbumsCollectionVC: UICollectionViewDelegateFlowLayout {
     -> UIEdgeInsets {
     // more room between the albums of a year and the header of the next year
     let bottom: CGFloat = displayFilter == .latestReleased ? 32 : 8
-    if self.collectionView.traitCollection.userInterfaceIdiom == .phone {
-      return UIEdgeInsets(top: 8, left: 16, bottom: bottom, right: 16)
-    } else {
-      return UIEdgeInsets(top: 8, left: 16, bottom: bottom, right: 32)
-    }
+    let inset = horizontalSectionInset
+    return UIEdgeInsets(top: 8, left: inset.leading, bottom: bottom, right: inset.trailing)
+  }
+
+  /// Horizontal margin of the items, derived from the system layout margins.
+  /// The safe area is already excluded from the content area, so it is not counted twice.
+  var horizontalSectionInset: (leading: CGFloat, trailing: CGFloat) {
+    let margins = collectionView.directionalLayoutMargins
+    let safeArea = collectionView.safeAreaInsets
+    return (
+      leading: max(0, margins.leading - safeArea.left),
+      trailing: max(0, margins.trailing - safeArea.right)
+    )
   }
 
   func collectionView(

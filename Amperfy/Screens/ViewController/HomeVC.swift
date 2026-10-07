@@ -129,6 +129,9 @@ final class HomeVC: UICollectionViewController {
 
   // MARK: - Layout
 
+  /// Extra space between the large navigation title and the first section.
+  private static let firstSectionTopSpacing: CGFloat = 16
+
   private static func createLayout() -> UICollectionViewCompositionalLayout {
     let layout = UICollectionViewCompositionalLayout { sectionIndex, _ in
       guard let _ = HomeSection(rawValue: sectionIndex) else { return nil }
@@ -151,11 +154,13 @@ final class HomeVC: UICollectionViewController {
       let sectionLayout = NSCollectionLayoutSection(group: group)
       sectionLayout.orthogonalScrollingBehavior = .continuous
       sectionLayout.interGroupSpacing = 12
+      // horizontal margin comes from the collection view's layoutMargins (system-adaptive)
+      sectionLayout.contentInsetsReference = .layoutMargins
       sectionLayout.contentInsets = NSDirectionalEdgeInsets(
-        top: 8,
-        leading: 16,
-        bottom: 24,
-        trailing: 16
+        top: 6,
+        leading: 0,
+        bottom: 30,
+        trailing: 0
       )
 
       // Header
@@ -168,6 +173,7 @@ final class HomeVC: UICollectionViewController {
         elementKind: UICollectionView.elementKindSectionHeader,
         alignment: .top
       )
+      // horizontal margin is already applied to the header via the section's layout margins
       header.pinToVisibleBounds = false
       header.zIndex = 1
       sectionLayout.boundarySupplementaryItems = [header]
@@ -234,6 +240,7 @@ final class HomeVC: UICollectionViewController {
       } else {
         header.setTapHandler(nil)
       }
+      header.topInset = indexPath.section == 0 ? Self.firstSectionTopSpacing : 0
       if section == .randomAlbums {
         header.showsRefreshButton = true
         header.setRefreshHandler { [weak self] in self?.refreshRandomAlbumsSection() }
@@ -673,21 +680,28 @@ final class SectionHeaderView: UICollectionReusableView {
     tapHandler?()
   }
 
+  /// Extra space above the title, e.g. between the large navigation title and the first section.
+  var topInset: CGFloat = 0 {
+    didSet { titleTopConstraint.constant = topInset }
+  }
+
+  private lazy var titleTopConstraint = titleLabel.topAnchor.constraint(equalTo: topAnchor)
+
   override init(frame: CGRect) {
     super.init(frame: frame)
     addSubview(titleLabel)
     addSubview(refreshButton)
     addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(headerTapped)))
     NSLayoutConstraint.activate([
-      titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+      titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
       titleLabel.trailingAnchor.constraint(
         lessThanOrEqualTo: refreshButton.leadingAnchor,
         constant: -8
       ),
-      titleLabel.topAnchor.constraint(equalTo: topAnchor),
+      titleTopConstraint,
       titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
-      refreshButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-      refreshButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+      refreshButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
+      refreshButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
     ])
   }
 
@@ -697,15 +711,15 @@ final class SectionHeaderView: UICollectionReusableView {
     addSubview(refreshButton)
     addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(headerTapped)))
     NSLayoutConstraint.activate([
-      titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+      titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
       titleLabel.trailingAnchor.constraint(
         lessThanOrEqualTo: refreshButton.leadingAnchor,
         constant: -8
       ),
-      titleLabel.topAnchor.constraint(equalTo: topAnchor),
+      titleTopConstraint,
       titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
-      refreshButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-      refreshButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+      refreshButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
+      refreshButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
     ])
   }
 }

@@ -82,7 +82,7 @@ class AlbumCollectionCell: BasicCollectionCell {
       theme: appDelegate.storage.settings.accounts.getSetting(container.account?.info).read
         .themePreference,
       container: container,
-      cornerRadius: .big
+      cornerRadius: .medium
     )
     updateArtworkImageConstraint(indexPath: initialIndexPath)
     layoutIfNeeded()

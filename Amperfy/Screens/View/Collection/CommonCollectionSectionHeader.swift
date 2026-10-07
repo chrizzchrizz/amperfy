@@ -30,6 +30,11 @@ class CommonCollectionSectionHeader: UICollectionReusableView {
 
   private var detailHeader: LibraryElementDetailTableHeaderView?
 
+  /// Aligns the title with the items of the section.
+  func applyHorizontalInset(leading: CGFloat) {
+    titleLabel.superview?.directionalLayoutMargins.leading = leading
+  }
+
   func display(title: String?) {
     titleLabel.text = title
     titleLabel.isHidden = (title == nil)

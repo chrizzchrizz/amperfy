@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23094" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="25098" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_0" orientation="portrait" appearance="light"/>
     <dependencies>
-        <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23084"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="25073"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="collection view cell content view" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -22,10 +21,10 @@
                         <rect key="frame" x="0.0" y="0.0" width="363" height="310"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZEz-V1-LUZ" userLabel="OuterView">
-                                <rect key="frame" x="0.0" y="0.0" width="363" height="274"/>
+                                <rect key="frame" x="0.0" y="0.0" width="363" height="276.66666666666669"/>
                                 <subviews>
                                     <view contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="vhw-xr-Op6" userLabel="EntityImage" customClass="EntityImageView" customModule="AmperfyKit">
-                                        <rect key="frame" x="56.666666666666657" y="12" width="249.99999999999997" height="250"/>
+                                        <rect key="frame" x="56.666666666666657" y="13.333333333333343" width="249.99999999999997" height="250.00000000000003"/>
                                         <color key="backgroundColor" systemColor="systemRedColor"/>
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="vhw-xr-Op6" secondAttribute="height" multiplier="1:1" id="LgY-n9-cP3"/>
@@ -39,50 +38,34 @@
                                     <constraint firstItem="vhw-xr-Op6" firstAttribute="centerX" secondItem="ZEz-V1-LUZ" secondAttribute="centerX" id="Esd-AM-5bv"/>
                                 </constraints>
                             </view>
-                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="fZp-PJ-7R1" userLabel="HStack Text View">
-                                <rect key="frame" x="0.0" y="274" width="363" height="36"/>
+                            <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" alignment="top" translatesAutoresizingMaskIntoConstraints="NO" id="fZp-PJ-7R1" userLabel="HStack Text View">
+                                <rect key="frame" x="0.0" y="276.66666666666663" width="363" height="34.333333333333329"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hHv-Ol-9T7" userLabel="Title Label">
-                                        <rect key="frame" x="0.0" y="0.0" width="31.666666666666668" height="17"/>
-                                        <constraints>
-                                            <constraint firstAttribute="height" constant="17" id="hQa-4Q-xIT">
-                                                <variation key="widthClass=regular" constant="18"/>
-                                            </constraint>
-                                        </constraints>
-                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="26.666666666666668" height="15.666666666666666"/>
+                                        <fontDescription key="fontDescription" type="system" weight="medium" pointSize="13"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                         <variation key="widthClass=regular">
-                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <fontDescription key="fontDescription" type="system" weight="medium" pointSize="13"/>
                                         </variation>
                                         <variation key="userInterfaceIdiom=mac-widthClass=regular">
-                                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                            <fontDescription key="fontDescription" type="system" weight="medium" pointSize="13"/>
                                         </variation>
                                     </label>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Subtitle" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="d1W-z7-anZ" userLabel="Subtitle Label">
-                                        <rect key="frame" x="0.0" y="21" width="46.666666666666664" height="15"/>
-                                        <constraints>
-                                            <constraint firstAttribute="height" constant="15" id="F1P-zn-bmx">
-                                                <variation key="widthClass=regular" constant="16"/>
-                                            </constraint>
-                                        </constraints>
+                                        <rect key="frame" x="0.0" y="17.666666666666629" width="46.666666666666664" height="15.666666666666664"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                         <color key="textColor" systemColor="secondaryLabelColor"/>
                                         <nil key="highlightedColor"/>
                                         <variation key="widthClass=regular">
-                                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                         </variation>
                                         <variation key="userInterfaceIdiom=mac-widthClass=regular">
                                             <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                         </variation>
                                     </label>
                                 </subviews>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="36" id="RXp-z1-4PU">
-                                        <variation key="widthClass=regular" constant="38"/>
-                                    </constraint>
-                                </constraints>
-                                <variation key="widthClass=regular" spacing="4"/>
                             </stackView>
                         </subviews>
                         <constraints>
@@ -114,10 +97,10 @@
     </objects>
     <resources>
         <systemColor name="secondaryLabelColor">
-            <color red="0.23529411764705882" green="0.23529411764705882" blue="0.2627450980392157" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.23529411759999999" green="0.23529411759999999" blue="0.26274509800000001" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemRedColor">
-            <color red="1" green="0.23137254901960785" blue="0.18823529411764706" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.21960784310000001" blue="0.23529411759999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
