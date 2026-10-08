@@ -26,7 +26,7 @@ import UIKit
 class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
   override var sceneTitle: String? {
     switch displayFilter {
-    case .all, .newest, .recent, .latestReleased: "Songs"
+    case .all, .latestReleased, .newest, .recent: "Songs"
     case .favorites: "Favorite Songs"
     }
   }
@@ -132,7 +132,7 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
       filterTitle = "Songs"
       isIndexTitelsHidden = false
       change(sortType: appDelegate.storage.settings.user.songsSortSetting)
-    case .newest, .recent, .latestReleased:
+    case .latestReleased, .newest, .recent:
       break
     case .favorites:
       filterTitle = "Favorite Songs"
@@ -203,7 +203,7 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
     switch displayFilter {
     case .all:
       break
-    case .newest, .recent, .latestReleased:
+    case .latestReleased, .newest, .recent:
       break
     case .favorites:
       Task { @MainActor in
@@ -469,7 +469,7 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
         switch self.displayFilter {
         case .all:
           songs = self.appDelegate.storage.main.library.getSongs(for: self.account)
-        case .newest, .recent, .latestReleased:
+        case .latestReleased, .newest, .recent:
           break
         case .favorites:
           songs = self.appDelegate.storage.main.library

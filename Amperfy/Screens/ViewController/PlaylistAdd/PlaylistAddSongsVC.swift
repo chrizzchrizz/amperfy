@@ -26,7 +26,7 @@ import UIKit
 class PlaylistAddSongsVC: SingleFetchedResultsTableViewController<SongMO>, PlaylistVCAddable {
   override var sceneTitle: String? {
     switch displayFilter {
-    case .all, .newest, .recent, .latestReleased: "Songs"
+    case .all, .latestReleased, .newest, .recent: "Songs"
     case .favorites: "Favorite Songs"
     }
   }
@@ -99,7 +99,7 @@ class PlaylistAddSongsVC: SingleFetchedResultsTableViewController<SongMO>, Playl
     switch displayFilter {
     case .all:
       break
-    case .newest, .recent, .latestReleased:
+    case .latestReleased, .newest, .recent:
       break
     case .favorites:
       Task { @MainActor in
@@ -119,7 +119,7 @@ class PlaylistAddSongsVC: SingleFetchedResultsTableViewController<SongMO>, Playl
     case .all:
       isIndexTitelsHidden = false
       change(sortType: appDelegate.storage.settings.user.songsSortSetting)
-    case .newest, .recent, .latestReleased:
+    case .latestReleased, .newest, .recent:
       break
     case .favorites:
       isIndexTitelsHidden = false
