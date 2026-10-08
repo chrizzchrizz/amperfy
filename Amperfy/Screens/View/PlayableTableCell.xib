@@ -58,7 +58,7 @@
                                         <constraints>
                                             <constraint firstAttribute="height" constant="22" id="XXp-uK-dh5"/>
                                         </constraints>
-                                        <fontDescription key="fontDescription" type="system" weight="medium" pointSize="16"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                         <variation key="userInterfaceIdiom=mac">
@@ -188,7 +188,6 @@
                     </button>
                     <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="trailing" contentVerticalAlignment="center" adjustsImageWhenHighlighted="NO" adjustsImageWhenDisabled="NO" lineBreakMode="middleTruncation" role="primary" preferredBehavioralStyle="pad" translatesAutoresizingMaskIntoConstraints="NO" id="TYw-rj-zE1" userLabel="Play Button Number on hover">
                         <rect key="frame" x="16" y="24" width="21" height="22"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <fontDescription key="fontDescription" type="system" pointSize="15"/>
                         <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                         <state key="normal">
@@ -202,9 +201,9 @@
                     </button>
                 </subviews>
                 <constraints>
-                    <constraint firstItem="Uwb-Vy-dE7" firstAttribute="leading" secondItem="WOq-tb-OTF" secondAttribute="leading" id="0Yg-lo-E8l"/>
+                    <constraint firstItem="Uwb-Vy-dE7" firstAttribute="leading" secondItem="WOq-tb-OTF" secondAttribute="leadingMargin" id="0Yg-lo-E8l"/>
                     <constraint firstItem="mUX-sN-oa8" firstAttribute="centerY" secondItem="WOq-tb-OTF" secondAttribute="centerY" id="1M6-yt-wX0"/>
-                    <constraint firstItem="ZTB-B7-OZR" firstAttribute="leading" secondItem="WOq-tb-OTF" secondAttribute="leading" constant="-16" id="3q0-jS-jvP"/>
+                    <constraint firstItem="ZTB-B7-OZR" firstAttribute="leading" secondItem="WOq-tb-OTF" secondAttribute="leadingMargin" constant="-16" id="3q0-jS-jvP"/>
                     <constraint firstAttribute="rightMargin" secondItem="mUX-sN-oa8" secondAttribute="right" id="46w-nK-8d4"/>
                     <constraint firstItem="4NS-Qv-02y" firstAttribute="leading" secondItem="mUX-sN-oa8" secondAttribute="leading" id="4Fr-bx-vmN"/>
                     <constraint firstAttribute="trailingMargin" secondItem="2Xe-ur-neX" secondAttribute="trailing" constant="44" id="689-Vc-7ao"/>
@@ -215,8 +214,8 @@
                     <constraint firstItem="l8v-65-XtX" firstAttribute="leading" secondItem="Uwb-Vy-dE7" secondAttribute="leading" constant="-4" id="QAw-hu-VDc"/>
                     <constraint firstAttribute="bottomMargin" secondItem="4NS-Qv-02y" secondAttribute="bottom" id="Sxk-IV-5P0"/>
                     <constraint firstItem="euv-dS-9Rx" firstAttribute="trailing" secondItem="Uwb-Vy-dE7" secondAttribute="trailing" id="Trn-WR-LKv"/>
-                    <constraint firstAttribute="trailing" secondItem="SRF-Yt-kwz" secondAttribute="trailing" constant="8" id="X7z-Kg-90N"/>
-                    <constraint firstItem="mUX-sN-oa8" firstAttribute="left" secondItem="WOq-tb-OTF" secondAttribute="left" constant="49" id="XXa-cv-hEs"/>
+                    <constraint firstAttribute="trailingMargin" secondItem="SRF-Yt-kwz" secondAttribute="trailing" constant="4" id="X7z-Kg-90N"/>
+                    <constraint firstItem="mUX-sN-oa8" firstAttribute="left" secondItem="WOq-tb-OTF" secondAttribute="leftMargin" constant="49" id="XXa-cv-hEs"/>
                     <constraint firstItem="Uwb-Vy-dE7" firstAttribute="top" secondItem="WOq-tb-OTF" secondAttribute="topMargin" id="b4X-h3-kb4"/>
                     <constraint firstItem="euv-dS-9Rx" firstAttribute="top" secondItem="Uwb-Vy-dE7" secondAttribute="top" id="ciA-A3-97k"/>
                     <constraint firstItem="XQO-xE-pLx" firstAttribute="centerY" secondItem="WOq-tb-OTF" secondAttribute="centerY" id="evm-GL-FO9"/>
@@ -224,6 +223,11 @@
                     <constraint firstAttribute="rightMargin" secondItem="4NS-Qv-02y" secondAttribute="right" id="gV9-QO-4Ah"/>
                     <constraint firstItem="ZTB-B7-OZR" firstAttribute="centerY" secondItem="WOq-tb-OTF" secondAttribute="centerY" id="jKm-nW-h0s"/>
                     <constraint firstItem="gPA-kl-kqX" firstAttribute="centerY" secondItem="hPr-VQ-rTt" secondAttribute="centerY" id="lqy-lo-JJf"/>
+                    <constraint firstItem="gPA-kl-kqX" firstAttribute="leading" secondItem="Uwb-Vy-dE7" secondAttribute="leading" id="n1A-Tn-Lead"/>
+                    <constraint firstItem="TYw-rj-zE1" firstAttribute="leading" secondItem="gPA-kl-kqX" secondAttribute="leading" id="n2A-Pl-Lead"/>
+                    <constraint firstItem="TYw-rj-zE1" firstAttribute="trailing" secondItem="gPA-kl-kqX" secondAttribute="trailing" id="n3A-Pl-Trai"/>
+                    <constraint firstItem="TYw-rj-zE1" firstAttribute="top" secondItem="gPA-kl-kqX" secondAttribute="top" id="n4A-Pl-Top"/>
+                    <constraint firstItem="TYw-rj-zE1" firstAttribute="bottom" secondItem="gPA-kl-kqX" secondAttribute="bottom" id="n5A-Pl-Bott"/>
                     <constraint firstAttribute="bottomMargin" secondItem="Uwb-Vy-dE7" secondAttribute="bottom" id="qSm-jS-v60"/>
                     <constraint firstItem="euv-dS-9Rx" firstAttribute="leading" secondItem="Uwb-Vy-dE7" secondAttribute="leading" id="rqn-Hl-suf"/>
                 </constraints>

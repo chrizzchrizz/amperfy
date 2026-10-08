@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="24112" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="25098" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24057"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="25073"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -13,12 +13,12 @@
         <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" rowHeight="92" id="KGk-i7-Jjw" customClass="PlaylistTableCell" customModule="Amperfy" customModuleProvider="target">
             <rect key="frame" x="0.0" y="0.0" width="541" height="92"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
                 <rect key="frame" x="0.0" y="0.0" width="541" height="92"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="TxE-Fh-ozu">
-                        <rect key="frame" x="110" y="27" width="415" height="38"/>
+                    <stackView opaque="NO" contentMode="scaleToFill" misplaced="YES" axis="vertical" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="TxE-Fh-ozu">
+                        <rect key="frame" x="86" y="27" width="415" height="38"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Playlist Name" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MMM-Yr-IkZ">
                                 <rect key="frame" x="0.0" y="0.0" width="415" height="20"/>
@@ -58,8 +58,8 @@
                         </subviews>
                         <variation key="widthClass=regular" alignment="center" axis="horizontal" spacing="8"/>
                     </stackView>
-                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="TkT-gC-6LF" customClass="EntityImageView" customModule="AmperfyKit">
-                        <rect key="frame" x="32" y="11" width="70" height="70"/>
+                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="TkT-gC-6LF" customClass="EntityImageView" customModule="AmperfyKit">
+                        <rect key="frame" x="0.0" y="11" width="70" height="70"/>
                         <color key="backgroundColor" systemColor="systemRedColor"/>
                         <constraints>
                             <constraint firstAttribute="width" secondItem="TkT-gC-6LF" secondAttribute="height" multiplier="1:1" id="E8b-Kt-N2B"/>
@@ -68,12 +68,10 @@
                     </view>
                 </subviews>
                 <constraints>
-                    <constraint firstItem="TkT-gC-6LF" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" constant="16" id="2vG-6C-BAk"/>
+                    <constraint firstItem="TkT-gC-6LF" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" id="2vG-6C-BAk"/>
                     <constraint firstItem="TkT-gC-6LF" firstAttribute="centerY" secondItem="H2p-sc-9uM" secondAttribute="centerY" id="HCl-M9-BrL"/>
-                    <constraint firstItem="TxE-Fh-ozu" firstAttribute="leading" secondItem="TkT-gC-6LF" secondAttribute="trailing" constant="8" id="OcW-Ql-tV0"/>
-                    <constraint firstAttribute="trailingMargin" secondItem="TxE-Fh-ozu" secondAttribute="trailing" id="bfa-IE-DcM">
-                        <variation key="widthClass=regular" constant="8"/>
-                    </constraint>
+                    <constraint firstItem="TxE-Fh-ozu" firstAttribute="leading" secondItem="TkT-gC-6LF" secondAttribute="trailing" constant="16" id="OcW-Ql-tV0"/>
+                    <constraint firstAttribute="trailingMargin" secondItem="TxE-Fh-ozu" secondAttribute="trailing" id="bfa-IE-DcM"/>
                     <constraint firstItem="TxE-Fh-ozu" firstAttribute="centerY" secondItem="H2p-sc-9uM" secondAttribute="centerY" id="pF2-Kr-tcV"/>
                 </constraints>
             </tableViewCellContentView>
@@ -91,7 +89,7 @@
             <color red="0.23529411759999999" green="0.23529411759999999" blue="0.26274509800000001" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemRedColor">
-            <color red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.21960784310000001" blue="0.23529411759999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

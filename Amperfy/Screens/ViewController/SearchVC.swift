@@ -138,6 +138,7 @@ class SearchVC: BasicTableViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    tableView.separatorStyle = .none // rows draw their own separators
     /// Store the data source in an instance property to make sure it's retained.
     diffableDataSource = createDiffableDataSource()
     /// Assign the data source to your collection view.
@@ -580,7 +581,6 @@ class SearchVC: BasicTableViewController {
         self.songs = searchResult.songsIDs
           .compactMap { self.appDelegate.storage.main.context.object(with: $0) as? SongMO }
           .compactMap { Song(managedObject: $0) }
-        self.tableView.separatorStyle = .singleLine
         self.updateDataSource(animated: false)
         self.updateContentUnavailable()
       } catch {
@@ -650,7 +650,6 @@ class SearchVC: BasicTableViewController {
         self.songs = searchResult.songsIDs
           .compactMap { self.appDelegate.storage.main.context.object(with: $0) as? SongMO }
           .compactMap { Song(managedObject: $0) }
-        self.tableView.separatorStyle = .singleLine
         self.updateDataSource(animated: false)
         self.updateContentUnavailable()
       } catch {
@@ -663,7 +662,6 @@ class SearchVC: BasicTableViewController {
       albums = []
       playlists = []
       songs = []
-      tableView.separatorStyle = .singleLine
       updateDataSource(animated: false)
       updateContentUnavailable()
     }

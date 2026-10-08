@@ -23,6 +23,9 @@ import AmperfyKit
 import UIKit
 
 class PlaylistTableCell: BasicTableCell {
+
+  override var usesSystemHorizontalMargins: Bool { true }
+
   @IBOutlet
   weak var nameLabel: UILabel!
   @IBOutlet

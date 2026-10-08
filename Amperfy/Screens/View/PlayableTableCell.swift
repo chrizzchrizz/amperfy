@@ -311,16 +311,10 @@ class PlayableTableCell: BasicTableCell {
     }
   }
 
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    guard isDislayAlbumTrackNumberStyle, let titleLabel else { return }
-    // separator starts at the title/artist text instead of the track number
-    let titleX = titleLabel.convert(titleLabel.bounds, to: self).minX
-    if separatorInset.left != titleX || separatorInset.right != 0 {
-      separatorInset.left = titleX
-      separatorInset.right = 0
-    }
-  }
+  override var usesSystemHorizontalMargins: Bool { true }
+
+  /// separator starts at the title/artist text instead of the track number
+  override var separatorLeadingView: UIView? { isDislayAlbumTrackNumberStyle ? titleLabel : nil }
 
   private func configurePlayIndicator(playable: AbstractPlayable?) {
     guard let playable = playable else {

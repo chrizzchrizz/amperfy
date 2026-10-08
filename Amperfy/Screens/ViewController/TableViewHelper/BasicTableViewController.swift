@@ -98,6 +98,56 @@ struct SwipeDisplaySettings {
   }
 }
 
+// MARK: - TableSectionHeaderView
+
+/// Section title aligned with the row content: pinned to the layout margins of the table view
+/// (safe area plus system margin, e.g. below the sidebar), like the margins of the cells.
+final class TableSectionHeaderView: UIView {
+  // A plain view: UIKit applies the title of `titleForHeaderInSection` to the default label of
+  // UITableViewHeaderFooterView, which would be displayed in addition to this title.
+  private let listContentView = UIListContentView(configuration: .header())
+  private var isPinnedToTable = false
+
+  init(title: String) {
+    super.init(frame: .zero)
+    var configuration = UIListContentConfiguration.header()
+    configuration.text = title
+    configuration.directionalLayoutMargins.leading = 0
+    configuration.directionalLayoutMargins.trailing = 0
+    listContentView.configuration = configuration
+    listContentView.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(listContentView)
+    // fallback until the header is part of the table view, replaced by the table margins
+    let fallbackLeading = listContentView.leadingAnchor.constraint(equalTo: leadingAnchor)
+    let fallbackTrailing = listContentView.trailingAnchor.constraint(equalTo: trailingAnchor)
+    fallbackLeading.priority = .defaultLow
+    fallbackTrailing.priority = .defaultLow
+    NSLayoutConstraint.activate([
+      listContentView.topAnchor.constraint(equalTo: topAnchor),
+      listContentView.bottomAnchor.constraint(equalTo: bottomAnchor),
+      fallbackLeading,
+      fallbackTrailing,
+    ])
+  }
+
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  override func didMoveToSuperview() {
+    super.didMoveToSuperview()
+    guard !isPinnedToTable else { return }
+    var view = superview
+    while let current = view, !(current is UITableView) { view = current.superview }
+    guard let tableView = view as? UITableView else { return }
+    isPinnedToTable = true
+    NSLayoutConstraint.activate([
+      listContentView.leadingAnchor.constraint(equalTo: tableView.layoutMarginsGuide.leadingAnchor),
+      listContentView.trailingAnchor.constraint(equalTo: tableView.layoutMarginsGuide.trailingAnchor),
+    ])
+  }
+}
+
 // MARK: - BasicTableViewController
 
 class BasicTableViewController: KeyCommandTableViewController {
@@ -133,6 +183,15 @@ class BasicTableViewController: KeyCommandTableViewController {
       searchController.searchBar.selectedScopeButtonIndex = 0
     }
     updateSearchResults(for: searchController)
+  }
+
+  /// Tables whose cells draw their own separators (`separatorStyle = .none`) also align the
+  /// section titles with the cell margins.
+  override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    guard tableView.separatorStyle == .none,
+          let title = self.tableView(tableView, titleForHeaderInSection: section), !title.isEmpty
+    else { return nil }
+    return TableSectionHeaderView(title: title)
   }
 
   override func tableView(_ tableView: UITableView, willBeginEditingRowAt indexPath: IndexPath) {

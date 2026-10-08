@@ -330,6 +330,11 @@ class LibraryNavigatorConfigurator: NSObject {
       } else if let libraryItem = item.library {
         var content = cell.defaultContentConfiguration()
         Self.configureForLibrary(contentView: &content, libraryItem: libraryItem)
+        content.directionalLayoutMargins.leading = 0
+        // the icon is centered in its reserved area; a narrower area removes the visible gap
+        let iconSize = CGSize(width: 25.0, height: 25.0)
+        content.imageProperties.maximumSize = iconSize
+        content.imageProperties.reservedLayoutSize = iconSize
 
         #if targetEnvironment(macCatalyst) // ok
           cell.accessories = []
@@ -353,6 +358,7 @@ class LibraryNavigatorConfigurator: NSObject {
         var content = cell.defaultContentConfiguration()
         content.text = tabItem.title
         content.image = tabItem.icon.withRenderingMode(.alwaysTemplate)
+        content.directionalLayoutMargins.leading = 0
         cell.contentConfiguration = content
       }
       cell.indentationLevel = 0

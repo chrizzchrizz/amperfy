@@ -40,6 +40,7 @@ class DownloadsVC: SingleFetchedResultsTableViewController<DownloadMO> {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    tableView.separatorStyle = .none // rows draw their own separators
     appDelegate.userStatistics.visited(.downloads)
     downloadManager = appDelegate.getMeta(account.info).playableDownloadManager
 

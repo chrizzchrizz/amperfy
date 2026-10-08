@@ -56,6 +56,7 @@ class ArtistDetailVC: MultiSourceTableViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    tableView.separatorStyle = .none // rows draw their own separators
     appDelegate.userStatistics.visited(.artistDetail)
 
     optionsButton = UIBarButtonItem.createOptionsBarButton()

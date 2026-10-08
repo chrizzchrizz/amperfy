@@ -41,6 +41,7 @@ class PodcastsVC: MultiSourceTableViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    tableView.separatorStyle = .none // rows draw their own separators
     appDelegate.userStatistics.visited(.podcasts)
 
     optionsButton = UIBarButtonItem.createSortBarButton()

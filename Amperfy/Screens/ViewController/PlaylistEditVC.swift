@@ -78,6 +78,7 @@ class PlaylistEditVC: SingleSnapshotFetchedResultsTableViewController<PlaylistIt
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    tableView.separatorStyle = .none // rows draw their own separators
 
     fetchedResultsController = PlaylistItemsFetchedResultsController(
       forPlaylist: playlist,

@@ -124,6 +124,7 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    tableView.separatorStyle = .none // rows draw their own separators
 
     #if !targetEnvironment(macCatalyst)
       refreshControl = UIRefreshControl()
@@ -147,6 +148,7 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
     tableView.sectionHeaderHeight = 0.0
     tableView.estimatedSectionHeaderHeight = 0.0
     tableView.backgroundColor = .backgroundColor
+    tableView.separatorColor = UIColor.white.withAlphaComponent(0.2)
 
     // Use a single button, two buttons don't work on catalyst
     editButton = UIBarButtonItem(

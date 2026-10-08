@@ -83,6 +83,7 @@ class PlaylistAddAlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<
     tableView.sectionFooterHeight = 0.0
     tableView.estimatedSectionFooterHeight = 0.0
     tableView.backgroundColor = .backgroundColor
+    tableView.separatorStyle = .none // rows draw their own separators
   }
 
   override func viewIsAppearing(_ animated: Bool) {

@@ -162,6 +162,7 @@ class AlbumsVC: SingleSnapshotFetchedResultsTableViewController<AlbumMO> {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    tableView.separatorStyle = .none // rows draw their own separators
 
     #if !targetEnvironment(macCatalyst)
       refreshControl = UIRefreshControl()

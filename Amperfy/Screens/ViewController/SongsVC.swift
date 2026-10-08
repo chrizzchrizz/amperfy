@@ -50,6 +50,7 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    tableView.separatorStyle = .none // rows draw their own separators
 
     #if !targetEnvironment(macCatalyst)
       refreshControl = UIRefreshControl()
@@ -68,6 +69,7 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
     tableView.rowHeight = PlayableTableCell.rowHeight
     tableView.estimatedRowHeight = PlayableTableCell.rowHeight
     tableView.backgroundColor = .backgroundColor
+    tableView.clipsToBounds = false
 
     let playShuffleInfoConfig = PlayShuffleInfoConfiguration(
       infoCB: {

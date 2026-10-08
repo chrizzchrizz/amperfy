@@ -23,6 +23,9 @@ import AmperfyKit
 import UIKit
 
 class GenericTableCell: BasicTableCell {
+
+  override var usesSystemHorizontalMargins: Bool { true }
+
   @IBOutlet
   weak var titleLabel: UILabel!
   @IBOutlet
