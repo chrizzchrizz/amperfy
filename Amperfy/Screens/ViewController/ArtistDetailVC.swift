@@ -24,8 +24,6 @@ import CoreData
 import UIKit
 
 class ArtistDetailVC: MultiSourceTableViewController {
-  override var sceneTitle: String? { artist.name }
-
   private let artist: Artist
   var albumToScrollTo: Album?
   private var albumsFetchedResultsController: ArtistAlbumsItemsFetchedResultsController!

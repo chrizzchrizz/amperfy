@@ -38,8 +38,6 @@ class AlbumDetailDiffableDataSource: BasicUITableViewDiffableDataSource {
 // MARK: - AlbumDetailVC
 
 class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
-  override var sceneTitle: String? { album.name }
-
   var songToScrollTo: Song?
   private var fetchedResultsController: AlbumSongsFetchedResultsController!
   private var optionsButton: UIBarButtonItem!

@@ -86,8 +86,6 @@ class PlaylistDetailDiffableDataSource: BasicUITableViewDiffableDataSource {
 // MARK: - PlaylistDetailVC
 
 class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<PlaylistItemMO> {
-  override var sceneTitle: String? { playlist.name }
-
   private var fetchedResultsController: PlaylistItemsFetchedResultsController!
   let playlist: Playlist
 
