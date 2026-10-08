@@ -177,6 +177,8 @@
                                                                     </subviews>
                                                                     <constraints>
                                                                         <constraint firstItem="7J5-ll-b5d" firstAttribute="centerY" secondItem="ecX-JW-F45" secondAttribute="centerY" id="L1X-QX-anN"/>
+                                                                        <constraint firstItem="7J5-ll-b5d" firstAttribute="top" relation="greaterThanOrEqual" secondItem="ecX-JW-F45" secondAttribute="top" id="Mn1-Sp-c16"/>
+                                                                        <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="7J5-ll-b5d" secondAttribute="bottom" id="Mn2-Sp-c16"/>
                                                                         <constraint firstItem="7J5-ll-b5d" firstAttribute="leading" secondItem="ecX-JW-F45" secondAttribute="leading" id="Uxe-4d-8G3"/>
                                                                         <constraint firstAttribute="trailingMargin" secondItem="7J5-ll-b5d" secondAttribute="trailing" constant="12" id="fFc-hF-L2F"/>
                                                                     </constraints>
@@ -189,15 +191,21 @@
                                                                         </stackView>
                                                                     </subviews>
                                                                     <constraints>
-                                                                        <constraint firstAttribute="height" constant="40" id="35o-lw-L0s"/>
+                                                                        <constraint firstAttribute="height" constant="50" id="35o-lw-L0s">
+                                                                            <variation key="userInterfaceIdiom=mac" constant="46"/>
+                                                                        </constraint>
                                                                         <constraint firstAttribute="bottom" secondItem="3ks-ab-Tsv" secondAttribute="bottom" id="A6R-mP-ntj"/>
+                                                                        <constraint firstItem="3ks-ab-Tsv" firstAttribute="width" relation="lessThanOrEqual" constant="10000" id="Mw4-Xk-4Rb">
+                                                                            <variation key="userInterfaceIdiom=mac" constant="400"/>
+                                                                        </constraint>
                                                                         <constraint firstItem="3ks-ab-Tsv" firstAttribute="leading" secondItem="qxL-Fz-Vwm" secondAttribute="leading" id="Q34-Q2-cQd"/>
-                                                                        <constraint firstAttribute="trailing" secondItem="3ks-ab-Tsv" secondAttribute="trailing" id="bI6-rv-gk5"/>
+                                                                        <constraint firstItem="3ks-ab-Tsv" firstAttribute="width" secondItem="qxL-Fz-Vwm" secondAttribute="width" priority="750" id="Wd7-Fi-Ll1"/>
+                                                                        <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="3ks-ab-Tsv" secondAttribute="trailing" id="bI6-rv-gk5"/>
                                                                         <constraint firstItem="3ks-ab-Tsv" firstAttribute="top" secondItem="qxL-Fz-Vwm" secondAttribute="top" id="byR-J1-6QC"/>
                                                                     </constraints>
                                                                 </view>
                                                             </subviews>
-                                                            <variation key="widthClass=compact" spacing="12"/>
+                                                            <variation key="widthClass=compact" spacing="16"/>
                                                             <variation key="widthClass=regular" alignment="fill" distribution="fill"/>
                                                         </stackView>
                                                     </subviews>

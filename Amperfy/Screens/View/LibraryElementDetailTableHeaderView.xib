@@ -64,7 +64,7 @@
                                             <fontDescription key="fontDescription" type="system" pointSize="22"/>
                                             <color key="tintColor" systemColor="tintColor"/>
                                             <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="12" maxY="0.0"/>
-                                            <state key="normal" title="Shuffle" image="shuffle" catalog="system">
+                                            <state key="normal" image="shuffle" catalog="system">
                                                 <preferredSymbolConfiguration key="preferredSymbolConfiguration" scale="large"/>
                                             </state>
                                             <variation key="userInterfaceIdiom=mac-widthClass=regular">
@@ -85,8 +85,8 @@
                         <constraint firstItem="k72-rC-wm7" firstAttribute="top" secondItem="Hvj-PC-W1q" secondAttribute="top" id="jbe-UQ-9su">
                             <variation key="heightClass=regular-userInterfaceIdiom=mac" constant="10"/>
                         </constraint>
-                        <constraint firstAttribute="height" constant="40" id="ly1-i0-4WQ">
-                            <variation key="userInterfaceIdiom=mac-widthClass=regular" constant="36"/>
+                        <constraint firstAttribute="height" constant="50" id="ly1-i0-4WQ">
+                            <variation key="userInterfaceIdiom=mac-widthClass=regular" constant="46"/>
                         </constraint>
                         <constraint firstItem="k72-rC-wm7" firstAttribute="leading" secondItem="Hvj-PC-W1q" secondAttribute="leading" id="tYS-Qk-B7E"/>
                     </constraints>

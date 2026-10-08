@@ -56,6 +56,10 @@ class LibraryElementDetailTableHeaderView: UIView {
   private var config: PlayShuffleInfoConfiguration?
   /// Set when the screen has a custom background; buttons then invert against it.
   private var customBackgroundColor: UIColor?
+  private var shuffleButtonSquareConstraint: NSLayoutConstraint?
+  private var leadingAlignmentSpacer: UIView?
+  private var trailingAlignmentSpacer: UIView?
+  private var centeringConstraint: NSLayoutConstraint?
 
   required init?(coder aDecoder: NSCoder) {
     super.init(coder: aDecoder)
@@ -121,18 +125,27 @@ class LibraryElementDetailTableHeaderView: UIView {
     infoContainerView.isHidden = config
       .isInfoAlwaysHidden || (traitCollection.horizontalSizeClass == .compact)
     infoLabel.text = config.infoCB?() ?? ""
+    updateButtonAlignment()
   }
 
   @IBAction
   func playAllButtonPressed(_ sender: Any) {
     Haptics.success.vibrate(isHapticsEnabled: appDelegate.storage.settings.user.isHapticsEnabled)
+    bounceIcon(of: playAllButton)
     play(isShuffled: false)
   }
 
   @IBAction
   func addAllShuffledButtonPressed(_ sender: Any) {
     Haptics.success.vibrate(isHapticsEnabled: appDelegate.storage.settings.user.isHapticsEnabled)
+    bounceIcon(of: playShuffledButton)
     shuffle()
+  }
+
+  private func bounceIcon(of button: UIButton) {
+    if #available(iOS 17.0, *) {
+      button.imageView?.addSymbolEffect(.bounce.down.byLayer, options: .nonRepeating)
+    }
   }
 
   private func play(isShuffled: Bool) {
@@ -156,14 +169,19 @@ class LibraryElementDetailTableHeaderView: UIView {
   /// isShuffleOnContextNeccessary: In AlbumsVC the albums are shuffled, keep the order when shuffle button is pressed
   func prepare(configuration: PlayShuffleInfoConfiguration) {
     config = configuration
-    playAllButton.setTitle(config?.customPlayName ?? "Play", for: .normal)
-    playAllButton.layer.cornerRadius = 10.0
-    playShuffledButton.setTitle(
-      configuration.isShuffleOnContextNeccessary ? "Shuffle" : "Random",
-      for: .normal
+    Self.applyModernStyle(
+      to: playAllButton,
+      title: config?.customPlayName ?? "Play",
+      symbolName: "play.fill"
     )
-    playShuffledButton.layer.cornerRadius = 10.0
+    Self.applyModernStyle(
+      to: playShuffledButton,
+      title: nil,
+      symbolName: "shuffle"
+    )
+    playShuffledButton.accessibilityLabel = configuration.isShuffleOnContextNeccessary ? "Shuffle" : "Random"
     playShuffledButton.isHidden = configuration.isShuffleHidden
+    makeShuffleButtonRound()
     applyCustomBackgroundColor()
     activate()
     registerForTraitChanges(
@@ -184,10 +202,75 @@ class LibraryElementDetailTableHeaderView: UIView {
     guard let backgroundColor = customBackgroundColor else { return }
     let buttonColor: UIColor = backgroundColor.prefersDarkContent ? .black : .white
     for button in [playAllButton, playShuffledButton] {
-      button?.backgroundColor = buttonColor
-      button?.setTitleColor(backgroundColor, for: .normal)
-      button?.tintColor = backgroundColor
+      // the buttons use a UIButton.Configuration, so colors are set through it
+      button?.configuration?.baseBackgroundColor = buttonColor
+      button?.configuration?.baseForegroundColor = backgroundColor
     }
+  }
+
+  /// Shuffle is icon only and as wide as it is high, Play is as wide as its content
+  private func makeShuffleButtonRound() {
+    guard let buttonStack = playShuffledButton.superview as? UIStackView else { return }
+    buttonStack.distribution = .fill
+    buttonStack.spacing = 16
+    playAllButton.setContentHuggingPriority(.required, for: .horizontal)
+    playAllButton.setContentCompressionResistancePriority(.required, for: .horizontal)
+    playShuffledButton.setContentHuggingPriority(.required, for: .horizontal)
+    playShuffledButton.setContentCompressionResistancePriority(.required, for: .horizontal)
+    if shuffleButtonSquareConstraint == nil {
+      // the spacers take the remaining width so both buttons keep their content size
+      let trailingSpacer = UIView()
+      trailingSpacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
+      trailingSpacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
+      buttonStack.addArrangedSubview(trailingSpacer)
+      let leadingSpacer = UIView()
+      leadingSpacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
+      leadingSpacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
+      buttonStack.insertArrangedSubview(leadingSpacer, at: 0)
+      centeringConstraint = leadingSpacer.widthAnchor.constraint(equalTo: trailingSpacer.widthAnchor)
+      leadingAlignmentSpacer = leadingSpacer
+      trailingAlignmentSpacer = trailingSpacer
+      playAllButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 160).isActive = true
+      let constraint = playShuffledButton.widthAnchor
+        .constraint(equalTo: playShuffledButton.heightAnchor)
+      constraint.isActive = true
+      shuffleButtonSquareConstraint = constraint
+    }
+    updateButtonAlignment()
+  }
+
+  /// Detail pages: compact width (artwork above the buttons): centered,
+  /// regular width (artwork left of the buttons): left aligned next to the artwork.
+  /// Otherwise compact width: left aligned, regular width: right aligned.
+  private func updateButtonAlignment() {
+    let isEmbedded = config?.isEmbeddedInOtherView ?? false
+    let isCompact = traitCollection.horizontalSizeClass == .compact
+    let isCentered = isEmbedded && isCompact
+    let isLeftAligned = isEmbedded || isCompact
+    centeringConstraint?.isActive = false
+    leadingAlignmentSpacer?.isHidden = isLeftAligned && !isCentered
+    trailingAlignmentSpacer?.isHidden = !isLeftAligned && !isCentered
+    centeringConstraint?.isActive = isCentered
+  }
+
+  /// Capsule button with solid neutral fill and neutral (non tinted) label and symbol
+  private static func applyModernStyle(to button: UIButton, title: String?, symbolName: String) {
+    var configuration = UIButton.Configuration.filled()
+    configuration.cornerStyle = .capsule
+    configuration.title = title
+    configuration.image = UIImage(systemName: symbolName)
+    configuration.imagePadding = title == nil ? 0 : 8
+    configuration.baseForegroundColor = .label
+    configuration.baseBackgroundColor = .secondarySystemFill
+    configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+      var attributes = attributes
+      attributes.font = UIFont.preferredFont(forTextStyle: .headline)
+      return attributes
+    }
+    button.backgroundColor = .clear
+    button.layer.cornerRadius = 0.0
+    button.setTitle(nil, for: .normal)
+    button.configuration = configuration
   }
 
   func activate() {
