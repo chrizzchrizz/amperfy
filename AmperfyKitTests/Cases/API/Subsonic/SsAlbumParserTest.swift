@@ -138,8 +138,9 @@ class SsAlbumParserTest: AbstractSsParserTest {
 
   func testReleaseSortDate() throws {
     // 1: full release date, even though one of its songs has another one
-    // 2: only a year as release date, falls back to created (with fractional seconds)
+    // 2: only a year as release date, month and day default to the first
     // 3: no release date, falls back to created (without fractional seconds)
+    //    (created with fractional seconds is parsed too, see 5)
     // 4: neither
     let xml = """
     <subsonic-response xmlns="http://subsonic.org/restapi" status="ok" version="1.16.1">
@@ -154,6 +155,7 @@ class SsAlbumParserTest: AbstractSsParserTest {
       <releaseDate year="2026"></releaseDate>
     </album>
     <album id="3" name="C" artist="X" artistId="9" songCount="1" duration="10" created="2004-11-27T20:23:32Z" year="2012"></album>
+    <album id="5" name="E" artist="X" artistId="9" songCount="1" duration="10" created="2026-10-07T19:58:00.9769407Z" year="2026"></album>
     <album id="4" name="D" artist="X" artistId="9" songCount="1" duration="10" year="2012"></album>
     </albumList2>
     </subsonic-response>
@@ -172,7 +174,12 @@ class SsAlbumParserTest: AbstractSsParserTest {
       utc.dateComponents([.year, .month, .day, .hour], from: released),
       DateComponents(year: 2025, month: 11, day: 6, hour: 0)
     )
-    let createdWithFraction = try XCTUnwrap(albums["2"]?.releaseSortDate)
+    let yearOnly = try XCTUnwrap(albums["2"]?.releaseSortDate)
+    XCTAssertEqual(
+      utc.dateComponents([.year, .month, .day, .hour], from: yearOnly),
+      DateComponents(year: 2026, month: 1, day: 1, hour: 0)
+    )
+    let createdWithFraction = try XCTUnwrap(albums["5"]?.releaseSortDate)
     XCTAssertEqual(
       utc.dateComponents([.year, .month, .day, .hour, .minute], from: createdWithFraction),
       DateComponents(year: 2026, month: 10, day: 7, hour: 19, minute: 58)

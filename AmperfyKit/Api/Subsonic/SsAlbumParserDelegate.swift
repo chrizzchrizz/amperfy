@@ -52,7 +52,6 @@ class SsAlbumParserDelegate: SsXmlLibWithArtworkParser {
     }
     // the release date of the album itself, not of its songs
     if elementName == "releaseDate", songDepth == 0, let albumBuffer, !isReleaseDateParsed {
-      // only complete dates are usable for sorting; a year alone is already known
       if let releaseDate = Self.parseReleaseDate(attributes: attributeDict) {
         albumBuffer.releaseSortDate = releaseDate
         isReleaseDateParsed = true
@@ -161,11 +160,12 @@ class SsAlbumParserDelegate: SsXmlLibWithArtworkParser {
     )
   }
 
-  /// Date of "releaseDate" element with year, month and day; nil if month or day is missing.
+  /// Date of "releaseDate" element; a missing month or day is set to the first one, nil without a year.
   static func parseReleaseDate(attributes: [String: String]) -> Date? {
-    guard let year = attributes["year"].flatMap({ Int($0) }),
-          let month = attributes["month"].flatMap({ Int($0) }),
-          let day = attributes["day"].flatMap({ Int($0) }) else { return nil }
+    guard let year = attributes["year"].flatMap({ Int($0) })
+    else { return nil }
+    let month = attributes["month"].flatMap { Int($0) } ?? 1
+    let day = attributes["day"].flatMap { Int($0) } ?? 1
     var calendar = Calendar(identifier: .gregorian)
     calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .gmt
     return calendar.date(from: DateComponents(year: year, month: month, day: day))
