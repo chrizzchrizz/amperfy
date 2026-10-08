@@ -63,6 +63,14 @@ public class Album: AbstractLibraryEntity {
     }
   }
 
+  /// Release date; falls back to the date the album was added on the server
+  public var releaseSortDate: Date? {
+    get { managedObject.releaseSortDate }
+    set {
+      if managedObject.releaseSortDate != newValue { managedObject.releaseSortDate = newValue }
+    }
+  }
+
   public var duration: Int { Int(managedObject.duration) }
 
   public var remoteDuration: Int {

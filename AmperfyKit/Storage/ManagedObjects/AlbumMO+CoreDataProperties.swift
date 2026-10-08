@@ -48,6 +48,9 @@ extension AlbumMO {
   public var remoteSongCount: Int16
   @NSManaged
   public var year: Int16
+  /// Release date; falls back to the date the album was added on the server
+  @NSManaged
+  public var releaseSortDate: Date?
   @NSManaged
   public var artist: ArtistMO?
   @NSManaged
