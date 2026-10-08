@@ -672,7 +672,8 @@ public class AlbumFetchedResultsController: CachedFetchedResultsController<Album
     account: Account,
     sortType: AlbumElementSortType,
     isGroupedInAlphabeticSections: Bool,
-    fetchLimit: Int? = nil
+    fetchLimit: Int? = nil,
+    sortsYearByReleaseDate: Bool = false
   ) {
     self.sortType = sortType
     var fetchRequest = AlbumMO.alphabeticSortedFetchRequest
@@ -690,7 +691,8 @@ public class AlbumFetchedResultsController: CachedFetchedResultsController<Album
     case .duration:
       fetchRequest = AlbumMO.durationSortedFetchRequest
     case .year:
-      fetchRequest = AlbumMO.yearSortedFetchRequest
+      fetchRequest = sortsYearByReleaseDate ? AlbumMO.releaseDateSortedFetchRequest : AlbumMO
+        .yearSortedFetchRequest
     }
     fetchRequest.fetchLimit = fetchLimit ?? 0
     fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [

@@ -1107,7 +1107,7 @@ public class LibraryStorage: PlayableFileCachable {
 
   func getFetchPredicate(songsDisplayFilter: DisplayCategoryFilter) -> NSPredicate {
     switch songsDisplayFilter {
-    case .all, .newest, .recent, .latestReleased:
+    case .all, .latestReleased, .newest, .recent:
       return NSPredicate(value: true)
     case .favorites:
       return NSPredicate(format: "%K == TRUE", #keyPath(SongMO.isFavorite))
@@ -1379,8 +1379,9 @@ public class LibraryStorage: PlayableFileCachable {
     for account: Account,
     offset: Int = 0,
     count: Int = 50
-  ) -> [Album] {
-    let fetchRequest = AlbumMO.yearSortedFetchRequest
+  )
+    -> [Album] {
+    let fetchRequest = AlbumMO.releaseDateSortedFetchRequest
     fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
       getFetchPredicate(forAccount: account),
       getFetchPredicate(albumsDisplayFilter: .latestReleased),

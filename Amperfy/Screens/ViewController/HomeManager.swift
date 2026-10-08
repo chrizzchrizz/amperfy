@@ -143,7 +143,8 @@ class HomeManager: NSObject {
         coreDataCompanion: storage.main, account: account,
         sortType: .year,
         isGroupedInAlphabeticSections: false,
-        fetchLimit: Self.sectionMaxItemCount
+        fetchLimit: Self.sectionMaxItemCount,
+        sortsYearByReleaseDate: true
       )
       albumsLatestReleasedFetchController?.delegate = self
       albumsLatestReleasedFetchController?.search(

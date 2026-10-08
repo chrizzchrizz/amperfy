@@ -175,4 +175,37 @@ class AlbumTest: XCTestCase {
     testAlbum.name = "blub"
     XCTAssertFalse(testAlbum.isOrphaned)
   }
+
+  func testLatestReleasedAlbumsSortedByYearThenReleaseSortDate() {
+    func createAlbum(id: String, year: Int, releaseSortDate: Date?) {
+      let album = library.createAlbum(account: account)
+      album.id = id
+      album.name = id
+      album.year = year
+      album.releaseSortDate = releaseSortDate
+    }
+    createAlbum(
+      id: "rel-a",
+      year: 2025,
+      releaseSortDate: Date(timeIntervalSince1970: 1_740_000_000)
+    )
+    createAlbum(
+      id: "rel-b",
+      year: 2025,
+      releaseSortDate: Date(timeIntervalSince1970: 1_762_000_000)
+    )
+    createAlbum(
+      id: "rel-c",
+      year: 2026,
+      releaseSortDate: Date(timeIntervalSince1970: 1_768_000_000)
+    )
+    createAlbum(id: "rel-d", year: 2025, releaseSortDate: nil)
+    library.saveContext()
+
+    let ids = library.getLatestReleasedAlbums(for: account, count: 1000)
+      .map(\.id)
+      .filter { $0.hasPrefix("rel-") }
+    // newest year first, then newest date first; albums without a date come last in their year
+    XCTAssertEqual(ids, ["rel-c", "rel-b", "rel-a", "rel-d"])
+  }
 }

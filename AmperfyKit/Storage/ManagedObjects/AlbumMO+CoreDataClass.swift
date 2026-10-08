@@ -184,6 +184,26 @@ public final class AlbumMO: AbstractLibraryEntityMO {
     return fetchRequest
   }
 
+  /// Newest year first, within a year the latest release (or added) date first
+  static var releaseDateSortedFetchRequest: NSFetchRequest<AlbumMO> {
+    let fetchRequest: NSFetchRequest<AlbumMO> = AlbumMO.fetchRequest()
+    fetchRequest.sortDescriptors = [
+      NSSortDescriptor(key: #keyPath(AlbumMO.year), ascending: false),
+      NSSortDescriptor(key: #keyPath(AlbumMO.releaseSortDate), ascending: false),
+      NSSortDescriptor(
+        key: Self.identifierKeyString,
+        ascending: true,
+        selector: #selector(NSString.localizedStandardCompare)
+      ),
+      NSSortDescriptor(
+        key: "id",
+        ascending: true,
+        selector: #selector(NSString.localizedStandardCompare)
+      ),
+    ]
+    return fetchRequest
+  }
+
   static var yearSortedFetchRequest: NSFetchRequest<AlbumMO> {
     let fetchRequest: NSFetchRequest<AlbumMO> = AlbumMO.fetchRequest()
     fetchRequest.sortDescriptors = [
