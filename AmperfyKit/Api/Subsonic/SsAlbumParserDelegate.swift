@@ -29,6 +29,8 @@ class SsAlbumParserDelegate: SsXmlLibWithArtworkParser {
   var guessedGenre: Genre?
   var parsedAlbums = [Album]()
   private var albumBuffer: Album?
+  private var isReleaseDateParsed = false
+  private var songDepth = 0
 
   override func parser(
     _ parser: XMLParser,
@@ -44,6 +46,18 @@ class SsAlbumParserDelegate: SsXmlLibWithArtworkParser {
       qualifiedName: qName,
       attributes: attributeDict
     )
+
+    if elementName == "song" {
+      songDepth += 1
+    }
+    // the release date of the album itself, not of its songs
+    if elementName == "releaseDate", songDepth == 0, let albumBuffer, !isReleaseDateParsed {
+      // only complete dates are usable for sorting; a year alone is already known
+      if let releaseDate = Self.parseReleaseDate(attributes: attributeDict) {
+        albumBuffer.releaseSortDate = releaseDate
+        isReleaseDateParsed = true
+      }
+    }
 
     if elementName == "album" {
       guard let albumId = attributeDict["id"] else { return }
@@ -72,6 +86,9 @@ class SsAlbumParserDelegate: SsXmlLibWithArtworkParser {
       if let attributeYear = attributeDict["year"], let year = Int(attributeYear) {
         albumBuffer?.year = year
       }
+      // fallback for the release date, which is delivered by a child element (OpenSubsonic)
+      isReleaseDateParsed = false
+      albumBuffer?.releaseSortDate = attributeDict["created"].flatMap { Self.parseDate($0) }
       if let attributeSongCount = attributeDict["songCount"],
          let songCount = Int(attributeSongCount) {
         albumBuffer?.remoteSongCount = songCount
@@ -124,6 +141,8 @@ class SsAlbumParserDelegate: SsXmlLibWithArtworkParser {
     qualifiedName qName: String?
   ) {
     switch elementName {
+    case "song":
+      songDepth = max(0, songDepth - 1)
     case "album":
       parsedCount += 1
       if let album = albumBuffer {
@@ -140,5 +159,30 @@ class SsAlbumParserDelegate: SsXmlLibWithArtworkParser {
       namespaceURI: namespaceURI,
       qualifiedName: qName
     )
+  }
+
+  /// Date of "releaseDate" element with year, month and day; nil if month or day is missing.
+  static func parseReleaseDate(attributes: [String: String]) -> Date? {
+    guard let year = attributes["year"].flatMap({ Int($0) }),
+          let month = attributes["month"].flatMap({ Int($0) }),
+          let day = attributes["day"].flatMap({ Int($0) }) else { return nil }
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .gmt
+    return calendar.date(from: DateComponents(year: year, month: month, day: day))
+  }
+
+  /// ISO 8601 date with or without fractional seconds
+  static func parseDate(_ text: String) -> Date? {
+    let dateFormatter = ISO8601DateFormatter()
+    dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    if let date = dateFormatter.date(from: text) {
+      return date
+    }
+    dateFormatter.formatOptions = [.withInternetDateTime]
+    if let date = dateFormatter.date(from: text) {
+      return date
+    }
+    dateFormatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime]
+    return dateFormatter.date(from: text)
   }
 }
