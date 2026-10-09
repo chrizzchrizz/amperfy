@@ -538,6 +538,15 @@ class PlayableTableCell: BasicTableCell {
       refreshHoverStyle()
     }
 
+    /// 1.0 keeps the table's background color, smaller values make the hover darker.
+    private static let hoverBrightnessFactor: CGFloat = 0.8
+
+    /// The hover uses the background color of the table view the cell is displayed in, darkened.
+    private var tableBackgroundColor: UIColor {
+      (enclosingTableView?.backgroundColor ?? .secondarySystemGroupedBackground)
+        .darkened(brightnessFactor: Self.hoverBrightnessFactor)
+    }
+
     private func installHoverBackgroundIfNeeded() {
       guard hoverBackgroundView.superview == nil else { return }
       contentView.insertSubview(hoverBackgroundView, at: 0)
@@ -589,11 +598,12 @@ class PlayableTableCell: BasicTableCell {
         if isDislayAlbumTrackNumberStyle {
           // translucent hover limited to the content margins instead of the full cell width
           installHoverBackgroundIfNeeded()
+          hoverBackgroundView.backgroundColor = tableBackgroundColor.withAlphaComponent(0.6)
           hoverBackgroundView.isHidden = false
         } else {
           backgroundColor = (rootView is PopupPlayerVC) ?
-            .secondarySystemGroupedBackground.withAlphaComponent(0.2) :
-            .secondarySystemGroupedBackground
+            tableBackgroundColor.withAlphaComponent(0.2) :
+            tableBackgroundColor
         }
       } else {
         playOverButton.isHidden = true

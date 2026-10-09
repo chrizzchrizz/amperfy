@@ -78,7 +78,7 @@ class BasicTableCell: UITableViewCell {
     return line
   }
 
-  private var enclosingTableView: UITableView? {
+  var enclosingTableView: UITableView? {
     var view = superview
     while let current = view, !(current is UITableView) { view = current.superview }
     return view as? UITableView
