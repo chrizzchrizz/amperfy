@@ -38,11 +38,13 @@ public class CoreDataCompanion {
     library.saveContext()
   }
 
-  public func perform(body: @escaping (_ asyncCompanion: CoreDataCompanion) -> ()) {
-    context.performAndWait {
-      body(self)
-      library.saveContext()
-    }
+  /// Only for the main context: it lives on the main queue, so running on the main actor is
+  /// already the context's queue. `performAndWait` would be a blocking sync dispatch from
+  /// a Swift concurrency context (unsafeForcedSync).
+  @MainActor
+  public func perform(body: (_ asyncCompanion: CoreDataCompanion) -> ()) {
+    body(self)
+    library.saveContext()
   }
 }
 
