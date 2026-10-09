@@ -674,7 +674,7 @@ class MiniPlayerView: UIView {
       artworkImage.topAnchor.constraint(equalTo: topAnchor, constant: 8),
       artworkImage.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
       artworkImage.widthAnchor.constraint(equalTo: artworkImage.heightAnchor),
-      artworkImage.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
+      artworkImage.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
 
       titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
       titleLabel.bottomAnchor.constraint(equalTo: playButton.centerYAnchor),
@@ -703,11 +703,11 @@ class MiniPlayerView: UIView {
 
   public func refreshForTraitChange(horizontalSizeClass: UIUserInterfaceSizeClass) {
     if horizontalSizeClass == .regular {
-      titleLabel.font = .systemFont(ofSize: 8.0)
+      titleLabel.font = .systemFont(ofSize: 15.0, weight: .semibold)
       subtitleLabel.font = .systemFont(ofSize: 15.0)
     } else {
-      titleLabel.font = .systemFont(ofSize: 11.0)
-      subtitleLabel.font = .systemFont(ofSize: 13.0)
+      titleLabel.font = .systemFont(ofSize: 13.0, weight: .semibold)
+      subtitleLabel.font = .systemFont(ofSize: 12.0)
     }
   }
 
@@ -832,10 +832,10 @@ class MiniPlayerView: UIView {
   func refreshPlayer() {
     if traitCollection.userInterfaceStyle == .dark {
       titleLabel.textColor = .white
-      subtitleLabel.textColor = .lightGray
+      subtitleLabel.textColor = .white
     } else {
       titleLabel.textColor = .black
-      subtitleLabel.textColor = .darkGray
+      subtitleLabel.textColor = .black
     }
     playerHandler?.refreshCurrentlyPlayingInfo(
       artworkImage: artworkImage,
