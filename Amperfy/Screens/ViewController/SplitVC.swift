@@ -31,6 +31,9 @@ class SplitVC: UISplitViewController {
   public static let inspectorWidth: CGFloat = 300
 
   var miniPlayer: MiniPlayerView?
+  static let miniPlayerMaxWidth: CGFloat = 800
+  /// Area between sidebar and inspector in which the mini player is centered.
+  private let miniPlayerArea = UILayoutGuide()
   var miniPlayerLeadingConstraint: NSLayoutConstraint?
   var miniPlayerTrailingConstraint: NSLayoutConstraint?
   var miniPlayerBottomConstraint: NSLayoutConstraint?
@@ -75,14 +78,18 @@ class SplitVC: UISplitViewController {
     miniPlayer.glassContainer.layer.cornerRadius = 25
     miniPlayer.glassContainer.clipsToBounds = true
 
-    miniPlayerLeadingConstraint = miniPlayer.glassContainer.leadingAnchor.constraint(
+    view.addLayoutGuide(miniPlayerArea)
+    miniPlayerLeadingConstraint = miniPlayerArea.leadingAnchor.constraint(
       equalTo: view.safeAreaLayoutGuide.leadingAnchor,
       constant: primaryColumnWidth + 20
     )
-    miniPlayerTrailingConstraint = miniPlayer.glassContainer.trailingAnchor.constraint(
+    miniPlayerTrailingConstraint = miniPlayerArea.trailingAnchor.constraint(
       equalTo: view.safeAreaLayoutGuide.trailingAnchor,
       constant: -inspectorWidth - 20
     )
+    let miniPlayerPreferredWidth = miniPlayer.glassContainer.widthAnchor
+      .constraint(equalTo: miniPlayerArea.widthAnchor)
+    miniPlayerPreferredWidth.priority = .defaultHigh
     miniPlayerBottomConstraint = view.safeAreaLayoutGuide.bottomAnchor.constraint(
       equalTo: miniPlayer.glassContainer.bottomAnchor,
       constant: 15.0
@@ -93,6 +100,10 @@ class SplitVC: UISplitViewController {
     NSLayoutConstraint.activate([
       miniPlayerLeadingConstraint!,
       miniPlayerTrailingConstraint!,
+      miniPlayer.glassContainer.centerXAnchor.constraint(equalTo: miniPlayerArea.centerXAnchor),
+      miniPlayer.glassContainer.widthAnchor
+        .constraint(lessThanOrEqualToConstant: Self.miniPlayerMaxWidth),
+      miniPlayerPreferredWidth,
       miniPlayerBottomConstraint!,
       miniPlayerHeightConstraint!,
     ])
