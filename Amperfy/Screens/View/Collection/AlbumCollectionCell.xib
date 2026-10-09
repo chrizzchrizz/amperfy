@@ -58,6 +58,9 @@
                                         <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                         <color key="textColor" systemColor="secondaryLabelColor"/>
                                         <nil key="highlightedColor"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="16" id="Sb1-Hg-MnH"/>
+                                        </constraints>
                                         <variation key="widthClass=regular">
                                             <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                         </variation>
