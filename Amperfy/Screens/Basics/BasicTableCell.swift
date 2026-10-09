@@ -110,6 +110,8 @@ class BasicTableCell: UITableViewCell {
       return
     }
     installSeparatorsIfNeeded()
+    topSeparator.backgroundColor = table.separatorColor ?? .separator
+    bottomSeparator.backgroundColor = table.separatorColor ?? .separator
     let indexPath = table.indexPath(for: self)
     let lastSection = table.numberOfSections - 1
     let isFirst = indexPath?.section == 0 && indexPath?.row == 0
