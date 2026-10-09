@@ -97,6 +97,15 @@ class PlayableTableCell: BasicTableCell {
     private var hoverGestureRecognizer: UIHoverGestureRecognizer!
     private var doubleTapGestureRecognizer: UITapGestureRecognizer!
     private var isHovered = false
+    private let hoverBackgroundView: UIView = {
+      let view = UIView()
+      view.translatesAutoresizingMaskIntoConstraints = false
+      view.backgroundColor = UIColor.secondarySystemGroupedBackground.withAlphaComponent(0.6)
+      view.layer.cornerRadius = CornerRadius.medium.asCGFloat
+      view.isUserInteractionEnabled = false
+      view.isHidden = true
+      return view
+    }()
     private var isNotificationRegistered = false
   #else
     private var singleTapGestureRecognizer: UITapGestureRecognizer!
@@ -529,6 +538,18 @@ class PlayableTableCell: BasicTableCell {
       refreshHoverStyle()
     }
 
+    private func installHoverBackgroundIfNeeded() {
+      guard hoverBackgroundView.superview == nil else { return }
+      contentView.insertSubview(hoverBackgroundView, at: 0)
+      let guide = contentView.layoutMarginsGuide
+      NSLayoutConstraint.activate([
+        hoverBackgroundView.leadingAnchor.constraint(equalTo: guide.leadingAnchor),
+        hoverBackgroundView.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: 10),
+        hoverBackgroundView.topAnchor.constraint(equalTo: contentView.topAnchor),
+        hoverBackgroundView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+      ])
+    }
+
     func refreshHoverStyle() {
       if isHovered {
         playIndicator?.reset()
@@ -565,9 +586,15 @@ class PlayableTableCell: BasicTableCell {
           .getSetting(playable?.account?.info).read.themePreference.asColor
         optionsButton.imageView?.tintColor = appDelegate.storage.settings.accounts
           .getSetting(playable?.account?.info).read.themePreference.asColor
-        backgroundColor = (rootView is PopupPlayerVC) ?
-          .secondarySystemGroupedBackground.withAlphaComponent(0.2) :
-          .secondarySystemGroupedBackground
+        if isDislayAlbumTrackNumberStyle {
+          // translucent hover limited to the content margins instead of the full cell width
+          installHoverBackgroundIfNeeded()
+          hoverBackgroundView.isHidden = false
+        } else {
+          backgroundColor = (rootView is PopupPlayerVC) ?
+            .secondarySystemGroupedBackground.withAlphaComponent(0.2) :
+            .secondarySystemGroupedBackground
+        }
       } else {
         playOverButton.isHidden = true
         if isDislayAlbumTrackNumberStyle {
@@ -578,6 +605,7 @@ class PlayableTableCell: BasicTableCell {
         refreshSubtitleColor()
         optionsButton.imageView?.tintColor = .label
         backgroundColor = .clear
+        hoverBackgroundView.isHidden = true
       }
     }
 
