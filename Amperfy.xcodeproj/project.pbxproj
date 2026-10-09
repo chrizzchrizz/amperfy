@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		09EB5F102F93B96E00B1C71C /* ShareSongAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EB5F0D2F93B65400B1C71C /* ShareSongAction.swift */; };
-		43FBE27F250D4DFD00D5F9B3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 43FBE27E250D4DFD00D5F9B3 /* LaunchScreen.storyboard */; };
 		5003D8FB267B3390006946BF /* LibrarySyncPopupVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5003D8FA267B3390006946BF /* LibrarySyncPopupVC.swift */; };
 		5005938928E2D4EF008C8DF6 /* CommonCollectionSectionHeader.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5005938828E2D4EF008C8DF6 /* CommonCollectionSectionHeader.xib */; };
 		5005938B28E2D4FB008C8DF6 /* CommonCollectionSectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5005938A28E2D4FB008C8DF6 /* CommonCollectionSectionHeader.swift */; };
@@ -597,7 +596,6 @@
 
 /* Begin PBXFileReference section */
 		09EB5F0D2F93B65400B1C71C /* ShareSongAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSongAction.swift; sourceTree = "<group>"; };
-		43FBE27E250D4DFD00D5F9B3 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		5002565625E69DC700674CE1 /* SpinnerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerViewController.swift; sourceTree = "<group>"; };
 		5003D8F62678DD39006946BF /* SsAlbumParserPreCreatedArtistsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SsAlbumParserPreCreatedArtistsTest.swift; sourceTree = "<group>"; };
 		5003D8FA267B3390006946BF /* LibrarySyncPopupVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySyncPopupVC.swift; sourceTree = "<group>"; };
@@ -1772,7 +1770,6 @@
 		50BA92F421CC2C4800E5901D /* Screens */ = {
 			isa = PBXGroup;
 			children = (
-				43FBE27E250D4DFD00D5F9B3 /* LaunchScreen.storyboard */,
 				508385EB21C5965B00C4BB32 /* Main.storyboard */,
 				508FDE4B21F58AFC005A0724 /* AppStoryboard.swift */,
 				5009863A2208CB170057A1A6 /* Basics */,
@@ -2348,7 +2345,6 @@
 				504627EA2B73B44C00F481F8 /* PopupPlayerVC.xib in Resources */,
 				50A30E592B75026100722894 /* ContextQueueNextSectionHeader.xib in Resources */,
 				5005938928E2D4EF008C8DF6 /* CommonCollectionSectionHeader.xib in Resources */,
-				43FBE27F250D4DFD00D5F9B3 /* LaunchScreen.storyboard in Resources */,
 				50DEEE08265E27300073FF20 /* DirectoryTableCell.xib in Resources */,
 				500B7D4521EDB05F0083ED6F /* LibraryElementDetailTableHeaderView.xib in Resources */,
 				50AFA14E2632E95900F198DD /* GenericDetailTableHeader.xib in Resources */,
