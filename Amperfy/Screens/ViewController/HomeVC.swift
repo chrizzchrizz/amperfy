@@ -212,6 +212,7 @@ final class HomeVC: UICollectionViewController {
         return nil
       }
       header.title = section.title
+      header.setTapHandler { [weak self] in self?.showLibraryList(for: section) }
       if section == .randomAlbums {
         header.showsRefreshButton = true
         header.setRefreshHandler { [weak self] in self?.refreshRandomAlbumsSection() }
@@ -315,6 +316,28 @@ final class HomeVC: UICollectionViewController {
     Task { @MainActor in
       await sharedHome.updateRandomSongs(isOfflineMode: sharedHome.isOfflineMode)
     }
+  }
+
+  // MARK: - Section Navigation
+
+  private func showLibraryList(for section: HomeSection) {
+    let displayType: LibraryDisplayType
+    switch section {
+    case .recentlyPlayedAlbums: displayType = .recentAlbums
+    case .newestAlbums: displayType = .newestAlbums
+    case .randomAlbums: displayType = .albums
+    case .lastTimePlayedPlaylists: displayType = .playlists
+    case .newestPodcastEpisodes, .podcasts: displayType = .podcasts
+    case .radios: displayType = .radios
+    case .randomArtists: displayType = .artists
+    case .randomGenres: displayType = .genres
+    case .randomSongs: displayType = .songs
+    }
+    navigationController?.pushViewController(
+      displayType.controller(account: account, settings: appDelegate.storage.settings),
+      animated: true
+    )
+    navigationController?.navigationBar.prefersLargeTitles = false
   }
 
   // MARK: - Selection Handling
@@ -472,13 +495,46 @@ final class SectionHeaderView: UICollectionReusableView {
   }
 
   var title: String? {
-    didSet { titleLabel.text = title }
+    didSet { updateTitle() }
+  }
+
+  private func updateTitle() {
+    guard let title else {
+      titleLabel.attributedText = nil
+      return
+    }
+    let result = NSMutableAttributedString(string: title)
+    if tapHandler != nil {
+      let config = UIImage.SymbolConfiguration(textStyle: .subheadline, scale: .small)
+        .applying(UIImage.SymbolConfiguration(weight: .semibold))
+      let attachment = NSTextAttachment()
+      attachment.image = UIImage(systemName: "chevron.right", withConfiguration: config)?
+        .withTintColor(.secondaryLabel, renderingMode: .alwaysOriginal)
+      result.append(NSAttributedString(string: " "))
+      result.append(NSAttributedString(attachment: attachment))
+    }
+    titleLabel.attributedText = result
+  }
+
+  private var tapHandler: (() -> ())?
+
+  func setTapHandler(_ handler: (() -> ())?) {
+    tapHandler = handler
+    updateTitle()
+    isUserInteractionEnabled = true
+    accessibilityTraits = handler == nil ? [] : .button
+  }
+
+  @objc
+  private func headerTapped() {
+    tapHandler?()
   }
 
   override init(frame: CGRect) {
     super.init(frame: frame)
     addSubview(titleLabel)
     addSubview(refreshButton)
+    addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(headerTapped)))
     NSLayoutConstraint.activate([
       titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
       titleLabel.trailingAnchor.constraint(
@@ -496,6 +552,7 @@ final class SectionHeaderView: UICollectionReusableView {
     super.init(coder: coder)
     addSubview(titleLabel)
     addSubview(refreshButton)
+    addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(headerTapped)))
     NSLayoutConstraint.activate([
       titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
       titleLabel.trailingAnchor.constraint(
