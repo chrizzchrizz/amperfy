@@ -33,8 +33,6 @@ enum PlaylistEditMode {
 // MARK: - PlaylistEditVC
 
 class PlaylistEditVC: SingleSnapshotFetchedResultsTableViewController<PlaylistItemMO> {
-  override var sceneTitle: String? { playlist.name }
-
   private var fetchedResultsController: PlaylistItemsFetchedResultsController!
 
   let playlist: Playlist

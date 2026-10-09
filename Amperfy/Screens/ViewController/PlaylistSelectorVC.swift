@@ -42,8 +42,6 @@ class PlaylistsSelectorDiffableDataSource: BasicUITableViewDiffableDataSource {
 // MARK: - PlaylistSelectorVC
 
 class PlaylistSelectorVC: SingleSnapshotFetchedResultsTableViewController<PlaylistMO> {
-  override var sceneTitle: String? { "Playlists" }
-
   let itemsToAdd: [Song]
   private var selectedPlaylits = [Playlist: [Song]]()
 
