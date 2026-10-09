@@ -67,7 +67,7 @@ class PlayIndicatorHandler {
 
 @MainActor
 class PlayIndicator {
-  static private let frameHeight = 20.0
+  static private let frameHeight = 16.0
 
   var willDisplayIndicatorCB: VoidFunctionCallback?
   var willHideIndicatorCB: VoidFunctionCallback?

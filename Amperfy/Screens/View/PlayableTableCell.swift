@@ -57,28 +57,26 @@ class PlayableTableCell: BasicTableCell {
   @IBOutlet
   weak var trackNumberLabel: UILabel!
   @IBOutlet
-  weak var downloadProgress: UIProgressView! // depricated: replaced with a spinner in the accessoryView
+  weak var trackNumberContainer: UIView!
   @IBOutlet
   weak private var cacheIconImage: UIImageView!
   @IBOutlet
   weak private var favoriteIconImage: UIImageView!
 
+  /// aligns the favorite icon with the track number (centered on the title line), otherwise it is
+  /// centered in the row
   @IBOutlet
-  weak var titleContainerLeadingConstraint: NSLayoutConstraint!
+  weak var favoriteTitleAlignConstraint: NSLayoutConstraint!
   @IBOutlet
   weak var labelTrailingCellConstraint: NSLayoutConstraint!
-  @IBOutlet
-  weak var cacheTrailingCellConstaint: NSLayoutConstraint!
-  @IBOutlet
-  weak var durationTrailingCellConstraint: NSLayoutConstraint!
   @IBOutlet
   weak var optionsButton: UIButton!
   @IBOutlet
   weak var deleteButton: UIButton!
   @IBOutlet
-  weak var playOverArtworkButton: UIButton!
+  weak var playOverButton: UIButton!
   @IBOutlet
-  weak var playOverNumberButton: UIButton!
+  weak var playOverButtonLeadingConstraint: NSLayoutConstraint!
 
   private var ratingStackView: UIStackView?
   private var ratingStarViews: [UIImageView] = []
@@ -140,10 +138,8 @@ class PlayableTableCell: BasicTableCell {
 
       style = PlayableTableCellStyle.none
       deleteButton.tintColor = .red
-      playOverArtworkButton.layer.backgroundColor = UIColor.imageOverlayBackground.cgColor
-      playOverArtworkButton.layer.cornerRadius = CornerRadius.small.asCGFloat
+      playOverButton.layer.cornerRadius = CornerRadius.small.asCGFloat
       selectionStyle = .none
-      downloadProgress.isHidden = true
       setupRatingStars()
       resetForReuse()
     }
@@ -176,7 +172,7 @@ class PlayableTableCell: BasicTableCell {
     contentView.addSubview(stackView)
 
     NSLayoutConstraint.activate([
-      stackView.trailingAnchor.constraint(equalTo: optionsButton.trailingAnchor, constant: -4),
+      stackView.trailingAnchor.constraint(equalTo: optionsButton.trailingAnchor, constant: -8),
       stackView.topAnchor.constraint(equalTo: optionsButton.bottomAnchor, constant: -8),
     ])
 
@@ -199,8 +195,8 @@ class PlayableTableCell: BasicTableCell {
   func resetForReuse() {
     playIndicator?.reset()
     deleteButton.isHidden = true
-    playOverArtworkButton.isHidden = true
-    playOverNumberButton.isHidden = true
+    playOverButton.isHidden = true
+    trackNumberLabel.isHidden = false
     ratingStackView?.isHidden = true
     // Reset all stars for next use
     for starView in ratingStarViews {
@@ -297,15 +293,15 @@ class PlayableTableCell: BasicTableCell {
         guard let self = self else { return }
         configureTrackNumberLabel()
       }
-      trackNumberLabel.isHidden = false
+      trackNumberContainer.isHidden = false
       entityImage.isHidden = true
-      titleContainerLeadingConstraint.constant = 10 + 21 + 16 // heart + track lable width + offset
+      favoriteTitleAlignConstraint.priority = UILayoutPriority(999)
     case .artwork:
       playIndicator?.willDisplayIndicatorCB = nil
       playIndicator?.willHideIndicatorCB = nil
-      trackNumberLabel.isHidden = true
+      trackNumberContainer.isHidden = true
       entityImage.isHidden = false
-      titleContainerLeadingConstraint.constant = 10 + 48 + 8 // heart + artwork width + offset
+      favoriteTitleAlignConstraint.priority = UILayoutPriority(1)
     case .none:
       break // do nothing
     }
@@ -408,20 +404,13 @@ class PlayableTableCell: BasicTableCell {
     guard let playable = playable else { return }
     favoriteIconImage.isHidden = !playable.isFavorite
 
+    // the duration is always shown in regular width, in compact width only if enabled in settings
     let isDurationVisible = !playable.isRadio &&
       (
-        appDelegate.storage.settings.user
-          .isShowSongDuration || (traitCollection.horizontalSizeClass == .regular)
+        traitCollection.horizontalSizeClass == .regular ||
+          appDelegate.storage.settings.user.isShowSongDuration
       )
-    let cacheIconWidth = (traitCollection.horizontalSizeClass == .regular) ? 17.0 : 15.0
-    let durationWidth = (
-      traitCollection.horizontalSizeClass == .regular &&
-        traitCollection.userInterfaceIdiom != .mac
-    ) ? 49.0 : 40.0
     let isDisplayOptionButton = (playContextCb != nil) && (playerIndexCb == nil)
-    let durationTrailing = isDisplayOptionButton ?
-      ((traitCollection.horizontalSizeClass == .regular) ? 30 : 30.0) : 0.0
-
     optionsButton.isHidden = !isDisplayOptionButton
     if isDisplayOptionButton {
       optionsButton.showsMenuAsPrimaryAction = true
@@ -440,45 +429,21 @@ class PlayableTableCell: BasicTableCell {
       }
     }
 
-    // macOS & iPadOS regular
-    // |title|x|Cache|4|Duration| ... |
-    // |title|        80        | 30  |
-    // compact
-    // |title|4|Cache|4|Duration| ... |
-    // |title|4|  15 |4|   40   | 30  |
-    // |title|4|  15 |-|   --   | 30  |
-    // |title|8|  -- |-|   40   | 30  |
-    // Calculate extra space needed for rating stars when duration is hidden
-    // Stars are positioned at optionsButton.trailingAnchor - 4, extending left
+    // The cache icon, duration and options button are arranged in a stack view, hidden ones
+    // collapse. The labels end before that stack.
+    // Stars are positioned at optionsButton.trailingAnchor - 8, extending left.
     // Each star is 10pt with -2pt spacing: width = rating * 8 + 2
-    // We only need extra space beyond what optionsButton area (30pt) already provides
+    // Without the duration the stack is only as wide as the options button (34pt), so the title
+    // needs more space if the stars are wider than that.
+    let labelToAccessoriesGap = 8.0
     let songRating = playable.asSong?.rating ?? 0
     let isRatingVisible = appDelegate.storage.settings.user.isShowRating && songRating > 0
-    let starWidth = CGFloat(songRating * 8 + 2) // Actual star width for this rating
-    let ratingExtraSpace: CGFloat = isRatingVisible ? max(0, starWidth - 26) + 6 : 0.0
+    let starWidth = CGFloat(songRating * 8 + 2)
+    let ratingExtraSpace: CGFloat = (isRatingVisible && !isDurationVisible) ?
+      max(0, starWidth - 30) : 0.0
+    labelTrailingCellConstraint.constant = labelToAccessoriesGap + ratingExtraSpace
 
-    if traitCollection.horizontalSizeClass == .regular {
-      labelTrailingCellConstraint.constant = 80 + durationTrailing
-    } else {
-      var lableTrailing = durationTrailing
-      if playable.isCached, isDurationVisible {
-        lableTrailing += 4 + cacheIconWidth + 4 + durationWidth
-      } else if playable.isCached {
-        lableTrailing += 4 + cacheIconWidth
-      } else if isDurationVisible {
-        lableTrailing += 8 + durationWidth
-      }
-      // Add extra space for rating stars when duration is not visible
-      if !isDurationVisible, isRatingVisible {
-        lableTrailing += ratingExtraSpace
-      }
-      labelTrailingCellConstraint.constant = lableTrailing
-    }
-
-    durationTrailingCellConstraint.constant = durationTrailing
     cacheIconImage.isHidden = !playable.isCached
-    cacheTrailingCellConstaint
-      .constant = durationTrailing + (isDurationVisible ? (4.0 + durationWidth) : 0.0)
     durationLabel.isHidden = !isDurationVisible
     if isDurationVisible {
       durationLabel.text = playable.duration.asColonDurationString
@@ -526,7 +491,12 @@ class PlayableTableCell: BasicTableCell {
   }
 
   override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
     playIndicator?.applyStyle()
+    // duration, cache icon and label spacing depend on the size class, e.g. after resizing a window
+    if previousTraitCollection?.horizontalSizeClass != traitCollection.horizontalSizeClass {
+      refreshCacheAndDuration()
+    }
   }
 
   #if targetEnvironment(macCatalyst) // ok
@@ -576,20 +546,20 @@ class PlayableTableCell: BasicTableCell {
           } else {
             buttonImg = UIImage.play
           }
+          // the button is inset in the track number slot, but covers the whole cover
+          playOverButtonLeadingConstraint.constant = isDislayAlbumTrackNumberStyle ? 12 : 0
           if isDislayAlbumTrackNumberStyle {
             trackNumberLabel.isHidden = true
-            playOverNumberButton.isHidden = false
-            playOverNumberButton.imageView?.tintColor = appDelegate.storage.settings.accounts
+            playOverButton.layer.backgroundColor = nil
+            playOverButton.imageView?.tintColor = appDelegate.storage.settings.accounts
               .getSetting(playable?.account?.info).read.themePreference
               .asColor
-            playOverNumberButton.setImage(buttonImg, for: UIControl.State.normal)
-            playOverArtworkButton.isHidden = true
           } else {
-            playOverArtworkButton.isHidden = false
-            playOverArtworkButton.imageView?.tintColor = .white
-            playOverArtworkButton.setImage(buttonImg, for: UIControl.State.normal)
-            playOverNumberButton.isHidden = true
+            playOverButton.layer.backgroundColor = UIColor.imageOverlayBackground.cgColor
+            playOverButton.imageView?.tintColor = .white
           }
+          playOverButton.setImage(buttonImg, for: UIControl.State.normal)
+          playOverButton.isHidden = false
         }
         cacheIconImage.tintColor = appDelegate.storage.settings.accounts
           .getSetting(playable?.account?.info).read.themePreference.asColor
@@ -599,8 +569,7 @@ class PlayableTableCell: BasicTableCell {
           .secondarySystemGroupedBackground.withAlphaComponent(0.2) :
           .secondarySystemGroupedBackground
       } else {
-        playOverArtworkButton.isHidden = true
-        playOverNumberButton.isHidden = true
+        playOverButton.isHidden = true
         if isDislayAlbumTrackNumberStyle {
           trackNumberLabel.isHidden = false
         }
