@@ -120,6 +120,13 @@ class PlayableTableCell: BasicTableCell {
     super.awakeFromNib()
     // This must be called in Main thread
     MainActor.assumeIsolated {
+      registerForTraitChanges([UITraitHorizontalSizeClass.self]) { (self: Self, _) in
+        // duration, cache icon and label spacing depend on the size class, e.g. after resizing a window
+        self.refreshCacheAndDuration()
+      }
+      registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, _) in
+        self.playIndicator?.applyStyle()
+      }
       playContextCb = nil
       #if targetEnvironment(macCatalyst) // ok
         hoverGestureRecognizer = UIHoverGestureRecognizer(
@@ -496,15 +503,6 @@ class PlayableTableCell: BasicTableCell {
   private func hideSearchBarKeyboardInRootView() {
     if let basicRootView = rootView as? BasicTableViewController {
       basicRootView.searchController.searchBar.endEditing(true)
-    }
-  }
-
-  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-    super.traitCollectionDidChange(previousTraitCollection)
-    playIndicator?.applyStyle()
-    // duration, cache icon and label spacing depend on the size class, e.g. after resizing a window
-    if previousTraitCollection?.horizontalSizeClass != traitCollection.horizontalSizeClass {
-      refreshCacheAndDuration()
     }
   }
 
