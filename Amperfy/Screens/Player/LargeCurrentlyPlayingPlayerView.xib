@@ -33,12 +33,14 @@
                                     <rect key="frame" x="7.5" y="88" width="360" height="360"/>
                                     <constraints>
                                         <constraint firstAttribute="width" secondItem="4sr-YU-gYi" secondAttribute="height" multiplier="1:1" id="0Rb-po-1Ij"/>
-                                        <constraint firstAttribute="width" relation="lessThanOrEqual" constant="360" id="t8J-Id-9KE"/>
+                                        <constraint firstAttribute="width" relation="lessThanOrEqual" constant="500" id="t8J-Id-9KE"/>
                                     </constraints>
                                 </imageView>
                             </subviews>
                             <constraints>
                                 <constraint firstItem="4sr-YU-gYi" firstAttribute="top" secondItem="ia9-ph-a9C" secondAttribute="top" priority="750" id="12M-TF-w9C"/>
+                                <constraint firstItem="4sr-YU-gYi" firstAttribute="top" relation="greaterThanOrEqual" secondItem="ia9-ph-a9C" secondAttribute="top" id="Rq1-Tp-Fit"/>
+                                <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="4sr-YU-gYi" secondAttribute="bottom" id="Rq2-Bt-Fit"/>
                                 <constraint firstAttribute="bottom" secondItem="4sr-YU-gYi" secondAttribute="bottom" priority="750" id="AQW-tz-8of"/>
                                 <constraint firstItem="BiX-ge-9XM" firstAttribute="bottom" secondItem="4sr-YU-gYi" secondAttribute="bottom" id="B6c-oA-2gs"/>
                                 <constraint firstItem="4sr-YU-gYi" firstAttribute="centerX" secondItem="ia9-ph-a9C" secondAttribute="centerX" id="QAU-Hs-QvW"/>
