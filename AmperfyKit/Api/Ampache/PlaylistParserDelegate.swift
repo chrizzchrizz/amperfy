@@ -111,6 +111,11 @@ class PlaylistParserDelegate: AmpacheNotifiableXmlParser {
     switch elementName {
     case "name":
       playlist?.name = buffer
+    case "art":
+      if let remoteInfo = AmpacheXmlServerApi.extractArtworkInfoFromURL(urlString: buffer),
+         playlist?.artwork?.remoteInfo != remoteInfo {
+        playlist?.artwork = library.getOrCreateArtwork(account: account, remoteInfo: remoteInfo)
+      }
     case "last_update":
       if let timestamp = TimeInterval(buffer), timestamp > 0 {
         playlist?.changeDate = Date(timeIntervalSince1970: timestamp)

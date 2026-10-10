@@ -26,12 +26,16 @@ public class ArtworkCollection {
   public let defaultArtworkType: ArtworkType
   public let singleImageEntity: AbstractLibraryEntity?
   public let quadImageEntity: [AbstractLibraryEntity]?
+  /// Displayed if there is no entity to display (e.g. a playlist server cover)
+  public let fallbackArtwork: Artwork?
 
   init(
     defaultArtworkType: ArtworkType,
     singleImageEntity: AbstractLibraryEntity?,
-    quadImageEntity: [AbstractLibraryEntity]? = nil
+    quadImageEntity: [AbstractLibraryEntity]? = nil,
+    fallbackArtwork: Artwork? = nil
   ) {
+    self.fallbackArtwork = fallbackArtwork
     self.defaultArtworkType = defaultArtworkType
     self.singleImageEntity = singleImageEntity
     self.quadImageEntity = quadImageEntity

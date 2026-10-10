@@ -82,6 +82,13 @@ class SsPlaylistParserDelegate: SsXmlParser {
 
       playlist?.name = attributePlaylistName
 
+      if let attributeCoverArt = attributeDict["coverArt"], !attributeCoverArt.isEmpty {
+        let remoteInfo = ArtworkRemoteInfo(id: attributeCoverArt, type: "")
+        if playlist?.artwork?.remoteInfo != remoteInfo {
+          playlist?.artwork = library.getOrCreateArtwork(account: account, remoteInfo: remoteInfo)
+        }
+      }
+
       if let attributeChanged = attributeDict["changed"] {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]

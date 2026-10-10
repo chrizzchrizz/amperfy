@@ -146,6 +146,11 @@ open class EntityImageView: UIView {
       }
     } else if let singleEntity = collection.singleImageEntity {
       singleImage.displayAndUpdate(entity: singleEntity)
+    } else if let fallbackArtwork = collection.fallbackArtwork {
+      singleImage.displayAndUpdate(
+        artwork: fallbackArtwork,
+        artworkType: collection.defaultArtworkType
+      )
     } else {
       singleImage.display(artworkType: collection.defaultArtworkType)
     }
