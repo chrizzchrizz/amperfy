@@ -111,6 +111,10 @@ class PlaylistParserDelegate: AmpacheNotifiableXmlParser {
     switch elementName {
     case "name":
       playlist?.name = buffer
+    case "last_update":
+      if let timestamp = TimeInterval(buffer), timestamp > 0 {
+        playlist?.changeDate = Date(timeIntervalSince1970: timestamp)
+      }
     case "items":
       playlist?.remoteSongCount = Int(buffer) ?? 0
     case "playlist":

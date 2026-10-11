@@ -114,7 +114,9 @@ class SsPlaylistSongsParserDelegate: SsSongParserDelegate {
         playlistChanged = true
       }
       if playlistChanged {
-        playlist.updateChangeDate()
+        if playlist.changeDate == nil {
+          playlist.updateChangeDate()
+        }
         playlist.updateArtworkItems()
       }
       playlist.isCached = isCollectionCached

@@ -504,6 +504,13 @@ public class Playlist: Identifyable {
 extension Playlist: PlayableContainable {
   public var subtitle: String? { nil }
   public var subsubtitle: String? { nil }
+  public var modifiedInfo: String? {
+    guard let changeDate else { return nil }
+    let formatter = RelativeDateTimeFormatter()
+    formatter.unitsStyle = .full
+    return "modified \(formatter.localizedString(for: changeDate, relativeTo: Date()))"
+  }
+
   public func infoDetails(for api: ServerApiType?, details: DetailInfoType) -> [String] {
     var infoContent = [String]()
     if songCount == 1 {

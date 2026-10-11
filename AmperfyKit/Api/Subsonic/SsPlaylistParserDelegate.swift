@@ -82,6 +82,17 @@ class SsPlaylistParserDelegate: SsXmlParser {
 
       playlist?.name = attributePlaylistName
 
+      if let attributeChanged = attributeDict["changed"] {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let changed = formatter.date(from: attributeChanged) {
+          playlist?.changeDate = changed
+        } else {
+          formatter.formatOptions = [.withInternetDateTime]
+          playlist?.changeDate = formatter.date(from: attributeChanged)
+        }
+      }
+
       if let attributeDuration = attributeDict["duration"], let duration = Int(attributeDuration) {
         playlist?.remoteDuration = duration
       }
