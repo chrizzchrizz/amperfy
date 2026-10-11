@@ -105,9 +105,6 @@
                                                                                 </label>
                                                                                 <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="PlaylistName" adjustsFontSizeToFit="NO" minimumFontSize="19" translatesAutoresizingMaskIntoConstraints="NO" id="5tB-lt-aqS" userLabel="Playlist Name Text Field">
                                                                                     <rect key="frame" x="0.0" y="26.5" width="682" height="27"/>
-                                                                                    <constraints>
-                                                                                        <constraint firstAttribute="height" constant="27" id="Ubl-nF-7GN"/>
-                                                                                    </constraints>
                                                                                     <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="22"/>
                                                                                     <textInputTraits key="textInputTraits"/>
                                                                                 </textField>
@@ -140,7 +137,6 @@
                                                                                         <constraint firstAttribute="bottom" secondItem="875-8v-N94" secondAttribute="bottom" id="3Td-y8-Mq1"/>
                                                                                         <constraint firstAttribute="bottom" secondItem="Mie-tL-VVX" secondAttribute="bottom" id="4Ln-vG-XDg"/>
                                                                                         <constraint firstItem="Mie-tL-VVX" firstAttribute="top" secondItem="Qob-Cu-9TI" secondAttribute="top" id="660-Q8-VaM"/>
-                                                                                        <constraint firstAttribute="height" constant="30" id="Bts-dX-ciA"/>
                                                                                         <constraint firstItem="875-8v-N94" firstAttribute="leading" secondItem="Qob-Cu-9TI" secondAttribute="leading" id="NDZ-WW-ofZ"/>
                                                                                         <constraint firstAttribute="trailing" secondItem="Mie-tL-VVX" secondAttribute="trailing" id="NKA-H3-aq4"/>
                                                                                         <constraint firstItem="Mie-tL-VVX" firstAttribute="leading" secondItem="Qob-Cu-9TI" secondAttribute="leading" id="Q46-8q-KdM"/>
@@ -179,7 +175,7 @@
                                                                         <constraint firstItem="7J5-ll-b5d" firstAttribute="top" relation="greaterThanOrEqual" secondItem="ecX-JW-F45" secondAttribute="top" id="Mn1-Sp-c16"/>
                                                                         <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="7J5-ll-b5d" secondAttribute="bottom" id="Mn2-Sp-c16"/>
                                                                         <constraint firstItem="7J5-ll-b5d" firstAttribute="leading" secondItem="ecX-JW-F45" secondAttribute="leading" id="Uxe-4d-8G3"/>
-                                                                        <constraint firstAttribute="trailingMargin" secondItem="7J5-ll-b5d" secondAttribute="trailing" constant="12" id="fFc-hF-L2F"/>
+                                                                        <constraint firstAttribute="trailing" secondItem="7J5-ll-b5d" secondAttribute="trailing" id="fFc-hF-L2F"/>
                                                                     </constraints>
                                                                 </view>
                                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="qxL-Fz-Vwm">
@@ -213,7 +209,7 @@
                                                         <constraint firstItem="hN4-ai-kZb" firstAttribute="leading" secondItem="ulT-f1-D2c" secondAttribute="leading" id="8Ny-7k-QhG"/>
                                                         <constraint firstAttribute="bottom" secondItem="hN4-ai-kZb" secondAttribute="bottom" id="Whh-pE-mHY"/>
                                                         <constraint firstAttribute="trailing" secondItem="hN4-ai-kZb" secondAttribute="trailing" id="btS-uw-rVF"/>
-                                                        <constraint firstAttribute="height" constant="155" priority="999" id="qb1-LU-seD">
+                                                        <constraint firstAttribute="height" priority="999" constant="155" id="qb1-LU-seD">
                                                             <variation key="userInterfaceIdiom=mac-widthClass=regular" constant="165"/>
                                                         </constraint>
                                                     </constraints>
