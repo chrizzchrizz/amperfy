@@ -156,7 +156,7 @@ class GenericDetailTableHeader: UIView {
       details: DetailInfoType(type: detailLevel, settings: appDelegate.storage.settings)
     )
     if let modifiedInfo = (entityContainer as? Playlist)?.modifiedInfo {
-      infoText += (infoText.isEmpty ? "" : "\n") + modifiedInfo
+      infoText += (infoText.isEmpty ? "" : " \(CommonString.oneMiddleDot) ") + modifiedInfo
     }
     infoLabel.isHidden = infoText.isEmpty
     infoLabel.text = infoText
