@@ -497,8 +497,8 @@ final class SectionHeaderView: UICollectionReusableView {
     }
     let result = NSMutableAttributedString(string: title)
     if tapHandler != nil {
-      let config = UIImage.SymbolConfiguration(textStyle: .subheadline, scale: .small)
-        .applying(UIImage.SymbolConfiguration(weight: .semibold))
+      let pointSize = UIFont.preferredFont(forTextStyle: .subheadline).pointSize + 2
+      let config = UIImage.SymbolConfiguration(pointSize: pointSize, weight: .semibold, scale: .small)
       let attachment = NSTextAttachment()
       attachment.image = UIImage(systemName: "chevron.right", withConfiguration: config)?
         .withTintColor(.secondaryLabel, renderingMode: .alwaysOriginal)
