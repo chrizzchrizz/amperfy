@@ -71,6 +71,10 @@ class HomeManager: NSObject {
   public private(set) var currentDecade: Int?
   public static let decadeMinAlbumCount = 10
   private var decadePickedOnDay: Date?
+  /// The genre group shown in the genre section. Nil if no group qualifies.
+  public private(set) var currentGenreGroup: GenreGroup?
+  public static let genreMinAlbumCount = 10
+  private var genrePickedOnDay: Date?
 
   private let account: Account
   private let storage: PersistentStorage
@@ -170,6 +174,11 @@ class HomeManager: NSObject {
     if orderedVisibleSections.contains(where: { $0 == .decadeAlbums }) {
       Task { @MainActor in
         await updateDecadeAlbums(isOfflineMode: isOfflineMode, reselectDecade: true)
+      }
+    }
+    if orderedVisibleSections.contains(where: { $0 == .genreAlbums }) {
+      Task { @MainActor in
+        await updateGenreAlbums(isOfflineMode: isOfflineMode, reselectGenre: true)
       }
     }
     if orderedVisibleSections.contains(where: { $0 == .randomArtists }) {
@@ -361,17 +370,17 @@ class HomeManager: NSObject {
     return "Albums from the \(label)"
   }
 
-  /// The decade changes once per day (local time) and is stable within a day.
-  private func pickDecadeOfTheDay(from decades: [Int]) -> Int? {
-    guard !decades.isEmpty else { return nil }
+  /// The pick changes once per day (local time) and is stable within a day.
+  private func pickOfTheDay<T>(from candidates: [T]) -> T? {
+    guard !candidates.isEmpty else { return nil }
     let startOfDay = Calendar.current.startOfDay(for: Date())
     let dayNumber = UInt64(max(0, startOfDay.timeIntervalSinceReferenceDate / 86400))
-    // SplitMix64 scramble, so consecutive days don't walk through the decades in order
+    // SplitMix64 scramble, so consecutive days don't walk through the candidates in order
     var z = dayNumber &+ 0x9E37_79B9_7F4A_7C15
     z = (z ^ (z >> 30)) &* 0xBF58_476D_1CE4_E5B9
     z = (z ^ (z >> 27)) &* 0x94D0_49BB_1331_11EB
     z ^= z >> 31
-    return decades[Int(z % UInt64(decades.count))]
+    return candidates[Int(z % UInt64(candidates.count))]
   }
 
   /// Picks a new decade if the day changed since the last pick (e.g. app running over midnight).
@@ -411,7 +420,7 @@ class HomeManager: NSObject {
         minAlbumCount: Self.decadeMinAlbumCount,
         onlyCached: isOfflineMode
       )
-      currentDecade = pickDecadeOfTheDay(from: decades)
+      currentDecade = pickOfTheDay(from: decades)
     }
     if let currentDecade {
       let albums = storage.main.library.getRandomAlbums(
@@ -423,6 +432,65 @@ class HomeManager: NSObject {
       data[.decadeAlbums] = albums.compactMap { HomeItem(section: .decadeAlbums, playableContainable: $0) }
     } else {
       data[.decadeAlbums] = []
+    }
+    applySnapshotCB?()
+  }
+
+  /// Title for the genre section header, e.g. "Hip Hop".
+  var genreSectionTitle: String {
+    guard let currentGenreGroup else { return HomeSection.genreAlbums.title }
+    return currentGenreGroup.name
+  }
+
+  /// Picks a new genre group if the day changed since the last pick (e.g. app running over midnight).
+  func updateGenreAlbumsIfDayChanged() {
+    guard orderedVisibleSections.contains(.genreAlbums),
+          genrePickedOnDay != Calendar.current.startOfDay(for: Date())
+    else { return }
+    Task { @MainActor in
+      await updateGenreAlbums(isOfflineMode: isOfflineMode)
+    }
+  }
+
+  #if DEBUG
+    func availableGenreGroups() -> [GenreGroup] {
+      storage.main.library.getGenreGroups(
+        for: account,
+        minAlbumCount: Self.genreMinAlbumCount,
+        onlyCached: isOfflineMode
+      )
+    }
+  #endif
+
+  func updateGenreAlbums(
+    isOfflineMode: Bool,
+    reselectGenre: Bool = false,
+    forcedGenreGroup: GenreGroup? = nil
+  ) async {
+    let today = Calendar.current.startOfDay(for: Date())
+    if let forcedGenreGroup {
+      // debug override, stays until the day changes or the home is rebuilt
+      currentGenreGroup = forcedGenreGroup
+      genrePickedOnDay = today
+    } else if reselectGenre || currentGenreGroup == nil || genrePickedOnDay != today {
+      genrePickedOnDay = today
+      let groups = storage.main.library.getGenreGroups(
+        for: account,
+        minAlbumCount: Self.genreMinAlbumCount,
+        onlyCached: isOfflineMode
+      )
+      currentGenreGroup = pickOfTheDay(from: groups)
+    }
+    if let currentGenreGroup {
+      let albums = storage.main.library.getRandomAlbums(
+        for: account,
+        inGenreGroup: currentGenreGroup,
+        count: Self.sectionMaxItemCount,
+        onlyCached: isOfflineMode
+      )
+      data[.genreAlbums] = albums.compactMap { HomeItem(section: .genreAlbums, playableContainable: $0) }
+    } else {
+      data[.genreAlbums] = []
     }
     applySnapshotCB?()
   }

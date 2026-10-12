@@ -1455,6 +1455,60 @@ public class LibraryStorage: PlayableFileCachable {
     return countPerDecade.filter { $0.value >= minAlbumCount }.keys.sorted()
   }
 
+  /// All albums with a genre that belongs to a genre group, keyed by group name.
+  private func getAlbumMOsByGenreGroup(
+    for account: Account,
+    onlyCached: Bool
+  )
+    -> [String: [AlbumMO]] {
+    let genreFetchRequest = GenreMO.identifierSortedFetchRequest
+    genreFetchRequest.predicate = getFetchPredicate(forAccount: account)
+    guard let genres = try? context.fetch(genreFetchRequest) else { return [:] }
+    var groupNameByGenreId = [NSManagedObjectID: String]()
+    for genre in genres {
+      if let name = genre.name, let group = GenreGroups.group(forGenreName: name) {
+        groupNameByGenreId[genre.objectID] = group.name
+      }
+    }
+    guard !groupNameByGenreId.isEmpty else { return [:] }
+
+    let fetchRequest = AlbumMO.identifierSortedFetchRequest
+    fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+      getRandomAlbumsBasePredicate(for: account, onlyCached: onlyCached),
+      NSPredicate(format: "%K IN %@", #keyPath(AlbumMO.genre), Array(groupNameByGenreId.keys)),
+    ])
+    guard let albums = try? context.fetch(fetchRequest) else { return [:] }
+    var albumsByGroup = [String: [AlbumMO]]()
+    for album in albums {
+      if let genreId = album.genre?.objectID, let groupName = groupNameByGenreId[genreId] {
+        albumsByGroup[groupName, default: []].append(album)
+      }
+    }
+    return albumsByGroup
+  }
+
+  /// Genre groups (in the order of `GenreGroups.all`) with at least `minAlbumCount` albums.
+  public func getGenreGroups(
+    for account: Account,
+    minAlbumCount: Int,
+    onlyCached: Bool
+  )
+    -> [GenreGroup] {
+    let albumsByGroup = getAlbumMOsByGenreGroup(for: account, onlyCached: onlyCached)
+    return GenreGroups.all.filter { (albumsByGroup[$0.name]?.count ?? 0) >= minAlbumCount }
+  }
+
+  public func getRandomAlbums(
+    for account: Account,
+    inGenreGroup genreGroup: GenreGroup,
+    count: Int,
+    onlyCached: Bool
+  )
+    -> [Album] {
+    let albums = getAlbumMOsByGenreGroup(for: account, onlyCached: onlyCached)[genreGroup.name]
+    return albums?[randomPick: count].compactMap { Album(managedObject: $0) } ?? [Album]()
+  }
+
   public func getRandomAlbums(
     for account: Account,
     inDecade decadeStartYear: Int,
