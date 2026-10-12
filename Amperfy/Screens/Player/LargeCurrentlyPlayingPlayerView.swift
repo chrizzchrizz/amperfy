@@ -142,12 +142,6 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
   @IBOutlet
   weak var titleLabel: MarqueeLabel!
   @IBOutlet
-  weak var albumLabel: MarqueeLabel!
-  @IBOutlet
-  weak var albumButton: UIButton!
-  @IBOutlet
-  weak var albumContainerView: UIView!
-  @IBOutlet
   weak var artistLabel: MarqueeLabel!
   @IBOutlet
   weak var favoriteButton: UIButton!
@@ -200,7 +194,6 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
     artworkImage.layer.cornerCurve = .continuous
     setupArtworkShadow()
     titleLabel.applyAmperfyStyle()
-    albumLabel.applyAmperfyStyle()
     artistLabel.applyAmperfyStyle()
 
     lyricsView = LyricsView()
@@ -455,10 +448,7 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
     rootView?.playerHandler?.refreshCurrentlyPlayingInfo(
       artworkImage: artworkImage,
       titleLabel: titleLabel,
-      artistLabel: artistLabel,
-      albumLabel: albumLabel,
-      albumButton: albumButton,
-      albumContainerView: albumContainerView
+      artistLabel: artistLabel
     )
     rootView?.refreshFavoriteButton(button: favoriteButton)
     rootView?.refreshOptionButton(button: optionsButton, rootView: rootView)
@@ -492,12 +482,6 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
 
   @IBAction
   func titlePressed(_ sender: Any) {
-    rootView?.displayAlbumDetail()
-    rootView?.displayPodcastDetail()
-  }
-
-  @IBAction
-  func albumPressed(_ sender: Any) {
     rootView?.displayAlbumDetail()
     rootView?.displayPodcastDetail()
   }

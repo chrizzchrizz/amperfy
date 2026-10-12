@@ -851,10 +851,7 @@ class MiniPlayerView: UIView {
     playerHandler?.refreshCurrentlyPlayingInfo(
       artworkImage: artworkImage,
       titleLabel: titleLabel,
-      artistLabel: subtitleLabel,
-      albumLabel: nil,
-      albumButton: nil,
-      albumContainerView: nil
+      artistLabel: subtitleLabel
     )
     playerHandler?.refreshArtwork(artworkImage: artworkImage)
     playerHandler?.refreshPlayButton(playButton)
@@ -963,10 +960,7 @@ extension MiniPlayerView: MusicPlayable {
     playerHandler?.refreshCurrentlyPlayingInfo(
       artworkImage: artworkImage,
       titleLabel: titleLabel,
-      artistLabel: subtitleLabel,
-      albumLabel: nil,
-      albumButton: nil,
-      albumContainerView: nil
+      artistLabel: subtitleLabel
     )
   }
 
@@ -974,10 +968,7 @@ extension MiniPlayerView: MusicPlayable {
     playerHandler?.refreshCurrentlyPlayingInfo(
       artworkImage: artworkImage,
       titleLabel: titleLabel,
-      artistLabel: subtitleLabel,
-      albumLabel: nil,
-      albumButton: nil,
-      albumContainerView: nil
+      artistLabel: subtitleLabel
     )
   }
 
