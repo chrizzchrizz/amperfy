@@ -212,7 +212,11 @@ final class HomeVC: UICollectionViewController {
         return nil
       }
       header.title = section.title
-      header.setTapHandler { [weak self] in self?.showLibraryList(for: section) }
+      if let displayType = section.libraryDisplayType {
+        header.setTapHandler { [weak self] in self?.showLibraryList(displayType) }
+      } else {
+        header.setTapHandler(nil)
+      }
       if section == .randomAlbums {
         header.showsRefreshButton = true
         header.setRefreshHandler { [weak self] in self?.refreshRandomAlbumsSection() }
@@ -320,19 +324,7 @@ final class HomeVC: UICollectionViewController {
 
   // MARK: - Section Navigation
 
-  private func showLibraryList(for section: HomeSection) {
-    let displayType: LibraryDisplayType
-    switch section {
-    case .recentlyPlayedAlbums: displayType = .recentAlbums
-    case .newestAlbums: displayType = .newestAlbums
-    case .randomAlbums: displayType = .albums
-    case .lastTimePlayedPlaylists: displayType = .playlists
-    case .newestPodcastEpisodes, .podcasts: displayType = .podcasts
-    case .radios: displayType = .radios
-    case .randomArtists: displayType = .artists
-    case .randomGenres: displayType = .genres
-    case .randomSongs: displayType = .songs
-    }
+  private func showLibraryList(_ displayType: LibraryDisplayType) {
     navigationController?.pushViewController(
       displayType.controller(account: account, settings: appDelegate.storage.settings),
       animated: true
@@ -573,5 +565,20 @@ extension UIFont {
       UIFontDescriptor.AttributeName.traits: [UIFontDescriptor.TraitKey.weight: weight],
     ])
     return UIFont(descriptor: descriptor, size: pointSize)
+  }
+}
+
+extension HomeSection {
+  /// The library overview matching this section; nil if there is none (e.g. random sections).
+  fileprivate var libraryDisplayType: LibraryDisplayType? {
+    switch self {
+    case .recentlyPlayedAlbums: return .recentAlbums
+    case .newestAlbums: return .newestAlbums
+    case .lastTimePlayedPlaylists: return .playlists
+    case .podcasts: return .podcasts
+    case .radios: return .radios
+    case .newestPodcastEpisodes, .randomAlbums, .randomArtists, .randomGenres, .randomSongs:
+      return nil
+    }
   }
 }
