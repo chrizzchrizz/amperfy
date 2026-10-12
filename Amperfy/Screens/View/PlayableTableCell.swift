@@ -67,6 +67,9 @@ class PlayableTableCell: BasicTableCell {
   /// centered in the row
   @IBOutlet
   weak var favoriteTitleAlignConstraint: NSLayoutConstraint!
+  /// trailing gap of the favorite icon to the leading margin, 2pt smaller with track number
+  @IBOutlet
+  weak var favoriteTrailingConstraint: NSLayoutConstraint!
   @IBOutlet
   weak var labelTrailingCellConstraint: NSLayoutConstraint!
   @IBOutlet
@@ -312,12 +315,14 @@ class PlayableTableCell: BasicTableCell {
       trackNumberContainer.isHidden = false
       entityImage.isHidden = true
       favoriteTitleAlignConstraint.priority = UILayoutPriority(999)
+      favoriteTrailingConstraint.constant = -2
     case .artwork:
       playIndicator?.willDisplayIndicatorCB = nil
       playIndicator?.willHideIndicatorCB = nil
       trackNumberContainer.isHidden = true
       entityImage.isHidden = false
       favoriteTitleAlignConstraint.priority = UILayoutPriority(1)
+      favoriteTrailingConstraint.constant = 4
     case .none:
       break // do nothing
     }
