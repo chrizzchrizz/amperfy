@@ -115,8 +115,8 @@ final class HomeVC: UICollectionViewController {
     super.viewIsAppearing(animated)
     extendSafeAreaToAccountForMiniPlayer()
     sharedHome.updateFromRemote()
-    sharedHome.updateDecadeAlbumsIfDayChanged()
-    sharedHome.updateGenreAlbumsIfDayChanged()
+    sharedHome.updateDecadeAlbumsIfIntervalElapsed()
+    sharedHome.updateGenreAlbumsIfIntervalElapsed()
   }
 
   // MARK: - Layout

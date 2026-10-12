@@ -70,11 +70,13 @@ class HomeManager: NSObject {
   /// Start year of the decade shown in the decade section (e.g. 1990). Nil if no decade qualifies.
   public private(set) var currentDecade: Int?
   public static let decadeMinAlbumCount = 10
-  private var decadePickedOnDay: Date?
+  /// Decade and genre sections are re-picked every `sectionRotationInterval`.
+  public static let sectionRotationInterval: TimeInterval = 3 * 60 * 60
+  private var decadePickedInSlot: Date?
   /// The genre group shown in the genre section. Nil if no group qualifies.
   public private(set) var currentGenreGroup: GenreGroup?
   public static let genreMinAlbumCount = 10
-  private var genrePickedOnDay: Date?
+  private var genrePickedInSlot: Date?
 
   private let account: Account
   private let storage: PersistentStorage
@@ -370,23 +372,35 @@ class HomeManager: NSObject {
     return "Albums from the \(label)"
   }
 
-  /// The pick changes once per day (local time) and is stable within a day.
-  private func pickOfTheDay<T>(from candidates: [T]) -> T? {
+  /// Start of the current rotation slot: the local day is split into slots of
+  /// `sectionRotationInterval`, so a pick is stable within the interval.
+  private func currentRotationSlotStart() -> Date {
+    let now = Date()
+    let startOfDay = Calendar.current.startOfDay(for: now)
+    let elapsed = now.timeIntervalSince(startOfDay)
+    let slotIndex = (elapsed / Self.sectionRotationInterval).rounded(.down)
+    return startOfDay.addingTimeInterval(slotIndex * Self.sectionRotationInterval)
+  }
+
+  private func pickOfTheSlot<T>(from candidates: [T]) -> T? {
     guard !candidates.isEmpty else { return nil }
-    let startOfDay = Calendar.current.startOfDay(for: Date())
-    let dayNumber = UInt64(max(0, startOfDay.timeIntervalSinceReferenceDate / 86400))
-    // SplitMix64 scramble, so consecutive days don't walk through the candidates in order
-    var z = dayNumber &+ 0x9E37_79B9_7F4A_7C15
+    let slotNumber = UInt64(max(
+      0,
+      (currentRotationSlotStart().timeIntervalSinceReferenceDate / Self.sectionRotationInterval)
+        .rounded()
+    ))
+    // SplitMix64 scramble, so consecutive slots don't walk through the candidates in order
+    var z = slotNumber &+ 0x9E37_79B9_7F4A_7C15
     z = (z ^ (z >> 30)) &* 0xBF58_476D_1CE4_E5B9
     z = (z ^ (z >> 27)) &* 0x94D0_49BB_1331_11EB
     z ^= z >> 31
     return candidates[Int(z % UInt64(candidates.count))]
   }
 
-  /// Picks a new decade if the day changed since the last pick (e.g. app running over midnight).
-  func updateDecadeAlbumsIfDayChanged() {
+  /// Picks a new decade if the rotation interval elapsed since the last pick.
+  func updateDecadeAlbumsIfIntervalElapsed() {
     guard orderedVisibleSections.contains(.decadeAlbums),
-          decadePickedOnDay != Calendar.current.startOfDay(for: Date())
+          decadePickedInSlot != currentRotationSlotStart()
     else { return }
     Task { @MainActor in
       await updateDecadeAlbums(isOfflineMode: isOfflineMode)
@@ -408,19 +422,19 @@ class HomeManager: NSObject {
     reselectDecade: Bool = false,
     forcedDecade: Int? = nil
   ) async {
-    let today = Calendar.current.startOfDay(for: Date())
+    let slot = currentRotationSlotStart()
     if let forcedDecade {
-      // debug override, stays until the day changes or the home is rebuilt
+      // debug override, stays until the interval elapses or the home is rebuilt
       currentDecade = forcedDecade
-      decadePickedOnDay = today
-    } else if reselectDecade || currentDecade == nil || decadePickedOnDay != today {
-      decadePickedOnDay = today
+      decadePickedInSlot = slot
+    } else if reselectDecade || currentDecade == nil || decadePickedInSlot != slot {
+      decadePickedInSlot = slot
       let decades = storage.main.library.getDecades(
         for: account,
         minAlbumCount: Self.decadeMinAlbumCount,
         onlyCached: isOfflineMode
       )
-      currentDecade = pickOfTheDay(from: decades)
+      currentDecade = pickOfTheSlot(from: decades)
     }
     if let currentDecade {
       let albums = storage.main.library.getRandomAlbums(
@@ -442,10 +456,10 @@ class HomeManager: NSObject {
     return currentGenreGroup.name
   }
 
-  /// Picks a new genre group if the day changed since the last pick (e.g. app running over midnight).
-  func updateGenreAlbumsIfDayChanged() {
+  /// Picks a new genre group if the rotation interval elapsed since the last pick.
+  func updateGenreAlbumsIfIntervalElapsed() {
     guard orderedVisibleSections.contains(.genreAlbums),
-          genrePickedOnDay != Calendar.current.startOfDay(for: Date())
+          genrePickedInSlot != currentRotationSlotStart()
     else { return }
     Task { @MainActor in
       await updateGenreAlbums(isOfflineMode: isOfflineMode)
@@ -467,19 +481,19 @@ class HomeManager: NSObject {
     reselectGenre: Bool = false,
     forcedGenreGroup: GenreGroup? = nil
   ) async {
-    let today = Calendar.current.startOfDay(for: Date())
+    let slot = currentRotationSlotStart()
     if let forcedGenreGroup {
-      // debug override, stays until the day changes or the home is rebuilt
+      // debug override, stays until the interval elapses or the home is rebuilt
       currentGenreGroup = forcedGenreGroup
-      genrePickedOnDay = today
-    } else if reselectGenre || currentGenreGroup == nil || genrePickedOnDay != today {
-      genrePickedOnDay = today
+      genrePickedInSlot = slot
+    } else if reselectGenre || currentGenreGroup == nil || genrePickedInSlot != slot {
+      genrePickedInSlot = slot
       let groups = storage.main.library.getGenreGroups(
         for: account,
         minAlbumCount: Self.genreMinAlbumCount,
         onlyCached: isOfflineMode
       )
-      currentGenreGroup = pickOfTheDay(from: groups)
+      currentGenreGroup = pickOfTheSlot(from: groups)
     }
     if let currentGenreGroup {
       let albums = storage.main.library.getRandomAlbums(
