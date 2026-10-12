@@ -260,7 +260,9 @@
                         </stackView>
                     </subviews>
                     <constraints>
-                        <constraint firstItem="vkt-Vq-5Zo" firstAttribute="top" secondItem="F5C-7T-v2k" secondAttribute="top" id="OpF-Ba-JGg"/>
+                        <constraint firstItem="vkt-Vq-5Zo" firstAttribute="top" secondItem="F5C-7T-v2k" secondAttribute="top" constant="20" id="OpF-Ba-JGg">
+                            <variation key="widthClass=regular" constant="0.0"/>
+                        </constraint>
                         <constraint firstItem="vkt-Vq-5Zo" firstAttribute="leading" secondItem="F5C-7T-v2k" secondAttribute="leading" id="eNW-Eo-Rbz"/>
                         <constraint firstAttribute="bottom" secondItem="vkt-Vq-5Zo" secondAttribute="bottom" id="hKS-cM-jyY"/>
                         <constraint firstAttribute="trailing" secondItem="vkt-Vq-5Zo" secondAttribute="trailing" id="iPh-OS-b1O"/>
