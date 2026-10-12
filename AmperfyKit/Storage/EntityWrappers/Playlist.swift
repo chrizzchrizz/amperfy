@@ -504,13 +504,6 @@ public class Playlist: Identifyable {
 extension Playlist: PlayableContainable {
   public var subtitle: String? { nil }
   public var subsubtitle: String? { nil }
-  public var modifiedInfo: String? {
-    guard let changeDate else { return nil }
-    let formatter = RelativeDateTimeFormatter()
-    formatter.unitsStyle = .full
-    return "modified \(formatter.localizedString(for: changeDate, relativeTo: Date()))"
-  }
-
   public func infoDetails(for api: ServerApiType?, details: DetailInfoType) -> [String] {
     var infoContent = [String]()
     if songCount == 1 {
@@ -531,9 +524,14 @@ extension Playlist: PlayableContainable {
       if duration > 0 {
         infoContent.append("\(duration.asDurationShortString)")
       }
-      if details.isShowDetailedInfo {
-        infoContent.append("ID: \(!id.isEmpty ? id : "-")")
-      }
+    }
+    if details.type == .long || details.type == .noCountInfo, let changeDate {
+      let formatter = RelativeDateTimeFormatter()
+      formatter.unitsStyle = .full
+      infoContent.append("modified \(formatter.localizedString(for: changeDate, relativeTo: Date()))")
+    }
+    if details.type == .long, details.isShowDetailedInfo {
+      infoContent.append("ID: \(!id.isEmpty ? id : "-")")
     }
     return infoContent
   }
