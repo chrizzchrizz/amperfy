@@ -30,6 +30,7 @@ final class HomeVC: UICollectionViewController {
   // MARK: - Properties
 
   private var dataSource: UICollectionViewDiffableDataSource<HomeSection, HomeItem>!
+  private var lastAppliedDecadeTitle: String?
   private let log = OSLog(subsystem: "Amperfy", category: "HomeVC")
 
   private static let itemWidth: CGFloat = 160.0
@@ -113,6 +114,7 @@ final class HomeVC: UICollectionViewController {
     super.viewIsAppearing(animated)
     extendSafeAreaToAccountForMiniPlayer()
     sharedHome.updateFromRemote()
+    sharedHome.updateDecadeAlbumsIfDayChanged()
   }
 
   // MARK: - Layout
@@ -207,11 +209,12 @@ final class HomeVC: UICollectionViewController {
               withReuseIdentifier: SectionHeaderView.reuseID,
               for: indexPath
             ) as? SectionHeaderView,
-            let section = self.sharedHome.orderedVisibleSections.element(at: indexPath.section)
+            let section = self.dataSource.snapshot().sectionIdentifiers.element(at: indexPath.section)
       else {
         return nil
       }
-      header.title = section.title
+      header.setRefreshMenu(nil)
+      header.title = section == .decadeAlbums ? self.sharedHome.decadeSectionTitle : section.title
       if let displayType = section.libraryDisplayType {
         header.setTapHandler { [weak self] in self?.showLibraryList(displayType) }
       } else {
@@ -229,6 +232,12 @@ final class HomeVC: UICollectionViewController {
       } else if section == .randomSongs {
         header.showsRefreshButton = true
         header.setRefreshHandler { [weak self] in self?.refreshRandomSongsSection() }
+      } else if section == .decadeAlbums {
+        header.showsRefreshButton = true
+        header.setRefreshHandler { [weak self] in self?.refreshDecadeAlbumsSection() }
+        #if DEBUG
+          header.setRefreshMenu(self.createDecadeDebugMenu())
+        #endif
       } else {
         header.showsRefreshButton = false
         header.setRefreshHandler(nil)
@@ -239,8 +248,12 @@ final class HomeVC: UICollectionViewController {
 
   private func applySnapshot(animated: Bool = true) {
     var snapshot = NSDiffableDataSourceSnapshot<HomeSection, HomeItem>()
-    snapshot.appendSections(sharedHome.orderedVisibleSections)
-    for section in sharedHome.orderedVisibleSections {
+    // the decade section is hidden as long as no decade has enough albums
+    let sections = sharedHome.orderedVisibleSections.filter {
+      $0 != .decadeAlbums || sharedHome.currentDecade != nil
+    }
+    snapshot.appendSections(sections)
+    for section in sections {
       // Ids are stable per entity, so a repeated entity would be a duplicate identifier (assert).
       var seenIds = Set<String>()
       let items = (sharedHome.data[section] ?? []).filter { seenIds.insert($0.id).inserted }
@@ -255,6 +268,12 @@ final class HomeVC: UICollectionViewController {
       return old != $0.artworkFingerprint
     }
     snapshot.reconfigureItems(changedItems)
+    // headers are only configured when dequeued -> reload the section if the decade title changed
+    let decadeTitle = sharedHome.decadeSectionTitle
+    if decadeTitle != lastAppliedDecadeTitle, sections.contains(.decadeAlbums) {
+      snapshot.reloadSections([.decadeAlbums])
+    }
+    lastAppliedDecadeTitle = decadeTitle
     dataSource.apply(snapshot, animatingDifferences: animated)
   }
 
@@ -312,6 +331,40 @@ final class HomeVC: UICollectionViewController {
   func refreshRandomGenresSection() {
     Task { @MainActor in
       await sharedHome.updateRandomGenres()
+    }
+  }
+
+  #if DEBUG
+    /// Debug only: long press on the decade refresh button lets you pick the decade.
+    private func createDecadeDebugMenu() -> UIMenu {
+      let deferred = UIDeferredMenuElement.uncached { [weak self] completion in
+        MainActor.assumeIsolated {
+          guard let self else { completion([]); return }
+          let decades = self.sharedHome.availableDecades()
+          completion(decades.map { decade in
+            UIAction(
+              title: "\(decade)s",
+              state: decade == self.sharedHome.currentDecade ? .on : .off
+            ) { [weak self] _ in
+              guard let self else { return }
+              Task { @MainActor in
+                await self.sharedHome.updateDecadeAlbums(
+                  isOfflineMode: self.sharedHome.isOfflineMode,
+                  forcedDecade: decade
+                )
+              }
+            }
+          })
+        }
+      }
+      return UIMenu(title: "Debug: Select Decade", children: [deferred])
+    }
+  #endif
+
+  @objc
+  func refreshDecadeAlbumsSection() {
+    Task { @MainActor in
+      await sharedHome.updateDecadeAlbums(isOfflineMode: sharedHome.isOfflineMode)
     }
   }
 
@@ -486,6 +539,12 @@ final class SectionHeaderView: UICollectionReusableView {
     refreshButton.addAction(UIAction { _ in handler() }, for: .touchUpInside)
   }
 
+  /// Shown on long press of the refresh button.
+  func setRefreshMenu(_ menu: UIMenu?) {
+    refreshButton.menu = menu
+    refreshButton.showsMenuAsPrimaryAction = false
+  }
+
   var title: String? {
     didSet { updateTitle() }
   }
@@ -578,7 +637,8 @@ extension HomeSection {
     case .lastTimePlayedPlaylists: return .playlists
     case .podcasts: return .podcasts
     case .radios: return .radios
-    case .newestPodcastEpisodes, .randomAlbums, .randomArtists, .randomGenres, .randomSongs:
+    case .newestPodcastEpisodes, .randomAlbums, .randomArtists, .randomGenres, .randomSongs,
+         .decadeAlbums:
       return nil
     }
   }

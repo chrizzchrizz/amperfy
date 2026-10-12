@@ -67,6 +67,10 @@ class HomeManager: NSObject {
   public var orderedVisibleSections: [HomeSection]
   public var data: [HomeSection: [HomeItem]] = [:]
   public var applySnapshotCB: VoidFunctionCallback?
+  /// Start year of the decade shown in the decade section (e.g. 1990). Nil if no decade qualifies.
+  public private(set) var currentDecade: Int?
+  public static let decadeMinAlbumCount = 10
+  private var decadePickedOnDay: Date?
 
   private let account: Account
   private let storage: PersistentStorage
@@ -161,6 +165,11 @@ class HomeManager: NSObject {
     if orderedVisibleSections.contains(where: { $0 == .randomAlbums }) {
       Task { @MainActor in
         await updateRandomAlbums(isOfflineMode: isOfflineMode)
+      }
+    }
+    if orderedVisibleSections.contains(where: { $0 == .decadeAlbums }) {
+      Task { @MainActor in
+        await updateDecadeAlbums(isOfflineMode: isOfflineMode, reselectDecade: true)
       }
     }
     if orderedVisibleSections.contains(where: { $0 == .randomArtists }) {
@@ -341,6 +350,79 @@ class HomeManager: NSObject {
     )
     data[.randomAlbums] = randomAlbums.compactMap {
       HomeItem(section: .randomAlbums, playableContainable: $0)
+    }
+    applySnapshotCB?()
+  }
+
+  /// Title for the decade section header, e.g. "Albums from the 90s".
+  var decadeSectionTitle: String {
+    guard let currentDecade else { return HomeSection.decadeAlbums.title }
+    let label = currentDecade < 2000 ? "\(currentDecade % 100)s" : "\(currentDecade)s"
+    return "Albums from the \(label)"
+  }
+
+  /// The decade changes once per day (local time) and is stable within a day.
+  private func pickDecadeOfTheDay(from decades: [Int]) -> Int? {
+    guard !decades.isEmpty else { return nil }
+    let startOfDay = Calendar.current.startOfDay(for: Date())
+    let dayNumber = UInt64(max(0, startOfDay.timeIntervalSinceReferenceDate / 86400))
+    // SplitMix64 scramble, so consecutive days don't walk through the decades in order
+    var z = dayNumber &+ 0x9E37_79B9_7F4A_7C15
+    z = (z ^ (z >> 30)) &* 0xBF58_476D_1CE4_E5B9
+    z = (z ^ (z >> 27)) &* 0x94D0_49BB_1331_11EB
+    z ^= z >> 31
+    return decades[Int(z % UInt64(decades.count))]
+  }
+
+  /// Picks a new decade if the day changed since the last pick (e.g. app running over midnight).
+  func updateDecadeAlbumsIfDayChanged() {
+    guard orderedVisibleSections.contains(.decadeAlbums),
+          decadePickedOnDay != Calendar.current.startOfDay(for: Date())
+    else { return }
+    Task { @MainActor in
+      await updateDecadeAlbums(isOfflineMode: isOfflineMode)
+    }
+  }
+
+  #if DEBUG
+    func availableDecades() -> [Int] {
+      storage.main.library.getDecades(
+        for: account,
+        minAlbumCount: Self.decadeMinAlbumCount,
+        onlyCached: isOfflineMode
+      )
+    }
+  #endif
+
+  func updateDecadeAlbums(
+    isOfflineMode: Bool,
+    reselectDecade: Bool = false,
+    forcedDecade: Int? = nil
+  ) async {
+    let today = Calendar.current.startOfDay(for: Date())
+    if let forcedDecade {
+      // debug override, stays until the day changes or the home is rebuilt
+      currentDecade = forcedDecade
+      decadePickedOnDay = today
+    } else if reselectDecade || currentDecade == nil || decadePickedOnDay != today {
+      decadePickedOnDay = today
+      let decades = storage.main.library.getDecades(
+        for: account,
+        minAlbumCount: Self.decadeMinAlbumCount,
+        onlyCached: isOfflineMode
+      )
+      currentDecade = pickDecadeOfTheDay(from: decades)
+    }
+    if let currentDecade {
+      let albums = storage.main.library.getRandomAlbums(
+        for: account,
+        inDecade: currentDecade,
+        count: Self.sectionMaxItemCount,
+        onlyCached: isOfflineMode
+      )
+      data[.decadeAlbums] = albums.compactMap { HomeItem(section: .decadeAlbums, playableContainable: $0) }
+    } else {
+      data[.decadeAlbums] = []
     }
     applySnapshotCB?()
   }

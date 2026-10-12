@@ -1406,15 +1406,14 @@ public class LibraryStorage: PlayableFileCachable {
     return albums ?? [Album]()
   }
 
-  public func getRandomAlbums(for account: Account, count: Int, onlyCached: Bool) -> [Album] {
-    let fetchRequest = AlbumMO.identifierSortedFetchRequest
+  private func getRandomAlbumsBasePredicate(for account: Account, onlyCached: Bool) -> NSPredicate {
     if onlyCached {
-      fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+      return NSCompoundPredicate(andPredicateWithSubpredicates: [
         getFetchPredicate(forAccount: account),
         getFetchPredicate(onlyCachedAlbums: true),
       ])
     } else {
-      fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+      return NSCompoundPredicate(andPredicateWithSubpredicates: [
         getFetchPredicate(forAccount: account),
         NSCompoundPredicate(orPredicateWithSubpredicates: [
           AbstractLibraryEntityMO.excludeRemoteDeleteFetchPredicate,
@@ -1422,6 +1421,56 @@ public class LibraryStorage: PlayableFileCachable {
         ]),
       ])
     }
+  }
+
+  public func getRandomAlbums(for account: Account, count: Int, onlyCached: Bool) -> [Album] {
+    let fetchRequest = AlbumMO.identifierSortedFetchRequest
+    fetchRequest.predicate = getRandomAlbumsBasePredicate(for: account, onlyCached: onlyCached)
+    let foundAlbums = try? context.fetch(fetchRequest)
+    let albums = foundAlbums?[randomPick: count].compactMap { Album(managedObject: $0) }
+    return albums ?? [Album]()
+  }
+
+  private func getAlbumsWithYearFetchRequest(
+    for account: Account,
+    onlyCached: Bool
+  )
+    -> NSFetchRequest<AlbumMO> {
+    let fetchRequest = AlbumMO.identifierSortedFetchRequest
+    fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+      getRandomAlbumsBasePredicate(for: account, onlyCached: onlyCached),
+      NSPredicate(format: "%K > 0", #keyPath(AlbumMO.year)),
+    ])
+    return fetchRequest
+  }
+
+  /// Returns the start year (e.g. 1990) of all decades with at least `minAlbumCount` albums, ascending.
+  public func getDecades(for account: Account, minAlbumCount: Int, onlyCached: Bool) -> [Int] {
+    let fetchRequest = getAlbumsWithYearFetchRequest(for: account, onlyCached: onlyCached)
+    guard let foundAlbums = try? context.fetch(fetchRequest) else { return [] }
+    var countPerDecade = [Int: Int]()
+    for album in foundAlbums {
+      countPerDecade[Int(album.year) / 10 * 10, default: 0] += 1
+    }
+    return countPerDecade.filter { $0.value >= minAlbumCount }.keys.sorted()
+  }
+
+  public func getRandomAlbums(
+    for account: Account,
+    inDecade decadeStartYear: Int,
+    count: Int,
+    onlyCached: Bool
+  )
+    -> [Album] {
+    let fetchRequest = getAlbumsWithYearFetchRequest(for: account, onlyCached: onlyCached)
+    fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+      fetchRequest.predicate!,
+      NSPredicate(
+        format: "%K >= %d AND %K <= %d",
+        #keyPath(AlbumMO.year), decadeStartYear,
+        #keyPath(AlbumMO.year), decadeStartYear + 9
+      ),
+    ])
     let foundAlbums = try? context.fetch(fetchRequest)
     let albums = foundAlbums?[randomPick: count].compactMap { Album(managedObject: $0) }
     return albums ?? [Album]()
