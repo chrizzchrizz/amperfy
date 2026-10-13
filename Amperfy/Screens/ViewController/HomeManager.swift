@@ -327,7 +327,7 @@ class HomeManager: NSObject {
     if let albums = albumsLatestReleasedFetchController?.fetchedObjects as? [AlbumMO] {
       data[.latestReleasedAlbums] = albums.prefix(Self.sectionMaxItemCount)
         .compactMap { Album(managedObject: $0) }.compactMap {
-          HomeItem(playableContainable: $0)
+          HomeItem(section: .latestReleasedAlbums, playableContainable: $0)
         }
       applySnapshotCB?()
     }
