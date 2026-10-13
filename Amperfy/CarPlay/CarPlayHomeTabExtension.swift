@@ -103,6 +103,8 @@ extension CarPlaySceneDelegate {
           switch section {
           case .randomAlbums:
             await sharedHome.updateRandomAlbums(isOfflineMode: isOfflineMode)
+          case .compilations:
+            await sharedHome.updateCompilations(isOfflineMode: isOfflineMode)
           case .randomArtists:
             await sharedHome.updateRandomArtists(isOfflineMode: isOfflineMode)
           case .randomGenres:

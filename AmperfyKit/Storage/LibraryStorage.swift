@@ -1542,6 +1542,28 @@ public class LibraryStorage: PlayableFileCachable {
     return albums ?? [Album]()
   }
 
+  public func getRandomCompilationAlbums(
+    for account: Account,
+    count: Int,
+    onlyCached: Bool
+  )
+    -> [Album] {
+    let fetchRequest = AlbumMO.identifierSortedFetchRequest
+    fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+      getFetchPredicate(forAccount: account),
+      getFetchPredicate(albumsDisplayFilter: .compilations),
+      onlyCached ? getFetchPredicate(onlyCachedAlbums: true) : NSCompoundPredicate(
+        orPredicateWithSubpredicates: [
+          AbstractLibraryEntityMO.excludeRemoteDeleteFetchPredicate,
+          getFetchPredicate(onlyCachedAlbums: true),
+        ]
+      ),
+    ])
+    let foundAlbums = try? context.fetch(fetchRequest)
+    let albums = foundAlbums?[randomPick: count].compactMap { Album(managedObject: $0) }
+    return albums ?? [Album]()
+  }
+
   public func getFavoriteAlbums(for account: Account) -> [Album] {
     let fetchRequest: NSFetchRequest<AlbumMO> = AlbumMO.identifierSortedFetchRequest
     fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [

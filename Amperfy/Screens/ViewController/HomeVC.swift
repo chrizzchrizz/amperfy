@@ -229,6 +229,9 @@ final class HomeVC: UICollectionViewController {
       if section == .randomAlbums {
         header.showsRefreshButton = true
         header.setRefreshHandler { [weak self] in self?.refreshRandomAlbumsSection() }
+      } else if section == .compilations {
+        header.showsRefreshButton = true
+        header.setRefreshHandler { [weak self] in self?.refreshCompilationsSection() }
       } else if section == .randomArtists {
         header.showsRefreshButton = true
         header.setRefreshHandler { [weak self] in self?.refreshRandomArtistsSection() }
@@ -338,6 +341,13 @@ final class HomeVC: UICollectionViewController {
   func refreshRandomAlbumsSection() {
     Task { @MainActor in
       await sharedHome.updateRandomAlbums(isOfflineMode: sharedHome.isOfflineMode)
+    }
+  }
+
+  @objc
+  func refreshCompilationsSection() {
+    Task { @MainActor in
+      await sharedHome.updateCompilations(isOfflineMode: sharedHome.isOfflineMode)
     }
   }
 
@@ -703,6 +713,7 @@ extension HomeSection {
     case .recentlyPlayedAlbums: return .recentAlbums
     case .newestAlbums: return .newestAlbums
     case .latestReleasedAlbums: return .latestReleasedAlbums
+    case .compilations: return .compilations
     case .lastTimePlayedPlaylists: return .playlists
     case .podcasts: return .podcasts
     case .radios: return .radios

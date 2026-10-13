@@ -183,6 +183,11 @@ class HomeManager: NSObject {
         await updateGenreAlbums(isOfflineMode: isOfflineMode, reselectGenre: true)
       }
     }
+    if orderedVisibleSections.contains(where: { $0 == .compilations }) {
+      Task { @MainActor in
+        await updateCompilations(isOfflineMode: isOfflineMode)
+      }
+    }
     if orderedVisibleSections.contains(where: { $0 == .randomArtists }) {
       Task { @MainActor in
         await updateRandomArtists(isOfflineMode: isOfflineMode)
@@ -505,6 +510,18 @@ class HomeManager: NSObject {
       data[.genreAlbums] = albums.compactMap { HomeItem(section: .genreAlbums, playableContainable: $0) }
     } else {
       data[.genreAlbums] = []
+    }
+    applySnapshotCB?()
+  }
+
+  func updateCompilations(isOfflineMode: Bool) async {
+    let compilations = storage.main.library.getRandomCompilationAlbums(
+      for: account,
+      count: Self.sectionMaxItemCount,
+      onlyCached: isOfflineMode
+    )
+    data[.compilations] = compilations.compactMap {
+      HomeItem(section: .compilations, playableContainable: $0)
     }
     applySnapshotCB?()
   }
