@@ -574,6 +574,7 @@ extension HomeSection {
     switch self {
     case .recentlyPlayedAlbums: return .recentAlbums
     case .newestAlbums: return .newestAlbums
+    case .latestReleasedAlbums: return .latestReleasedAlbums
     case .lastTimePlayedPlaylists: return .playlists
     case .podcasts: return .podcasts
     case .radios: return .radios
