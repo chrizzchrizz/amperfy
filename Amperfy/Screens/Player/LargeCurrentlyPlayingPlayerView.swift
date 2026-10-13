@@ -135,6 +135,8 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
   weak var upperContainerView: UIView!
   @IBOutlet
   weak var artworkImage: LibraryEntityImage!
+  private static let artworkCornerRadius = CornerRadius.medium.asCGFloat
+  private let artworkShadowView = UIView()
   @IBOutlet
   weak var detailsContainer: UIView!
   @IBOutlet
@@ -164,10 +166,39 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
 
     lyricsView?.frame = upperContainerView.bounds
     visualizerHostingView?.hostingController?.view.frame = upperContainerView.bounds
+    updateArtworkShadowPath()
+  }
+
+  /// The artwork clips its content, so the shadow is cast by a separate view right behind it.
+  private func setupArtworkShadow() {
+    guard artworkShadowView.superview == nil, let container = artworkImage.superview else { return }
+    artworkShadowView.translatesAutoresizingMaskIntoConstraints = false
+    artworkShadowView.isUserInteractionEnabled = false
+    artworkShadowView.layer.shadowColor = UIColor.black.cgColor
+    artworkShadowView.layer.shadowOpacity = 0.35
+    artworkShadowView.layer.shadowRadius = 16
+    artworkShadowView.layer.shadowOffset = CGSize(width: 0, height: 6)
+    container.insertSubview(artworkShadowView, belowSubview: artworkImage)
+    NSLayoutConstraint.activate([
+      artworkShadowView.leadingAnchor.constraint(equalTo: artworkImage.leadingAnchor),
+      artworkShadowView.trailingAnchor.constraint(equalTo: artworkImage.trailingAnchor),
+      artworkShadowView.topAnchor.constraint(equalTo: artworkImage.topAnchor),
+      artworkShadowView.bottomAnchor.constraint(equalTo: artworkImage.bottomAnchor),
+    ])
+  }
+
+  private func updateArtworkShadowPath() {
+    artworkShadowView.layer.shadowPath = UIBezierPath(
+      roundedRect: artworkShadowView.bounds,
+      cornerRadius: artworkImage.layer.cornerRadius
+    ).cgPath
   }
 
   func prepare(toWorkOnRootView: PopupPlayerVC?) {
     rootView = toWorkOnRootView
+    artworkImage.layer.cornerRadius = Self.artworkCornerRadius
+    artworkImage.layer.cornerCurve = .continuous
+    setupArtworkShadow()
     titleLabel.applyAmperfyStyle()
     albumLabel.applyAmperfyStyle()
     artistLabel.applyAmperfyStyle()
@@ -375,10 +406,12 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
 
   public func almostHideArtwork() {
     artworkImage.alpha = 0.1
+    artworkShadowView.alpha = 0.1
   }
 
   public func showArtwork() {
     artworkImage.alpha = 1
+    artworkShadowView.alpha = 1
   }
 
   public func hideVisualizer() {

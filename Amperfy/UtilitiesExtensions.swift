@@ -20,6 +20,7 @@
 //
 
 import AmperfyKit
+import DominantColors
 import Foundation
 import MarqueeLabel
 import os.log
@@ -446,5 +447,78 @@ extension UIViewController {
       bottom: hostVC.getSafeAreaExtension(),
       right: 0
     )
+  }
+}
+
+extension UIImage {
+  /// Most frequent color of the image; falls back to the average color.
+  ///
+  /// Uses a cheap histogram on a tiny thumbnail. The DominantColors package merges similar colors
+  /// pairwise, which can take very long for noisy artwork and blocked the main thread.
+  func mainColor() -> UIColor {
+    let side = 32
+    guard let cgImage else { return averageColor() }
+    var pixels = [UInt8](repeating: 0, count: side * side * 4)
+    let drewImage = pixels.withUnsafeMutableBytes { buffer -> Bool in
+      guard let context = CGContext(
+        data: buffer.baseAddress,
+        width: side,
+        height: side,
+        bitsPerComponent: 8,
+        bytesPerRow: side * 4,
+        space: CGColorSpaceCreateDeviceRGB(),
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+      ) else { return false }
+      context.interpolationQuality = .medium
+      context.draw(cgImage, in: CGRect(x: 0, y: 0, width: side, height: side))
+      return true
+    }
+    guard drewImage else { return averageColor() }
+
+    // 4 bits per channel buckets
+    var buckets = [Int: (count: Int, r: Int, g: Int, b: Int)]()
+    for i in stride(from: 0, to: pixels.count, by: 4) where pixels[i + 3] > 0 {
+      let r = Int(pixels[i]), g = Int(pixels[i + 1]), b = Int(pixels[i + 2])
+      let key = (r >> 4) << 8 | (g >> 4) << 4 | (b >> 4)
+      let bucket = buckets[key] ?? (0, 0, 0, 0)
+      buckets[key] = (bucket.count + 1, bucket.r + r, bucket.g + g, bucket.b + b)
+    }
+    // prefer saturated, not too dark colors over large neutral or dark areas
+    func score(_ bucket: (count: Int, r: Int, g: Int, b: Int)) -> CGFloat {
+      let r = CGFloat(bucket.r) / CGFloat(bucket.count) / 255
+      let g = CGFloat(bucket.g) / CGFloat(bucket.count) / 255
+      let b = CGFloat(bucket.b) / CGFloat(bucket.count) / 255
+      let maxValue = max(r, g, b)
+      let saturation = maxValue > 0 ? (maxValue - min(r, g, b)) / maxValue : 0
+      return CGFloat(bucket.count) * (0.2 + saturation) * (0.3 + maxValue)
+    }
+    guard let best = buckets.values.max(by: { score($0) < score($1) }) else {
+      return averageColor()
+    }
+    return UIColor(
+      red: CGFloat(best.r) / CGFloat(best.count) / 255,
+      green: CGFloat(best.g) / CGFloat(best.count) / 255,
+      blue: CGFloat(best.b) / CGFloat(best.count) / 255,
+      alpha: 1
+    )
+  }
+}
+
+extension UIColor {
+  /// WCAG relative luminance (0 = black, 1 = white).
+  var relativeLuminance: CGFloat {
+    var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+    guard getRed(&red, green: &green, blue: &blue, alpha: &alpha) else { return 0 }
+    func linear(_ value: CGFloat) -> CGFloat {
+      value <= 0.03928 ? value / 12.92 : pow((value + 0.055) / 1.055, 2.4)
+    }
+    return 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue)
+  }
+
+  /// Whether black content is more readable than white on top of this color.
+  var prefersDarkContent: Bool {
+    // 0.179 would be the exact contrast tipping point,
+    // the slightly higher threshold keeps mid tones on white text.
+    relativeLuminance > 0.3
   }
 }

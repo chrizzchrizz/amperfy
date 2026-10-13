@@ -224,10 +224,12 @@ extension PopupPlayerVC {
     fakeImageView.contentMode = .scaleAspectFill
     fakeImageView.clipsToBounds = true
     fakeImageView.alpha = sourceView.alpha
+    fakeImageView.layer.cornerRadius = sourceView.layer.cornerRadius
 
     // animate alpha for active lyrics view
     UIView.animate(withDuration: Self.displaStyleAnimationDuration, delay: 0, animations: {
       fakeImageView.alpha = targetView.alpha
+      fakeImageView.layer.cornerRadius = targetView.layer.cornerRadius
     }, completion: { _ in
       fakeImageView.alpha = targetView.alpha
     })

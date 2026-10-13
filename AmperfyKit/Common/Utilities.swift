@@ -272,6 +272,18 @@ extension Array {
 }
 
 extension UIColor {
+  public func darkened(brightnessFactor: CGFloat = 0.4) -> UIColor {
+    var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
+    guard getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
+    else { return self }
+    return UIColor(
+      hue: hue,
+      saturation: saturation,
+      brightness: brightness * brightnessFactor,
+      alpha: alpha
+    )
+  }
+
   public convenience init(hue: CGFloat, saturation: CGFloat, lightness: CGFloat, alpha: CGFloat) {
     precondition(
       0 ... 1 ~= hue &&

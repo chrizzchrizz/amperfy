@@ -387,6 +387,14 @@ class PlayerControlView: UIView {
     playerHandler?.refreshPrevNextButtons(previousButton: previousButton, nextButton: nextButton)
     playerHandler?.refreshDisplayPlaylistButton(displayPlaylistButton: displayPlaylistButton)
     refreshPlayerModeChangeButton()
+    refreshTimeSliderColors()
+  }
+
+  /// Progress bar follows the black or white content color of the popup player background.
+  private func refreshTimeSliderColors() {
+    guard let contentColor = rootView?.contentColor else { return }
+    timeSlider.minimumTrackTintColor = contentColor
+    timeSlider.maximumTrackTintColor = contentColor.withAlphaComponent(0.3)
   }
 
   func createPlaybackRateMenu() -> UIMenuElement {

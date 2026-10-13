@@ -20,7 +20,6 @@
 //
 
 import AmperfyKit
-import DominantColors
 import UIKit
 
 extension PopupPlayerVC {
@@ -57,7 +56,7 @@ extension PopupPlayerVC {
   func refreshOptionButton(button: UIButton, rootView: UIViewController?) {
     var config = UIButton.Configuration.playerRound()
     config.image = .ellipsis
-    config.baseForegroundColor = .label
+    config.baseForegroundColor = contentColor
     button.isEnabled = true
     button.configuration = config
 
@@ -73,6 +72,11 @@ extension PopupPlayerVC {
     }
   }
 
+  /// Black or white, matching the style chosen for the current background color.
+  var contentColor: UIColor {
+    overrideUserInterfaceStyle == .light ? .black : .white
+  }
+
   func refreshFavoriteButton(button: UIButton) {
     var config = UIButton.Configuration.playerRound()
     switch player.playerMode {
@@ -80,23 +84,22 @@ extension PopupPlayerVC {
       if let playableInfo = player.currentlyPlaying,
          playableInfo.isSong {
         config.image = playableInfo.isFavorite ? .heartFill : .heartEmpty
-        config.baseForegroundColor = appDelegate.storage.settings.user
-          .isOnlineMode ? .redHeart : .label
+        config.baseForegroundColor = contentColor
         button.isEnabled = appDelegate.storage.settings.user.isOnlineMode
       } else if let playableInfo = player.currentlyPlaying,
                 let radio = playableInfo.asRadio {
         config.image = .followLink
-        config.baseForegroundColor = .label
+        config.baseForegroundColor = contentColor
         button.isEnabled = radio.siteURL != nil
       } else {
         config.image = .heartEmpty
-        config.baseForegroundColor = .redHeart
+        config.baseForegroundColor = contentColor
         button.isEnabled = false
       }
     case .podcast:
       config.image = .info
       config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(scale: .large)
-      config.baseForegroundColor = .label
+      config.baseForegroundColor = contentColor
       button.isEnabled = true
     }
     if #available(iOS 17.0, *) {
@@ -134,28 +137,14 @@ extension PopupPlayerVC {
       }
     }
     guard let artwork = artwork else { return }
-    backgroundImage.image = artwork
-    artworkGradientColors = (try? artwork.dominantColors(max: 2)) ?? [
-      themePreference.asColor,
-      UIColor.systemBackground,
-    ]
-    applyGradientBackground()
-  }
-
-  internal func applyGradientBackground() {
-    let colors = artworkGradientColors.compactMap { $0.cgColor }
-    // remove existing gradient layer
-    backgroundImage.layer.sublayers?.forEach { layer in
-      if layer is CAGradientLayer {
-        layer.removeFromSuperlayer()
-      }
-    }
-    let gradientLayer = CAGradientLayer()
-    gradientLayer.frame = backgroundImage.bounds
-    gradientLayer.colors = colors
-    gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
-    gradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
-    backgroundImage.layer.insertSublayer(gradientLayer, at: 0)
+    backgroundColorView.image = nil
+    // self overrides its own style, so ask the window for the system style
+    let isDarkMode = (view.window?.traitCollection ?? UITraitCollection.current)
+      .userInterfaceStyle == .dark
+    let backgroundColor = artwork.mainColor(forDarkBackground: isDarkMode)
+    backgroundColorView.backgroundColor = backgroundColor
+    // light style renders labels and icons dark, dark style renders them white
+    overrideUserInterfaceStyle = backgroundColor.prefersDarkContent ? .light : .dark
   }
 
   @objc

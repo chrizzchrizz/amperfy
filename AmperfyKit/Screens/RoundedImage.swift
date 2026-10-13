@@ -26,6 +26,7 @@ import UIKit
 public enum CornerRadius {
   case verySmall
   case small
+  case medium
   case big
 
   public var asCGFloat: CGFloat {
@@ -34,6 +35,8 @@ public enum CornerRadius {
       return 3.0
     case .small:
       return 5.0
+    case .medium:
+      return 8.0
     case .big:
       return 15.0
     }

@@ -33,15 +33,11 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
   @IBOutlet
   weak var controlPlaceholderView: UIView!
   @IBOutlet
-  weak var backgroundImage: UIImageView!
-  @IBOutlet
-  weak var closeButtonPlaceholderView: UIView!
+  weak var backgroundColorView: UIImageView!
 
   @IBOutlet
   weak var controlPlaceholderHeightConstraint: NSLayoutConstraint!
   private let safetyMarginOnBottom = 20.0
-  internal var artworkGradientColors = [UIColor]()
-
   lazy var tableViewKeyCommandsController = TableViewKeyCommandsController(
     tableView: tableView,
     overrideFirstLastIndexPath: IndexPath(
@@ -55,6 +51,7 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
   var controlView: PlayerControlView?
   var largeCurrentlyPlayingView: LargeCurrentlyPlayingPlayerView?
   var accountNotificationHandler: AccountNotificationHandler?
+  private var windowStyleObservation: (any UITraitChangeRegistration)?
 
   var currentlyPlayingTableCell: CurrentlyPlayingTableCell?
   var contextPrevQueueSectionHeader: ContextQueuePrevSectionHeader?
@@ -70,6 +67,8 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    // darkened artwork color needs white labels
+    overrideUserInterfaceStyle = .dark
 
     tableView.delegate = self
     tableView.dataSource = self
@@ -80,8 +79,6 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
     player = appDelegate.player
     player.addNotifier(notifier: self)
     playerHandler = PlayerUIHandler(player: player, style: .popupPlayer)
-
-    backgroundImage.setBackgroundBlur(style: .prominent)
 
     controlPlaceholderHeightConstraint.constant = PlayerControlView
       .frameHeight + safetyMarginOnBottom
@@ -107,8 +104,6 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
       createdLargeCurrentlyPlayingView.prepare(toWorkOnRootView: self)
       largePlayerPlaceholderView.addSubview(createdLargeCurrentlyPlayingView)
     }
-
-    closeButtonPlaceholderView.isHidden = true
 
     setupTableView()
     fetchSongInfoAndUpdateViews()
@@ -175,12 +170,19 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
     super.viewDidLayoutSubviews()
     refreshCellMasks()
     controlView?.refreshView()
-    applyGradientBackground()
   }
 
   override func viewIsAppearing(_ animated: Bool) {
     super.viewIsAppearing(animated)
     appDelegate.userStatistics.visited(.popupPlayer)
+    // the player overrides its own style, so system style changes are only visible on the window
+    if windowStyleObservation == nil {
+      windowStyleObservation = view.window?.registerForTraitChanges(
+        [UITraitUserInterfaceStyle.self]
+      ) { (_: UIWindow, _) in
+        self.refreshBackgroundItemArtwork()
+      }
+    }
     becomeFirstResponder()
     changeDisplayStyleVisually(
       to: appDelegate.storage.settings.user.playerDisplayStyle,
