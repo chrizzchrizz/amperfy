@@ -341,6 +341,7 @@ final class HomeVC: UICollectionViewController {
   func refreshRandomAlbumsSection() {
     Task { @MainActor in
       await sharedHome.updateRandomAlbums(isOfflineMode: sharedHome.isOfflineMode)
+      scrollSectionToStart(.randomAlbums)
     }
   }
 
@@ -356,6 +357,7 @@ final class HomeVC: UICollectionViewController {
   func refreshRandomArtistsSection() {
     Task { @MainActor in
       await sharedHome.updateRandomArtists(isOfflineMode: sharedHome.isOfflineMode)
+      scrollSectionToStart(.randomArtists)
     }
   }
 
@@ -363,6 +365,7 @@ final class HomeVC: UICollectionViewController {
   func refreshRandomGenresSection() {
     Task { @MainActor in
       await sharedHome.updateRandomGenres()
+      scrollSectionToStart(.randomGenres)
     }
   }
 
@@ -440,6 +443,7 @@ final class HomeVC: UICollectionViewController {
   func refreshRandomSongsSection() {
     Task { @MainActor in
       await sharedHome.updateRandomSongs(isOfflineMode: sharedHome.isOfflineMode)
+      scrollSectionToStart(.randomSongs)
     }
   }
 
