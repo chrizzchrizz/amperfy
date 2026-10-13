@@ -154,6 +154,7 @@ public enum DisplayCategoryFilter: Codable {
   case recent
   case latestReleased
   case favorites
+  case compilations
 }
 
 // MARK: - ArtistCategoryFilter

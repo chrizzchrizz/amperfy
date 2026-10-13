@@ -44,6 +44,7 @@ public enum LibraryDisplayType: Int, CaseIterable, Sendable {
   case recentAlbums = 13
   case radios = 14
   case latestReleasedAlbums = 15
+  case compilations = 16
 
   public static func createByDisplayName(name: String) -> LibraryDisplayType? {
     .allCases.first {
@@ -83,6 +84,8 @@ public enum LibraryDisplayType: Int, CaseIterable, Sendable {
       return "Latest Releases"
     case .radios:
       return "Radios"
+    case .compilations:
+      return "Compilations"
     }
   }
 
@@ -118,6 +121,8 @@ public enum LibraryDisplayType: Int, CaseIterable, Sendable {
       return UIImage.albumNewest
     case .radios:
       return UIImage.radio
+    case .compilations:
+      return UIImage.album
     }
   }
 }
@@ -181,6 +186,7 @@ public struct LibraryDisplaySettings: Sendable, Codable {
       inUse: [
         .artists,
         .albums,
+        .compilations,
         .newestAlbums,
         .recentAlbums,
         .songs,
@@ -201,6 +207,7 @@ public struct LibraryDisplaySettings: Sendable, Codable {
         .favoriteArtists,
         .albums,
         .favoriteAlbums,
+        .compilations,
         .newestAlbums,
         .recentAlbums,
         .latestReleasedAlbums,

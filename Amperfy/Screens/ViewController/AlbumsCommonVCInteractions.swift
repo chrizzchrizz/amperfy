@@ -96,6 +96,7 @@ class AlbumsCommonVCInteractions {
     case .recent: "Recently Played"
     case .latestReleased: "Latest Releases"
     case .favorites: "Favorite Albums"
+    case .compilations: "Compilations"
     }
   }
 
@@ -174,6 +175,10 @@ class AlbumsCommonVCInteractions {
       filterTitle = "Favorite Albums"
       isIndexTitelsHidden = false
       change(sortType: appDelegate.storage.settings.user.albumsSortSetting)
+    case .compilations:
+      filterTitle = "Compilations"
+      isIndexTitelsHidden = false
+      change(sortType: appDelegate.storage.settings.user.albumsSortSetting)
     }
     rootVC?.setNavBarTitle(title: filterTitle)
   }
@@ -220,7 +225,7 @@ class AlbumsCommonVCInteractions {
   func updateFromRemote(offset: Int = 0, count: Int = AmperKit.newestElementsFetchCount) {
     guard appDelegate.storage.settings.user.isOnlineMode else { return }
     switch displayFilter {
-    case .all:
+    case .all, .compilations:
       break
     case .newest:
       Task { @MainActor in
@@ -486,6 +491,9 @@ class AlbumsCommonVCInteractions {
         case .favorites:
           albums = self.appDelegate.storage.main.library
             .getFavoriteAlbums(for: self.account)
+        case .compilations:
+          albums = self.appDelegate.storage.main.library
+            .getCompilationAlbums(for: self.account)
         }
         let albumSongs = Array(albums.compactMap { $0.playables }.joined())
         if albumSongs.count > AppDelegate.maxPlayablesDownloadsToAddAtOnceWithoutWarning {

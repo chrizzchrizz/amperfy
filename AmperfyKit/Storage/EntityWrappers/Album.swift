@@ -94,6 +94,16 @@ public class Album: AbstractLibraryEntity {
     }
   }
 
+  /// Compilation flag reported by the server (Ampache `type`, OpenSubsonic `isCompilation`).
+  public var isCompilation: Bool {
+    get { managedObject.isCompilation }
+    set {
+      if managedObject.isCompilation != newValue {
+        managedObject.isCompilation = newValue
+      }
+    }
+  }
+
   public var artist: Artist? {
     get {
       guard let artistMO = managedObject.artist else { return nil }

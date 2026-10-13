@@ -40,6 +40,18 @@ class AlbumTest: XCTestCase {
 
   override func tearDown() {}
 
+  func testCompilationFilter() {
+    let compilation = library.createAlbum(account: account)
+    compilation.id = "compilation"
+    compilation.isCompilation = true
+    let regular = library.createAlbum(account: account)
+    regular.id = "regular"
+    library.saveContext()
+
+    let ids = library.getCompilationAlbums(for: account).map { $0.id }
+    XCTAssertEqual(ids, ["compilation"])
+  }
+
   func testCreation() {
     let album = library.createAlbum(account: account)
     XCTAssertEqual(album.account?.serverHash, TestAccountInfo.test1ServerHash)

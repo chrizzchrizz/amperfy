@@ -35,6 +35,8 @@ extension AlbumMO {
   @NSManaged
   public var isCached: Bool
   @NSManaged
+  public var isCompilation: Bool
+  @NSManaged
   public var name: String?
   @NSManaged
   public var recentIndex: Int16

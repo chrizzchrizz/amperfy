@@ -73,6 +73,12 @@ extension LibraryDisplayType {
         style: settings.user.albumsStyleSetting,
         category: .latestReleased
       )
+    case .compilations:
+      return AppStoryboard.Main.createAlbumsVC(
+        account: account,
+        style: settings.user.albumsStyleSetting,
+        category: .compilations
+      )
     case .radios:
       return AppStoryboard.Main.segueToRadios(account: account)
     }

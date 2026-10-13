@@ -60,6 +60,7 @@ class AlbumParserTest: AbstractAmpacheTest {
     XCTAssertEqual(album.artist?.id, "19")
     XCTAssertEqual(album.artist?.name, "Various Artists")
     XCTAssertEqual(album.year, 2012)
+    XCTAssertTrue(album.isCompilation)
     XCTAssertFalse(album.isCached)
     XCTAssertEqual(album.duration, 1879)
     XCTAssertEqual(album.remoteDuration, 1879)

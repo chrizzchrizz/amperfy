@@ -1117,7 +1117,7 @@ public class LibraryStorage: PlayableFileCachable {
 
   func getFetchPredicate(songsDisplayFilter: DisplayCategoryFilter) -> NSPredicate {
     switch songsDisplayFilter {
-    case .all, .latestReleased, .newest, .recent:
+    case .all, .compilations, .latestReleased, .newest, .recent:
       return NSPredicate(value: true)
     case .favorites:
       return NSPredicate(format: "%K == TRUE", #keyPath(SongMO.isFavorite))
@@ -1136,6 +1136,8 @@ public class LibraryStorage: PlayableFileCachable {
       return NSPredicate(format: "%K > 0", #keyPath(AlbumMO.year))
     case .favorites:
       return NSPredicate(format: "%K == TRUE", #keyPath(AlbumMO.isFavorite))
+    case .compilations:
+      return NSPredicate(format: "%K == TRUE", #keyPath(AlbumMO.isCompilation))
     }
   }
 
@@ -1545,6 +1547,17 @@ public class LibraryStorage: PlayableFileCachable {
     fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
       getFetchPredicate(forAccount: account),
       NSPredicate(format: "%K == TRUE", #keyPath(AlbumMO.isFavorite)),
+    ])
+    let foundAlbums = try? context.fetch(fetchRequest)
+    let albums = foundAlbums?.compactMap { Album(managedObject: $0) }
+    return albums ?? [Album]()
+  }
+
+  public func getCompilationAlbums(for account: Account) -> [Album] {
+    let fetchRequest: NSFetchRequest<AlbumMO> = AlbumMO.identifierSortedFetchRequest
+    fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+      getFetchPredicate(forAccount: account),
+      getFetchPredicate(albumsDisplayFilter: .compilations),
     ])
     let foundAlbums = try? context.fetch(fetchRequest)
     let albums = foundAlbums?.compactMap { Album(managedObject: $0) }

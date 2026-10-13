@@ -62,6 +62,7 @@ enum CoreDataMigrationVersion: String, CaseIterable {
     "Amperfy v49" // Remove PlayableFile and Artwork data (they were already deprecated); Account: add apiType
   case v50 = "Amperfy v50" // Album: add releaseSortDate
   case v51 = "Amperfy v51" // Playlist: add artwork (server cover)
+  case v52 = "Amperfy v52" // Album: add isCompilation
 
   // MARK: - Current
 
@@ -178,6 +179,8 @@ enum CoreDataMigrationVersion: String, CaseIterable {
     case .v50:
       return .v51
     case .v51:
+      return .v52
+    case .v52:
       return nil
     }
   }

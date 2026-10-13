@@ -65,6 +65,10 @@ extension LibraryDisplayType {
       let vc = PlaylistAddAlbumsVC(account: account)
       vc.displayFilter = .all
       return vc
+    case .compilations:
+      let vc = PlaylistAddAlbumsVC(account: account)
+      vc.displayFilter = .compilations
+      return vc
     case .songs:
       let vc = PlaylistAddSongsVC(account: account)
       vc.displayFilter = .all

@@ -88,6 +88,10 @@ class SsAlbumParserDelegate: SsXmlLibWithArtworkParser {
       // fallback for the release date, which is delivered by a child element (OpenSubsonic)
       isReleaseDateParsed = false
       albumBuffer?.releaseSortDate = attributeDict["created"].flatMap { Self.parseDate($0) }
+      // OpenSubsonic: isCompilation attribute (absent on plain Subsonic servers)
+      if let attributeIsCompilation = attributeDict["isCompilation"] {
+        albumBuffer?.isCompilation = attributeIsCompilation.lowercased() == "true"
+      }
       if let attributeSongCount = attributeDict["songCount"],
          let songCount = Int(attributeSongCount) {
         albumBuffer?.remoteSongCount = songCount
