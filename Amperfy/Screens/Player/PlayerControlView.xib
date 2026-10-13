@@ -290,6 +290,7 @@
                 <constraint firstItem="1aU-Ga-twf" firstAttribute="centerY" secondItem="fic-HG-erH" secondAttribute="centerY" id="xoa-iu-CiD"/>
                 <constraint firstItem="okd-ac-nGY" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leadingMargin" id="yex-74-F71"/>
                 <constraint firstItem="xXq-r4-gI6" firstAttribute="top" secondItem="vS1-Vo-lSt" secondAttribute="bottom" constant="20" id="zg3-MD-JbT"/>
+                <constraint firstAttribute="bottomMargin" secondItem="xXq-r4-gI6" secondAttribute="bottom" priority="999" id="bMg-9c-Plc"/>
             </constraints>
             <connections>
                 <outlet property="airplayButton" destination="l5j-2I-Ltc" id="ENH-UT-6ix"/>

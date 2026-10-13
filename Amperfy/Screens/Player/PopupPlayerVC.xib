@@ -10,7 +10,6 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="PopupPlayerVC" customModule="Amperfy" customModuleProvider="target">
             <connections>
                 <outlet property="backgroundColorView" destination="uc4-Rw-bKA" id="WkZ-wK-VH1"/>
-                <outlet property="controlPlaceholderHeightConstraint" destination="4Md-WZ-qJc" id="czl-9v-6th"/>
                 <outlet property="controlPlaceholderView" destination="B0Y-BS-JDd" id="vCd-rV-aRY"/>
                 <outlet property="largePlayerPlaceholderView" destination="lyG-pB-bha" id="s82-dZ-gRe"/>
                 <outlet property="tableView" destination="6gH-MH-Q1w" id="yVW-IT-Efj"/>
@@ -38,17 +37,14 @@
                 </tableView>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="B0Y-BS-JDd" userLabel="Control Placeholder">
                     <rect key="frame" x="20" y="628" width="374" height="200"/>
-                    <constraints>
-                        <constraint firstAttribute="height" constant="200" id="4Md-WZ-qJc"/>
-                    </constraints>
                 </view>
             </subviews>
             <viewLayoutGuide key="safeArea" id="1MA-6G-aB5"/>
             <constraints>
-                <constraint firstItem="lyG-pB-bha" firstAttribute="top" secondItem="1MA-6G-aB5" secondAttribute="top" constant="20" id="18e-Ia-XA9"/>
+                <constraint firstItem="lyG-pB-bha" firstAttribute="top" secondItem="9Ao-u1-xa1" secondAttribute="topMargin" constant="20" id="18e-Ia-XA9"/>
                 <constraint firstItem="B0Y-BS-JDd" firstAttribute="top" secondItem="6gH-MH-Q1w" secondAttribute="bottom" id="31P-Um-22E"/>
                 <constraint firstAttribute="bottom" secondItem="uc4-Rw-bKA" secondAttribute="bottom" id="BR3-r1-kqM"/>
-                <constraint firstAttribute="rightMargin" secondItem="lyG-pB-bha" secondAttribute="right" id="Bv5-GQ-NSk"/>
+                <constraint firstAttribute="trailingMargin" secondItem="lyG-pB-bha" secondAttribute="trailing" id="Bv5-GQ-NSk"/>
                 <constraint firstItem="6gH-MH-Q1w" firstAttribute="top" secondItem="9Ao-u1-xa1" secondAttribute="topMargin" constant="20" id="CX2-Pe-eWy"/>
                 <constraint firstItem="6gH-MH-Q1w" firstAttribute="leading" secondItem="9Ao-u1-xa1" secondAttribute="leadingMargin" id="J6w-F0-q1Q"/>
                 <constraint firstItem="uc4-Rw-bKA" firstAttribute="trailing" secondItem="1MA-6G-aB5" secondAttribute="trailing" id="JKc-tO-MZO"/>
@@ -59,7 +55,7 @@
                 <constraint firstItem="B0Y-BS-JDd" firstAttribute="top" secondItem="lyG-pB-bha" secondAttribute="bottom" id="n3g-77-ORg"/>
                 <constraint firstItem="uc4-Rw-bKA" firstAttribute="top" secondItem="9Ao-u1-xa1" secondAttribute="top" id="vLW-rG-4pv"/>
                 <constraint firstAttribute="trailingMargin" secondItem="B0Y-BS-JDd" secondAttribute="trailing" id="vbp-wW-JVG"/>
-                <constraint firstItem="lyG-pB-bha" firstAttribute="left" secondItem="9Ao-u1-xa1" secondAttribute="leftMargin" id="wBC-Wu-AKk"/>
+                <constraint firstItem="lyG-pB-bha" firstAttribute="leading" secondItem="9Ao-u1-xa1" secondAttribute="leadingMargin" id="wBC-Wu-AKk"/>
             </constraints>
             <point key="canvasLocation" x="369.56521739130437" y="-1544.8660714285713"/>
         </view>

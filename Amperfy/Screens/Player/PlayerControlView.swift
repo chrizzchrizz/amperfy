@@ -114,13 +114,6 @@ import UIKit
 #endif
 
 class PlayerControlView: UIView {
-  #if targetEnvironment(macCatalyst) // ok
-    // volume stack is collapsed (no height, no spacing)
-    static let frameHeight: CGFloat = 203
-  #else
-    // 203 + volume stack (28) + its spacing to the control stack (50) and options stack (20)
-    static let frameHeight: CGFloat = 281
-  #endif
   static private let margin = UIEdgeInsets(
     top: 0,
     left: UIView.defaultMarginX,

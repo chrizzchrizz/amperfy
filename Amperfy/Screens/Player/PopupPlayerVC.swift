@@ -35,9 +35,6 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
   @IBOutlet
   weak var backgroundColorView: UIImageView!
 
-  @IBOutlet
-  weak var controlPlaceholderHeightConstraint: NSLayoutConstraint!
-  private let safetyMarginOnBottom = 20.0
   lazy var tableViewKeyCommandsController = TableViewKeyCommandsController(
     tableView: tableView,
     overrideFirstLastIndexPath: IndexPath(
@@ -80,18 +77,20 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
     player.addNotifier(notifier: self)
     playerHandler = PlayerUIHandler(player: player, style: .popupPlayer)
 
-    controlPlaceholderHeightConstraint.constant = PlayerControlView
-      .frameHeight + safetyMarginOnBottom
-    if let createdPlayerControlView = ViewCreator<PlayerControlView>
-      .createFromNib(withinFixedFrame: CGRect(
-        x: 0,
-        y: 0,
-        width: controlPlaceholderView.bounds.size.width,
-        height: controlPlaceholderView.bounds.size.height
-      )) {
+    if let createdPlayerControlView = ViewCreator<PlayerControlView>.createFromNib() {
       controlView = createdPlayerControlView
       createdPlayerControlView.prepare(toWorkOnRootView: self)
+      createdPlayerControlView.translatesAutoresizingMaskIntoConstraints = false
       controlPlaceholderView.addSubview(createdPlayerControlView)
+      NSLayoutConstraint.activate([
+        createdPlayerControlView.topAnchor.constraint(equalTo: controlPlaceholderView.topAnchor),
+        createdPlayerControlView.bottomAnchor
+          .constraint(equalTo: controlPlaceholderView.bottomAnchor),
+        createdPlayerControlView.leadingAnchor
+          .constraint(equalTo: controlPlaceholderView.leadingAnchor),
+        createdPlayerControlView.trailingAnchor
+          .constraint(equalTo: controlPlaceholderView.trailingAnchor),
+      ])
     }
     if let createdLargeCurrentlyPlayingView = ViewCreator<LargeCurrentlyPlayingPlayerView>
       .createFromNib(withinFixedFrame: CGRect(
