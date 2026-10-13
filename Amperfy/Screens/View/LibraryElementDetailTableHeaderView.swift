@@ -203,8 +203,12 @@ class LibraryElementDetailTableHeaderView: UIView {
     let buttonColor: UIColor = backgroundColor.prefersDarkContent ? .black : .white
     for button in [playAllButton, playShuffledButton] {
       // the buttons use a UIButton.Configuration, so colors are set through it
-      button?.configuration?.baseBackgroundColor = buttonColor
-      button?.configuration?.baseForegroundColor = backgroundColor
+      // the shuffle button is slightly translucent to stay secondary to Play
+      // and its icon takes the (opaque) button color, since the fill is too faint to contrast with
+      let isShuffle = button === playShuffledButton
+      let alpha: CGFloat = isShuffle ? 0.1 : 1.0
+      button?.configuration?.baseBackgroundColor = buttonColor.withAlphaComponent(alpha)
+      button?.configuration?.baseForegroundColor = isShuffle ? buttonColor : backgroundColor
     }
   }
 
