@@ -214,10 +214,10 @@ extension Album: PlayableContainable {
         infoContent.append("Cached")
       }
       if year > 0 {
-        infoContent.append("Year \(year)")
+        infoContent.append("\(year)")
       }
       if let genre = genre {
-        infoContent.append("Genre: \(genre.name)")
+        infoContent.append(genre.name)
       }
       if duration > 0 {
         infoContent.append("\(duration.asDurationShortString)")
