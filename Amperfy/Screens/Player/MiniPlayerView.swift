@@ -111,6 +111,9 @@ class MiniPlayerView: UIView {
   fileprivate lazy var timeSlider: SeekableTimeSlider = {
     let slider = SeekableTimeSlider(frame: .zero)
     slider.preferredBehavioralStyle = .pad
+    // explicit colors: the default tint is hard to tell apart from the track on the glass background
+    slider.minimumTrackTintColor = .label
+    slider.maximumTrackTintColor = .label.withAlphaComponent(0.2)
     return slider
   }()
 
