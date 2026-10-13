@@ -652,8 +652,6 @@ class MiniPlayerView: UIView {
     artworkImage.translatesAutoresizingMaskIntoConstraints = false
     titleLabel.translatesAutoresizingMaskIntoConstraints = false
     subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-    timeSlider.translatesAutoresizingMaskIntoConstraints = false
-    liveLabel.translatesAutoresizingMaskIntoConstraints = false
     playButton.translatesAutoresizingMaskIntoConstraints = false
     nextButton.translatesAutoresizingMaskIntoConstraints = false
 
@@ -661,8 +659,6 @@ class MiniPlayerView: UIView {
     addSubview(artworkImage)
     addSubview(titleLabel)
     addSubview(subtitleLabel)
-    addSubview(timeSlider)
-    addSubview(liveLabel)
     addSubview(playButton)
     addSubview(nextButton)
 
@@ -675,18 +671,8 @@ class MiniPlayerView: UIView {
         constant: -8
       ),
 
-      timeSlider.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 6),
-      timeSlider.heightAnchor.constraint(equalToConstant: 3),
-      timeSlider.bottomAnchor.constraint(equalTo: bottomAnchor),
-      timeSlider.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -6),
-
-      liveLabel.centerXAnchor.constraint(equalTo: timeSlider.centerXAnchor, constant: 0),
-      liveLabel.centerYAnchor.constraint(equalTo: timeSlider.centerYAnchor, constant: 0),
-      liveLabel.widthAnchor.constraint(equalToConstant: 0),
-      liveLabel.heightAnchor.constraint(equalTo: liveLabel.widthAnchor),
-
       artworkImage.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-      artworkImage.bottomAnchor.constraint(equalTo: timeSlider.topAnchor, constant: -8),
+      artworkImage.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
       artworkImage.widthAnchor.constraint(equalTo: artworkImage.heightAnchor),
       artworkImage.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
 
@@ -696,7 +682,7 @@ class MiniPlayerView: UIView {
       titleLabel.trailingAnchor.constraint(equalTo: playButton.leadingAnchor, constant: -8),
 
       subtitleLabel.topAnchor.constraint(equalTo: playButton.centerYAnchor, constant: 0),
-      subtitleLabel.bottomAnchor.constraint(equalTo: timeSlider.topAnchor, constant: -8),
+      subtitleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
       subtitleLabel.leadingAnchor.constraint(equalTo: artworkImage.trailingAnchor, constant: 8),
       subtitleLabel.trailingAnchor.constraint(equalTo: playButton.leadingAnchor, constant: -8),
 
