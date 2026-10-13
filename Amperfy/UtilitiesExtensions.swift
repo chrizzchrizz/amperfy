@@ -456,8 +456,8 @@ extension UIImage {
   /// Uses a cheap histogram on a tiny thumbnail. The DominantColors package merges similar colors
   /// pairwise, which can take very long for noisy artwork and blocked the main thread.
   ///
-  /// With `forDarkBackground` only darker colors of the image are considered, so the result stays
-  /// a real artwork color instead of a bright color that is merely dimmed afterwards.
+  /// With `forDarkBackground` the same main color is returned, but its HSL lightness is lowered so
+  /// it works behind white content. Hue always stays the artwork's; see `adjustedForBackground`.
   func mainColor(forDarkBackground: Bool = false) -> UIColor {
     let side = 32
     guard let cgImage else { return averageColor() }
@@ -506,35 +506,66 @@ extension UIImage {
       return CGFloat(bucket.count) * (0.2 + value.s) * (0.3 + value.b)
     }
 
-    if forDarkBackground {
-      // dark but not black; saturation decides so neutral dark areas don't win over colors
-      let darkCandidates = buckets.values.filter { 0.12 ... 0.5 ~= hsb($0).b }
-      let source = darkCandidates.max(by: {
-        CGFloat($0.count) * (0.2 + hsb($0).s) < CGFloat($1.count) * (0.2 + hsb($1).s)
-      }) ?? buckets.values.max(by: { score($0) < score($1) })
-      guard let source else { return averageColor().clampedForDarkBackground() }
-      return average(source).clampedForDarkBackground()
-    }
-
     guard let best = buckets.values.max(by: { score($0) < score($1) }) else {
-      return averageColor()
+      return averageColor().adjustedForBackground(isDark: forDarkBackground)
     }
-    return average(best)
+    return average(best).adjustedForBackground(isDark: forDarkBackground)
   }
 }
 
 extension UIColor {
-  /// Keeps hue, limits brightness and saturation to a range that looks good behind white content.
-  func clampedForDarkBackground() -> UIColor {
-    var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
-    guard getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
-    else { return self }
-    return UIColor(
-      hue: hue,
-      saturation: min(saturation, 0.7),
-      brightness: min(max(brightness, 0.2), 0.4),
-      alpha: alpha
+  /// Tweak these to tune how vivid / dark the artwork backgrounds are (HSL values, 0...1).
+  private static let darkBackgroundLightness: ClosedRange<CGFloat> = 0.18 ... 0.22
+  private static let darkBackgroundMaxSaturation: CGFloat = 0.7
+  private static let lightBackgroundLightness: ClosedRange<CGFloat> = 0.3 ... 0.4
+  private static let lightBackgroundMaxSaturation: CGFloat = 0.3
+
+  func adjustedForBackground(isDark: Bool) -> UIColor {
+    if isDark {
+      return withHSL(
+        lightness: Self.darkBackgroundLightness,
+        maxSaturation: Self.darkBackgroundMaxSaturation
+      )
+    }
+    return withHSL(
+      lightness: Self.lightBackgroundLightness,
+      maxSaturation: Self.lightBackgroundMaxSaturation
     )
+  }
+
+  /// Keeps the hue, limits HSL lightness and saturation to the given bounds.
+  func withHSL(lightness range: ClosedRange<CGFloat>, maxSaturation: CGFloat) -> UIColor {
+    var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+    guard getRed(&red, green: &green, blue: &blue, alpha: &alpha) else { return self }
+    let maxValue = max(red, green, blue)
+    let minValue = min(red, green, blue)
+    let delta = maxValue - minValue
+    let lightness = (maxValue + minValue) / 2
+    let originalSaturation = delta == 0 ? 0 : delta / (1 - abs(2 * lightness - 1))
+    let saturation = min(originalSaturation, maxSaturation)
+    var hue: CGFloat = 0
+    if delta > 0 {
+      switch maxValue {
+      case red: hue = (green - blue) / delta + (green < blue ? 6 : 0)
+      case green: hue = (blue - red) / delta + 2
+      default: hue = (red - green) / delta + 4
+      }
+      hue /= 6
+    }
+
+    let newLightness = min(max(lightness, range.lowerBound), range.upperBound)
+    let chroma = (1 - abs(2 * newLightness - 1)) * saturation
+    let x = chroma * (1 - abs((hue * 6).truncatingRemainder(dividingBy: 2) - 1))
+    let m = newLightness - chroma / 2
+    let (r, g, b): (CGFloat, CGFloat, CGFloat) = switch Int(hue * 6) % 6 {
+    case 0: (chroma, x, 0)
+    case 1: (x, chroma, 0)
+    case 2: (0, chroma, x)
+    case 3: (0, x, chroma)
+    case 4: (x, 0, chroma)
+    default: (chroma, 0, x)
+    }
+    return UIColor(red: r + m, green: g + m, blue: b + m, alpha: alpha)
   }
 
   /// WCAG relative luminance (0 = black, 1 = white).
