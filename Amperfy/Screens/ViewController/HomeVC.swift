@@ -413,6 +413,7 @@ final class HomeVC: UICollectionViewController {
   func refreshGenreAlbumsSection() {
     Task { @MainActor in
       await sharedHome.updateGenreAlbums(isOfflineMode: sharedHome.isOfflineMode)
+      scrollSectionToStart(.genreAlbums)
     }
   }
 
@@ -420,6 +421,7 @@ final class HomeVC: UICollectionViewController {
   func refreshDecadeAlbumsSection() {
     Task { @MainActor in
       await sharedHome.updateDecadeAlbums(isOfflineMode: sharedHome.isOfflineMode)
+      scrollSectionToStart(.decadeAlbums)
     }
   }
 
@@ -438,6 +440,18 @@ final class HomeVC: UICollectionViewController {
       animated: true
     )
     navigationController?.navigationBar.prefersLargeTitles = false
+  }
+
+  /// After a reload the section shows new content, so bring its horizontal list back to the first item.
+  private func scrollSectionToStart(_ section: HomeSection) {
+    let snapshot = dataSource.snapshot()
+    guard let sectionIndex = snapshot.indexOfSection(section),
+          snapshot.numberOfItems(inSection: section) > 0 else { return }
+    collectionView.scrollToItem(
+      at: IndexPath(item: 0, section: sectionIndex),
+      at: .left,
+      animated: true
+    )
   }
 
   // MARK: - Selection Handling
