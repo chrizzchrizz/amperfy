@@ -508,12 +508,13 @@ class MiniPlayerView: UIView {
     self.airplayButton.translatesAutoresizingMaskIntoConstraints = false
     self.volumeButton.translatesAutoresizingMaskIntoConstraints = false
 
-    let stack = UIStackView(arrangedSubviews: [
-      lyricsButton,
-      playlistButton,
-      airplayButton,
-      volumeButton,
-    ])
+    #if targetEnvironment(macCatalyst) // ok
+      let buttons = [lyricsButton, playlistButton, airplayButton, volumeButton]
+    #else
+      // app volume button is only needed on Mac; iOS/iPadOS use the system volume
+      let buttons = [lyricsButton, playlistButton, airplayButton]
+    #endif
+    let stack = UIStackView(arrangedSubviews: buttons)
     stack.axis = .horizontal
     stack.distribution = .equalSpacing
     stack.alignment = .center
@@ -522,13 +523,9 @@ class MiniPlayerView: UIView {
 
   public func refreshTrailingButtons() {
     guard let playerHandler else { return }
-    if playerHandler.isLyricsButtonAllowedToDisplay {
-      lyricsButton.isHidden = false
-      trailingButtonsViewWidthConstraint?.constant = 140
-    } else {
-      lyricsButton.isHidden = true
-      trailingButtonsViewWidthConstraint?.constant = 100
-    }
+    lyricsButton.isHidden = !playerHandler.isLyricsButtonAllowedToDisplay
+    let visibleButtonCount = trailingButtonsView.arrangedSubviews.filter { !$0.isHidden }.count
+    trailingButtonsViewWidthConstraint?.constant = CGFloat(visibleButtonCount) * 40
   }
 
   func refreshMoreButton() {

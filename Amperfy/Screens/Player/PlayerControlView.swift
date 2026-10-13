@@ -20,14 +20,107 @@
 //
 
 import AmperfyKit
+import AVFoundation
 import MarqueeLabel
 import MediaPlayer
 import UIKit
 
 // MARK: - PlayerControlView
 
+#if !targetEnvironment(macCatalyst) // ok
+  /// Own slider for the system volume.
+  /// MPVolumeView's slider doesn't reliably follow volume changes and fights with any value we
+  /// write into it. So the visible slider is a plain UISlider that is fully under our control:
+  /// - reading: `AVAudioSession.outputVolume` (KVO, plus a refresh when shown or reactivated)
+  /// - writing: the slider of a hidden MPVolumeView, the only way to change the system volume
+  private class SystemVolumeSlider: UIView {
+    private let slider = UISlider()
+    // must be part of the view hierarchy (and not hidden) to work and to suppress the system HUD
+    private let hiddenVolumeView = MPVolumeView(frame: CGRect(x: 0, y: 0, width: 1, height: 1))
+    private var volumeObservation: NSKeyValueObservation?
+    private var appActiveObserver: NSObjectProtocol?
+    /// KVO reports lag behind while dragging; ignore them shortly after the user changed the value
+    private var lastUserChange = Date.distantPast
+
+    private var systemSlider: UISlider? {
+      hiddenVolumeView.subviews.first { $0 is UISlider } as? UISlider
+    }
+
+    override init(frame: CGRect) {
+      super.init(frame: frame)
+      hiddenVolumeView.alpha = 0.01
+      hiddenVolumeView.isUserInteractionEnabled = false
+      addSubview(hiddenVolumeView)
+
+      slider.translatesAutoresizingMaskIntoConstraints = false
+      slider.minimumTrackTintColor = .label
+      slider.maximumTrackTintColor = UIColor.label.withAlphaComponent(0.3)
+      // invisible thumb; it must keep a real size, otherwise the slider can't be grabbed
+      let invisibleThumb = UIGraphicsImageRenderer(size: CGSize(width: 28, height: 28)).image { _ in }
+      slider.setThumbImage(invisibleThumb, for: .normal)
+      slider.setThumbImage(invisibleThumb, for: .highlighted)
+      slider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
+      addSubview(slider)
+      NSLayoutConstraint.activate([
+        slider.leadingAnchor.constraint(equalTo: leadingAnchor),
+        slider.trailingAnchor.constraint(equalTo: trailingAnchor),
+        slider.centerYAnchor.constraint(equalTo: centerYAnchor),
+      ])
+      setContentHuggingPriority(.defaultLow, for: .horizontal)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+      fatalError("init(coder:) has not been implemented")
+    }
+
+    override func didMoveToWindow() {
+      super.didMoveToWindow()
+      volumeObservation = nil
+      if let appActiveObserver {
+        NotificationCenter.default.removeObserver(appActiveObserver)
+      }
+      appActiveObserver = nil
+      guard window != nil else { return }
+      refreshFromSystem()
+      volumeObservation = AVAudioSession.sharedInstance()
+        .observe(\.outputVolume, options: [.new]) { [weak self] _, change in
+          guard let volume = change.newValue else { return }
+          Task { @MainActor in self?.refreshFromSystem(volume) }
+        }
+      // changes made in Control Center while the app was inactive
+      appActiveObserver = NotificationCenter.default.addObserver(
+        forName: UIApplication.didBecomeActiveNotification,
+        object: nil,
+        queue: .main
+      ) { [weak self] _ in
+        Task { @MainActor in self?.refreshFromSystem() }
+      }
+    }
+
+    private func refreshFromSystem(_ volume: Float = AVAudioSession.sharedInstance().outputVolume) {
+      guard !slider.isTracking, Date().timeIntervalSince(lastUserChange) > 0.5 else { return }
+      slider.setValue(volume, animated: false)
+    }
+
+    @objc
+    private func sliderValueChanged() {
+      lastUserChange = Date()
+      guard let systemSlider else { return }
+      systemSlider.setValue(slider.value, animated: false)
+      systemSlider.sendActions(for: .valueChanged)
+    }
+  }
+#endif
+
 class PlayerControlView: UIView {
-  static let frameHeight: CGFloat = 175
+  #if targetEnvironment(macCatalyst) // ok
+    // volume stack is collapsed (no height, no spacing)
+    static let frameHeight: CGFloat = 203
+  #else
+    // 203 + volume stack (28) + its spacing to the control stack (50) and options stack (20)
+    static let frameHeight: CGFloat = 281
+  #endif
   static private let margin = UIEdgeInsets(
     top: 0,
     left: UIView.defaultMarginX,
@@ -67,6 +160,12 @@ class PlayerControlView: UIView {
   weak var playTypeIcon: UIImageView!
 
   @IBOutlet
+  weak var volumeStackView: UIStackView!
+  @IBOutlet
+  weak var volumeStackHeightConstraint: NSLayoutConstraint!
+  @IBOutlet
+  weak var volumeStackTopConstraint: NSLayoutConstraint!
+  @IBOutlet
   weak var optionsStackView: UIStackView!
   @IBOutlet
   weak var playerModeButton: UIButton!
@@ -78,6 +177,10 @@ class PlayerControlView: UIView {
   weak var volumeButton: UIButton!
   @IBOutlet
   weak var optionsButton: UIButton!
+
+  #if !targetEnvironment(macCatalyst) // ok
+    private let systemVolumeSlider = SystemVolumeSlider(frame: .zero)
+  #endif
 
   required init?(coder aDecoder: NSCoder) {
     #if targetEnvironment(macCatalyst) // ok
@@ -100,6 +203,24 @@ class PlayerControlView: UIView {
     rootView = toWorkOnRootView
 
     playerHandler = PlayerUIHandler(player: player, style: .popupPlayer)
+
+    #if targetEnvironment(macCatalyst) // ok
+      volumeStackView.isHidden = true
+      volumeStackHeightConstraint.constant = 0
+      volumeStackTopConstraint.constant = 0
+    #else
+      if systemVolumeSlider.superview == nil {
+        volumeStackView.insertArrangedSubview(systemVolumeSlider, at: 1)
+        // same height as the icons, so slider and icons share the same center line
+        systemVolumeSlider.heightAnchor.constraint(equalTo: volumeStackView.heightAnchor)
+          .isActive = true
+      }
+      for case let icon as UIImageView in volumeStackView.arrangedSubviews {
+        icon.tintColor = .label
+      }
+      // the system volume slider replaces the app volume button
+      volumeButton.isHidden = true
+    #endif
 
     playButton.imageView?.tintColor = .label
     previousButton.tintColor = .label
