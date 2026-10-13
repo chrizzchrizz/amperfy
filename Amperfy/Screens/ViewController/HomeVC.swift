@@ -348,6 +348,7 @@ final class HomeVC: UICollectionViewController {
   func refreshCompilationsSection() {
     Task { @MainActor in
       await sharedHome.updateCompilations(isOfflineMode: sharedHome.isOfflineMode)
+      scrollSectionToStart(.compilations)
     }
   }
 
