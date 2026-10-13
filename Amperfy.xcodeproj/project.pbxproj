@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A1B2C3D4E5F60718293A4B5D /* ArtworkBackgroundController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ArtworkBackgroundController.swift */; };
 		09EB5F102F93B96E00B1C71C /* ShareSongAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09EB5F0D2F93B65400B1C71C /* ShareSongAction.swift */; };
 		5003D8FB267B3390006946BF /* LibrarySyncPopupVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5003D8FA267B3390006946BF /* LibrarySyncPopupVC.swift */; };
 		5005938928E2D4EF008C8DF6 /* CommonCollectionSectionHeader.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5005938828E2D4EF008C8DF6 /* CommonCollectionSectionHeader.xib */; };
@@ -598,6 +599,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A1B2C3D4E5F60718293A4B5C /* ArtworkBackgroundController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkBackgroundController.swift; sourceTree = "<group>"; };
 		09EB5F0D2F93B65400B1C71C /* ShareSongAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSongAction.swift; sourceTree = "<group>"; };
 		5002565625E69DC700674CE1 /* SpinnerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerViewController.swift; sourceTree = "<group>"; };
 		5003D8F62678DD39006946BF /* SsAlbumParserPreCreatedArtistsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SsAlbumParserPreCreatedArtistsTest.swift; sourceTree = "<group>"; };
@@ -1392,6 +1394,7 @@
 				50E1D3972B8A82BA0001A572 /* KeyCommandTableViewController.swift */,
 				50120A2426281C1900B037B1 /* BasicTableViewController.swift */,
 				7049C69DC0AAE33A2158D8F5 /* SearchDebouncer.swift */,
+				A1B2C3D4E5F60718293A4B5C /* ArtworkBackgroundController.swift */,
 				50DE29F02B90855100ABA78E /* KeyCommandCollectionViewController.swift */,
 				5005938E28E2EDDB008C8DF6 /* BasicCollectionViewController.swift */,
 				505CA20D2B88EB9900AA81CD /* BasicFetchedResultsTableViewController.swift */,
@@ -2626,6 +2629,7 @@
 				50AC4E5628D99A410091FF33 /* ButtonStyles.swift in Sources */,
 				505CA2082B88E8F400AA81CD /* BasicTableViewController.swift in Sources */,
 				27EB1C38402CA80F8B0B537D /* SearchDebouncer.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5D /* ArtworkBackgroundController.swift in Sources */,
 				507414A12F004C07007AEC5D /* NextPreviousTrackIntent.swift in Sources */,
 				50B166AC2ED4E68400F7A1D6 /* HomeVC.swift in Sources */,
 				50C16C1C21E7051700F086F0 /* AlbumDetailVC.swift in Sources */,

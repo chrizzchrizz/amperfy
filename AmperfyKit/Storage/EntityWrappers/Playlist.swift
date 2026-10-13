@@ -64,6 +64,11 @@ public class Playlist: Identifyable {
     }
   }
 
+  @MainActor
+  public func imagePath(setting: ArtworkDisplayPreference) -> String? {
+    artwork?.imagePath
+  }
+
   public var artworkItems: [PlaylistItem] {
     managedObject.artworkItems.compactMap { PlaylistItem(library: library, managedObject: $0) }
   }

@@ -92,6 +92,7 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
   private var editButton: UIBarButtonItem!
   private var optionsButton: UIBarButtonItem!
   var detailOperationsView: GenericDetailTableHeader?
+  private var artworkBackground: ArtworkBackgroundController!
 
   init(account: Account, playlist: Playlist) {
     self.playlist = playlist
@@ -200,11 +201,30 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
         playContext: playContext
       ))
     }
+
+    // as early as possible, so the default color is barely visible during the push
+    artworkBackground = ArtworkBackgroundController(
+      owner: self,
+      account: account,
+      detailHeader: { [weak self] in self?.detailOperationsView },
+      imagePath: { [weak self] setting in self?.playlist.imagePath(setting: setting) }
+    )
+    artworkBackground.update()
+    registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, _) in
+      self.artworkBackground.update(animated: true)
+    }
   }
 
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     navigationController?.navigationBar.prefersLargeTitles = false
+    artworkBackground.applyNavigationBarStyle()
+  }
+
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    // the navigation bar is shared with other screens
+    artworkBackground.resetNavigationBarStyle()
   }
 
   override func viewIsAppearing(_ animated: Bool) {
@@ -226,6 +246,7 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
         self.appDelegate.eventLogger.report(topic: "Playlist Sync", error: error)
       }
       self.detailOperationsView?.refresh()
+      self.artworkBackground.update()
     }
   }
 
@@ -277,6 +298,7 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
   )
     -> UITableViewCell {
     let cell: PlayableTableCell = dequeueCell(for: tableView, at: indexPath)
+    cell.contentColorOverride = artworkBackground.contentColor
     if let song = playlistItem.playable.asSong {
       cell.display(playable: song, playContextCb: convertCellViewToPlayContext, rootView: self)
     }
@@ -299,6 +321,7 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
         self.appDelegate.eventLogger.report(topic: "Playlist Sync", error: error)
       }
       self.detailOperationsView?.refresh()
+      self.artworkBackground.update()
       self.refreshControl?.endRefreshing()
     }
   }
