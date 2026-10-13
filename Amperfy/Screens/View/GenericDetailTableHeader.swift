@@ -132,13 +132,38 @@ class GenericDetailTableHeader: UIView {
     )
   }
 
+  private let coverShadowView = CoverShadowView()
+
+  /// The cover clips its own content, so the shadow is cast by a separate view right behind it.
+  /// The view is pinned to the cover, so the shadow never lags behind the cover's frame.
+  func enableCoverShadow() {
+    guard coverShadowView.superview == nil, let container = entityImage.superview else { return }
+    coverShadowView.cornerRadiusProvider = { [weak self] in self?.entityImage.layer.cornerRadius ?? 0 }
+    container.insertSubview(coverShadowView, belowSubview: entityImage)
+    NSLayoutConstraint.activate([
+      coverShadowView.leadingAnchor.constraint(equalTo: entityImage.leadingAnchor),
+      coverShadowView.trailingAnchor.constraint(equalTo: entityImage.trailingAnchor),
+      coverShadowView.topAnchor.constraint(equalTo: entityImage.topAnchor),
+      coverShadowView.bottomAnchor.constraint(equalTo: entityImage.bottomAnchor),
+    ])
+    coverShadowView.fadeInShadow()
+  }
+
+  /// Black or white color for the info texts on custom backgrounds.
+  func applyContentColor(_ color: UIColor) {
+    let secondaryColor = color.withAlphaComponent(0.8)
+    infoLabel.textColor = secondaryColor
+    descriptionLabel.textColor = secondaryColor
+  }
+
   func refresh() {
     guard let config = config else { return }
     let entityContainer = config.entityContainer
     entityImage.display(
       theme: appDelegate.storage.settings.accounts.getSetting(entityContainer.account?.info).read
         .themePreference,
-      container: entityContainer
+      container: entityContainer,
+      cornerRadius: .medium
     )
     titleLabel.text = entityContainer.name
     subtitleView.isHidden = entityContainer.subtitle == nil
@@ -244,5 +269,47 @@ class GenericDetailTableHeader: UIView {
       AppStoryboard.Main.segueToArtistDetail(account: account, artist: artist),
       animated: true
     )
+  }
+}
+
+// MARK: - CoverShadowView
+
+/// Transparent view that only casts a soft shadow. The shadow fades in after the screen is
+/// visible, so no blurred box shows up behind a cover that is still being laid out or loaded.
+private final class CoverShadowView: UIView {
+  private static let shadowOpacity: Float = 0.1
+  var cornerRadiusProvider: (() -> CGFloat)?
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    translatesAutoresizingMaskIntoConstraints = false
+    isUserInteractionEnabled = false
+    layer.shadowColor = UIColor.black.cgColor
+    layer.shadowOpacity = 0
+    layer.shadowRadius = 8
+    layer.shadowOffset = CGSize(width: 0, height: 6)
+  }
+
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    layer.shadowPath = UIBezierPath(
+      roundedRect: bounds,
+      cornerRadius: cornerRadiusProvider?() ?? 0
+    ).cgPath
+  }
+
+  func fadeInShadow() {
+    let fade = CABasicAnimation(keyPath: "shadowOpacity")
+    fade.fromValue = 0
+    fade.toValue = Self.shadowOpacity
+    fade.duration = 0.3
+    fade.beginTime = CACurrentMediaTime() + 0.25
+    fade.fillMode = .backwards
+    layer.shadowOpacity = Self.shadowOpacity
+    layer.add(fade, forKey: "fadeIn")
   }
 }

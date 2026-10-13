@@ -65,7 +65,7 @@ class ArtistDetailVC: MultiSourceTableViewController {
     tableView.estimatedSectionHeaderHeight = 0.0
     tableView.sectionFooterHeight = 0.0
     tableView.estimatedSectionFooterHeight = 0.0
-    tableView.backgroundColor = .backgroundColor
+    tableView.backgroundColor = .clear
 
     configureSearchController(placeholder: "Albums and Songs", scopeButtonTitles: ["All", "Cached"])
     let playShuffleInfoConfig = PlayShuffleInfoConfiguration(

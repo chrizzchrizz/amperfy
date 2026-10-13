@@ -455,7 +455,10 @@ extension UIImage {
   ///
   /// Uses a cheap histogram on a tiny thumbnail. The DominantColors package merges similar colors
   /// pairwise, which can take very long for noisy artwork and blocked the main thread.
-  func mainColor() -> UIColor {
+  ///
+  /// With `forDarkBackground` only darker colors of the image are considered, so the result stays
+  /// a real artwork color instead of a bright color that is merely dimmed afterwards.
+  func mainColor(forDarkBackground: Bool = false) -> UIColor {
     let side = 32
     guard let cgImage else { return averageColor() }
     var pixels = [UInt8](repeating: 0, count: side * side * 4)
@@ -483,28 +486,57 @@ extension UIImage {
       let bucket = buckets[key] ?? (0, 0, 0, 0)
       buckets[key] = (bucket.count + 1, bucket.r + r, bucket.g + g, bucket.b + b)
     }
-    // prefer saturated, not too dark colors over large neutral or dark areas
-    func score(_ bucket: (count: Int, r: Int, g: Int, b: Int)) -> CGFloat {
-      let r = CGFloat(bucket.r) / CGFloat(bucket.count) / 255
-      let g = CGFloat(bucket.g) / CGFloat(bucket.count) / 255
-      let b = CGFloat(bucket.b) / CGFloat(bucket.count) / 255
-      let maxValue = max(r, g, b)
-      let saturation = maxValue > 0 ? (maxValue - min(r, g, b)) / maxValue : 0
-      return CGFloat(bucket.count) * (0.2 + saturation) * (0.3 + maxValue)
+    typealias Bucket = (count: Int, r: Int, g: Int, b: Int)
+    func average(_ bucket: Bucket) -> UIColor {
+      UIColor(
+        red: CGFloat(bucket.r) / CGFloat(bucket.count) / 255,
+        green: CGFloat(bucket.g) / CGFloat(bucket.count) / 255,
+        blue: CGFloat(bucket.b) / CGFloat(bucket.count) / 255,
+        alpha: 1
+      )
     }
+    func hsb(_ bucket: Bucket) -> (s: CGFloat, b: CGFloat) {
+      var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0
+      average(bucket).getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: nil)
+      return (saturation, brightness)
+    }
+    // prefer saturated, not too dark colors over large neutral or dark areas
+    func score(_ bucket: Bucket) -> CGFloat {
+      let value = hsb(bucket)
+      return CGFloat(bucket.count) * (0.2 + value.s) * (0.3 + value.b)
+    }
+
+    if forDarkBackground {
+      // dark but not black; saturation decides so neutral dark areas don't win over colors
+      let darkCandidates = buckets.values.filter { 0.12 ... 0.5 ~= hsb($0).b }
+      let source = darkCandidates.max(by: {
+        CGFloat($0.count) * (0.2 + hsb($0).s) < CGFloat($1.count) * (0.2 + hsb($1).s)
+      }) ?? buckets.values.max(by: { score($0) < score($1) })
+      guard let source else { return averageColor().clampedForDarkBackground() }
+      return average(source).clampedForDarkBackground()
+    }
+
     guard let best = buckets.values.max(by: { score($0) < score($1) }) else {
       return averageColor()
     }
-    return UIColor(
-      red: CGFloat(best.r) / CGFloat(best.count) / 255,
-      green: CGFloat(best.g) / CGFloat(best.count) / 255,
-      blue: CGFloat(best.b) / CGFloat(best.count) / 255,
-      alpha: 1
-    )
+    return average(best)
   }
 }
 
 extension UIColor {
+  /// Keeps hue, limits brightness and saturation to a range that looks good behind white content.
+  func clampedForDarkBackground() -> UIColor {
+    var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
+    guard getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
+    else { return self }
+    return UIColor(
+      hue: hue,
+      saturation: min(saturation, 0.7),
+      brightness: min(max(brightness, 0.2), 0.4),
+      alpha: alpha
+    )
+  }
+
   /// WCAG relative luminance (0 = black, 1 = white).
   var relativeLuminance: CGFloat {
     var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0

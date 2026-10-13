@@ -71,6 +71,8 @@ class PlayIndicator {
 
   var willDisplayIndicatorCB: VoidFunctionCallback?
   var willHideIndicatorCB: VoidFunctionCallback?
+  /// Replaces the theme color on custom backgrounds (not used when displayed on an image).
+  var colorOverride: UIColor?
   private var appDelegate: AppDelegate
   private(set) var rootViewTypeName: String
   private var rootView: UIView?
@@ -186,7 +188,8 @@ class PlayIndicator {
 
     if playable == appDelegate.player.currentlyPlaying, let accountInfo = playable?.account?.info {
       let indicator = PlayIndicatorHandler.shared.getIndicator(for: rootViewTypeName)
-      indicator.color = isDisplayedOnImage ? .white : appDelegate.storage.settings.accounts
+      indicator.color = isDisplayedOnImage ? .white : colorOverride ?? appDelegate.storage.settings
+        .accounts
         .getSetting(accountInfo).read.themePreference
         .asColor
       if appDelegate.player.isPlaying {

@@ -42,6 +42,8 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
   private var fetchedResultsController: AlbumSongsFetchedResultsController!
   private var optionsButton: UIBarButtonItem!
   private var detailOperationsView: GenericDetailTableHeader?
+  private var contentColor: UIColor?
+  private var navigationBarStyle: UIUserInterfaceStyle = .unspecified
   let album: Album
 
   init(account: Account, album: Album) {
@@ -132,11 +134,29 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
       let playContext = self.convertIndexPathToPlayContext(songIndexPath: indexPath)
       completionHandler(SwipeActionContext(containable: song, playContext: playContext))
     }
+
+    // as early as possible, so the default color is barely visible during the push
+    updateBackgroundColorFromArtwork()
+    registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, _) in
+      self.updateBackgroundColorFromArtwork(animated: true)
+    }
   }
 
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     navigationController?.navigationBar.prefersLargeTitles = false
+    applyNavigationBarStyle()
+  }
+
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    // the navigation bar is shared with other screens
+    navigationController?.navigationBar.overrideUserInterfaceStyle = .unspecified
+  }
+
+  /// Title, back button and bar buttons follow the artwork background while this screen is visible.
+  private func applyNavigationBarStyle() {
+    navigationController?.navigationBar.overrideUserInterfaceStyle = navigationBarStyle
   }
 
   override func viewIsAppearing(_ animated: Bool) {
@@ -155,7 +175,80 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
         self.appDelegate.eventLogger.report(topic: "Album Sync", error: error)
       }
       self.detailOperationsView?.refresh()
+      self.updateBackgroundColorFromArtwork()
     }
+  }
+
+  private func updateBackgroundColorFromArtwork(animated: Bool? = nil) {
+    let artworkDisplayPreference = appDelegate.storage.settings.accounts
+      .getSetting(account.info).read.artworkDisplayPreference
+    guard let imagePath = album.imagePath(setting: artworkDisplayPreference) else { return }
+
+    let isDarkMode = traitCollection.userInterfaceStyle == .dark
+    let cacheKey = (imagePath + (isDarkMode ? "|dark" : "|light")) as NSString
+    if let cached = Self.mainColorCache.object(forKey: cacheKey) {
+      applyBackground(color: cached, animated: animated ?? false)
+      return
+    }
+    Task { @MainActor in
+      let color = await Self.loadMainColor(imagePath: imagePath, forDarkBackground: isDarkMode)
+      guard let color else { return }
+      Self.mainColorCache.setObject(color, forKey: cacheKey)
+      // only fade in if the user already sees the screen
+      self.applyBackground(color: color, animated: animated ?? (self.view.window != nil))
+    }
+  }
+
+  private func applyBackground(color: UIColor, animated: Bool) {
+    // the color is already chosen for the current interface style
+    let backgroundColor = color
+    // dark style renders labels, separators and cells white, light style black
+    let prefersDarkContent = backgroundColor.prefersDarkContent
+    tableView.overrideUserInterfaceStyle = prefersDarkContent ? .light : .dark
+    detailOperationsView?.subtitleLabel.textColor = prefersDarkContent ? .black : .white
+    detailOperationsView?.playShuffleInfoView?.applyContentColors(forBackground: backgroundColor)
+    applySearchBarColors(prefersDarkContent: prefersDarkContent)
+    let contentColor: UIColor = prefersDarkContent ? .black : .white
+    self.contentColor = contentColor
+    tableView.separatorColor = contentColor.withAlphaComponent(0.3)
+    detailOperationsView?.applyContentColor(contentColor)
+    detailOperationsView?.enableCoverShadow()
+    for case let cell as PlayableTableCell in tableView.visibleCells {
+      cell.contentColorOverride = contentColor
+      cell.refresh()
+      cell.setNeedsLayout() // cells drawing their own separators pick up the new separatorColor
+    }
+    navigationBarStyle = prefersDarkContent ? .light : .dark
+    applyNavigationBarStyle()
+    let update = { self.tableView.backgroundColor = backgroundColor }
+    if animated {
+      UIView.animate(withDuration: 0.2, animations: update)
+    } else {
+      update()
+    }
+  }
+
+  /// Search field text, placeholder, icon and fill follow the artwork background.
+  private func applySearchBarColors(prefersDarkContent: Bool) {
+    let contentColor: UIColor = prefersDarkContent ? .black : .white
+    let searchBar = searchController.searchBar
+    searchBar.overrideUserInterfaceStyle = prefersDarkContent ? .light : .dark
+    searchBar.tintColor = contentColor
+    let textField = searchBar.searchTextField
+    textField.textColor = contentColor
+    textField.backgroundColor = contentColor.withAlphaComponent(0.12)
+    textField.leftView?.tintColor = contentColor.withAlphaComponent(0.6)
+    textField.attributedPlaceholder = NSAttributedString(
+      string: searchBar.placeholder ?? "",
+      attributes: [.foregroundColor: contentColor.withAlphaComponent(0.6)]
+    )
+  }
+
+  private static let mainColorCache = NSCache<NSString, UIColor>()
+
+  @concurrent
+  private static func loadMainColor(imagePath: String, forDarkBackground: Bool) async -> UIColor? {
+    UIImage(contentsOfFile: imagePath)?.mainColor(forDarkBackground: forDarkBackground)
   }
 
   override func viewDidAppear(_ animated: Bool) {
@@ -189,6 +282,7 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
   )
     -> UITableViewCell {
     let cell: PlayableTableCell = dequeueCell(for: tableView, at: indexPath)
+    cell.contentColorOverride = contentColor
     cell.display(
       playable: song,
       playContextCb: convertCellViewToPlayContext,

@@ -54,6 +54,8 @@ class LibraryElementDetailTableHeaderView: UIView {
   static let margin = UIView.defaultMarginMiddleElement
 
   private var config: PlayShuffleInfoConfiguration?
+  /// Set when the screen has a custom background; buttons then invert against it.
+  private var customBackgroundColor: UIColor?
 
   required init?(coder aDecoder: NSCoder) {
     super.init(coder: aDecoder)
@@ -162,6 +164,7 @@ class LibraryElementDetailTableHeaderView: UIView {
     )
     playShuffledButton.layer.cornerRadius = 10.0
     playShuffledButton.isHidden = configuration.isShuffleHidden
+    applyCustomBackgroundColor()
     activate()
     registerForTraitChanges(
       [UITraitUserInterfaceStyle.self, UITraitHorizontalSizeClass.self],
@@ -169,6 +172,22 @@ class LibraryElementDetailTableHeaderView: UIView {
         self.refresh()
       }
     )
+  }
+
+  /// Black or white buttons (whichever contrasts) with label and symbol in the screen's background color
+  func applyContentColors(forBackground backgroundColor: UIColor) {
+    customBackgroundColor = backgroundColor
+    applyCustomBackgroundColor()
+  }
+
+  private func applyCustomBackgroundColor() {
+    guard let backgroundColor = customBackgroundColor else { return }
+    let buttonColor: UIColor = backgroundColor.prefersDarkContent ? .black : .white
+    for button in [playAllButton, playShuffledButton] {
+      button?.backgroundColor = buttonColor
+      button?.setTitleColor(backgroundColor, for: .normal)
+      button?.tintColor = backgroundColor
+    }
   }
 
   func activate() {

@@ -238,6 +238,14 @@ class PlayableTableCell: BasicTableCell {
     }
   #endif
 
+  /// Black or white color for secondary texts (track number, artist, duration) on custom backgrounds.
+  var contentColorOverride: UIColor? {
+    didSet {
+      playIndicator?.colorOverride = contentColorOverride
+      playIndicator?.applyStyle()
+    }
+  }
+
   func display(
     playable: AbstractPlayable,
     displayMode: DisplayMode = .normal,
@@ -250,6 +258,7 @@ class PlayableTableCell: BasicTableCell {
   ) {
     if playIndicator?.rootViewTypeName != rootView.typeName {
       playIndicator = PlayIndicator(rootViewTypeName: rootView.typeName)
+      playIndicator?.colorOverride = contentColorOverride
     }
 
     self.playable = playable
@@ -269,7 +278,7 @@ class PlayableTableCell: BasicTableCell {
     #else
       singleTapGestureRecognizer.isEnabled = (displayMode == .normal)
     #endif
-    backgroundColor = .systemBackground
+    backgroundColor = .clear
     refresh()
   }
 
@@ -393,7 +402,7 @@ class PlayableTableCell: BasicTableCell {
   func refreshCacheAndDuration() {
     guard let playable = playable else { return }
     favoriteIconImage.isHidden = !playable.isFavorite
-    favoriteIconImage.tintColor = .red
+    favoriteIconImage.tintColor = contentColorOverride ?? .red
 
     let isDurationVisible = !playable.isRadio &&
       (
@@ -473,7 +482,14 @@ class PlayableTableCell: BasicTableCell {
   }
 
   private func refreshSubtitleColor() {
-    if playerIndexCb != nil {
+    if let contentColor = contentColorOverride {
+      // screens with a custom background color need explicit, readable text colors
+      let secondaryColor = contentColor.withAlphaComponent(0.7)
+      cacheIconImage.tintColor = secondaryColor
+      artistLabel.textColor = secondaryColor
+      durationLabel.textColor = secondaryColor
+      trackNumberLabel.textColor = secondaryColor
+    } else if playerIndexCb != nil {
       cacheIconImage.tintColor = UIColor.labelColor
       artistLabel.textColor = UIColor.labelColor
       durationLabel.textColor = UIColor.labelColor
