@@ -79,8 +79,6 @@ class SearchVC: BasicTableViewController {
   fileprivate var songs: [Song] = []
 
   private var optionsButton: UIBarButtonItem = .createOptionsBarButton()
-  private var userButton: UIButton?
-  private var userBarButtonItem: UIBarButtonItem?
   private var isSearchActive = false
   private var accountObjectId: NSManagedObjectID?
   private let account: Account
@@ -210,11 +208,7 @@ class SearchVC: BasicTableViewController {
     )
     accountNotificationHandler?.registerCallbackForActiveAccountChange { [weak self] accountInfo in
       guard let self else { return }
-      setupUserNavButton(
-        currentAccount: account,
-        userButton: &userButton,
-        userBarButtonItem: &userBarButtonItem
-      )
+      setupUserNavButton()
     }
   }
 

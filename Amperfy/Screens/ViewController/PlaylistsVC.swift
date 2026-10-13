@@ -248,9 +248,34 @@ class PlaylistsVC: SingleSnapshotFetchedResultsTableViewController<PlaylistMO> {
     var barButtons = [UIBarButtonItem]()
     barButtons.append(optionsButton)
     if appDelegate.storage.settings.user.isOnlineMode {
-      barButtons.append(editButtonItem)
+      barButtons.append(createEditBarButton())
     }
     navigationItem.rightBarButtonItems = barButtons
+  }
+
+  private func createEditBarButton() -> UIBarButtonItem {
+    let button = UIBarButtonItem(
+      image: isEditing ? .checkOnProminent : .pencil,
+      style: isEditing ? .prominent : .plain,
+      target: self,
+      action: #selector(toggleEditing)
+    )
+    if isEditing {
+      button.fillProminentOnMac(with: view.tintColor)
+    }
+    button.accessibilityLabel = isEditing ? "Done" : "Edit"
+    return button
+  }
+
+  @objc
+  private func toggleEditing() {
+    setEditing(!isEditing, animated: true)
+  }
+
+  override func setEditing(_ editing: Bool, animated: Bool) {
+    super.setEditing(editing, animated: animated)
+    guard isViewLoaded else { return }
+    updateRightBarButtonItems()
   }
 
   func createCell(

@@ -149,7 +149,7 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
 
     // Use a single button, two buttons don't work on catalyst
     editButton = UIBarButtonItem(
-      title: "Edit",
+      image: UIImage.pencil,
       style: .plain,
       target: self,
       action: #selector(openEditView)
@@ -234,7 +234,6 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
 
     if appDelegate.storage.settings.user.isOnlineMode {
       edititingBarButton = editButton
-      edititingBarButton?.title = "Edit"
       edititingBarButton?.style = .plain
       if playlist.isSmartPlaylist {
         edititingBarButton?.isEnabled = false

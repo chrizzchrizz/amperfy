@@ -48,9 +48,14 @@ final class HomeEditorVC: UICollectionViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     title = "Home Preferences"
-    navigationItem.rightBarButtonItems = [
-      UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneTapped)),
-    ]
+    let doneButton = UIBarButtonItem(
+      image: .checkOnProminent,
+      style: .prominent,
+      target: self,
+      action: #selector(doneTapped)
+    )
+    doneButton.fillProminentOnMac(with: view.tintColor)
+    navigationItem.rightBarButtonItems = [doneButton]
     // reordering by drag & drop (touch and mouse) only works while the collection view is editing
     collectionView.isEditing = true
     collectionView.allowsSelectionDuringEditing = true

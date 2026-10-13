@@ -223,7 +223,7 @@ public class AddToPlaylistManager {
 
   func createDoneButton() -> UIBarButtonItem {
     UIBarButtonItem(
-      title: "Done",
+      image: .check,
       style: .plain,
       target: self,
       action: #selector(doneBarButtonPressed)

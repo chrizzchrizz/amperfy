@@ -111,6 +111,7 @@ class LibraryNavigatorConfigurator: NSObject {
   #endif
 
   private var editButton: UIBarButtonItem!
+  private weak var navigationItem: UINavigationItem?
   private var librarySettings = LibraryDisplaySettings.defaultSettings
   private var libraryInUse = [LibraryNavigatorItem]()
   private var libraryNotUsed = [LibraryNavigatorItem]()
@@ -148,13 +149,8 @@ class LibraryNavigatorConfigurator: NSObject {
   @MainActor
   func viewDidLoad(navigationItem: UINavigationItem, collectionView: UICollectionView) {
     self.collectionView = collectionView
-    editButton = UIBarButtonItem(
-      title: "Edit",
-      style: .plain,
-      target: self,
-      action: #selector(editingPressed)
-    )
-    navigationItem.rightBarButtonItems = [editButton]
+    self.navigationItem = navigationItem
+    updateEditButton(isInEditMode: false)
     libraryInUse = librarySettings.inUse.map { LibraryNavigatorItem(
       title: $0.displayName,
       library: $0
@@ -183,11 +179,25 @@ class LibraryNavigatorConfigurator: NSObject {
     #endif
   }
 
+  /// Creates a new item on every state change: Mac Catalyst doesn't redraw the fill of an existing one
+  @MainActor
+  private func updateEditButton(isInEditMode: Bool) {
+    editButton = UIBarButtonItem(
+      image: isInEditMode ? .checkOnProminent : .pencil,
+      style: isInEditMode ? .prominent : .plain,
+      target: self,
+      action: #selector(editingPressed)
+    )
+    if isInEditMode {
+      editButton.fillProminentOnMac(with: collectionView.tintColor)
+    }
+    navigationItem?.rightBarButtonItems = [editButton]
+  }
+
   @MainActor @objc
   private func editingPressed() {
     let isInEditMode = !collectionView.isEditing
-    editButton.title = isInEditMode ? "Done" : "Edit"
-    editButton.style = isInEditMode ? .prominent : .plain
+    updateEditButton(isInEditMode: isInEditMode)
 
     if isInEditMode {
       #if targetEnvironment(macCatalyst) // ok

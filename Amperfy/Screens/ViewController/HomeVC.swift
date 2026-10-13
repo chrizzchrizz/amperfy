@@ -36,8 +36,6 @@ final class HomeVC: UICollectionViewController {
 
   private static let itemWidth: CGFloat = 160.0
 
-  private var userButton: UIButton?
-  private var userBarButtonItem: UIBarButtonItem?
   private let account: Account
   private var accountNotificationHandler: AccountNotificationHandler?
   private let sharedHome: HomeManager
@@ -79,16 +77,12 @@ final class HomeVC: UICollectionViewController {
     )
     accountNotificationHandler?.registerCallbackForActiveAccountChange { [weak self] accountInfo in
       guard let self else { return }
-      setupUserNavButton(
-        currentAccount: account,
-        userButton: &userButton,
-        userBarButtonItem: &userBarButtonItem
-      )
+      setupUserNavButton()
     }
 
     navigationController?.navigationBar.prefersLargeTitles = true
     navigationItem.rightBarButtonItem = UIBarButtonItem(
-      title: "Edit",
+      image: UIImage.pencil,
       style: .plain,
       target: self,
       action: #selector(editSectionsTapped)

@@ -141,7 +141,7 @@ public struct AmperfyImage: Sendable {
 
   // MARK: use Image(systemName: ) for the following images
 
-  public static let account = Self("person.circle.fill")
+  public static let account = Self("person.fill")
   public static let airplayaudio = Self("airplayaudio")
   public static let album = Self("square.stack")
   public static let antenna = Self("antenna.radiowaves.left.and.right")
@@ -171,7 +171,7 @@ public struct AmperfyImage: Sendable {
   public static let exclamation = Self("exclamationmark")
   public static let filter = Self("line.3.horizontal.decrease")
   public static let followLink = Self("arrowshape.turn.up.forward.fill")
-  public static let folder = Self("folder.fill")
+  public static let folder = Self("folder")
   public static let forwardFill = Self("forward.fill")
   public static let forwardMenu = Self("forward")
   public static let genre = Self("guitars.fill")
@@ -209,6 +209,7 @@ public struct AmperfyImage: Sendable {
   public static let playlistDisplayStyle = Self("list.bullet")
   public static let playlistPlus = Self("text.badge.plus")
   public static let playlistX = Self("text.badge.xmark")
+  public static let pencil = Self("pencil")
   public static let plus = Self("plus")
   public static let plusCircle = Self("plus.circle")
   public static let radio = Self("dot.radiowaves.left.and.right")
@@ -301,6 +302,8 @@ extension UIImage {
   public static let cancleDownloads = UIImage
     .create(systemName: AmperfyImage.cancleDownloads.systemName)
   public static let check = UIImage.create(systemName: AmperfyImage.check.systemName)
+  /// Fixed white, for prominent bar buttons: they fill with the tint color, a template icon would vanish in it
+  public static let checkOnProminent = check.withTintColor(.white, renderingMode: .alwaysOriginal)
   public static let circle = UIImage.create(systemName: AmperfyImage.circle.systemName)
   public static let clear = UIImage.create(systemName: AmperfyImage.clear.systemName)
   public static let clipboard = UIImage.create(systemName: AmperfyImage.clipboard.systemName)
@@ -354,6 +357,7 @@ extension UIImage {
     .create(systemName: AmperfyImage.playlistDisplayStyle.systemName)
   public static let playlistPlus = UIImage.create(systemName: AmperfyImage.playlistPlus.systemName)
   public static let playlistX = UIImage.create(systemName: AmperfyImage.playlistX.systemName)
+  public static let pencil = UIImage.create(systemName: AmperfyImage.pencil.systemName)
   public static let plus = UIImage.create(systemName: AmperfyImage.plus.systemName)
   public static let plusCircle = UIImage.create(systemName: AmperfyImage.plusCircle.systemName)
   public static let radio = UIImage.create(systemName: AmperfyImage.radio.systemName)
@@ -554,5 +558,15 @@ extension UIImage {
     let navBarSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: pointSize)
     let img = applyingSymbolConfiguration(navBarSymbolConfiguration) ?? UIImage()
     return img.withTintColor(tintColor)
+  }
+}
+
+extension UIBarButtonItem {
+  /// Mac Catalyst leaves prominent bar buttons transparent, so the tint color is set as fill explicitly
+  @MainActor
+  public func fillProminentOnMac(with color: UIColor) {
+    #if targetEnvironment(macCatalyst)
+      tintColor = color
+    #endif
   }
 }

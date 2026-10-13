@@ -120,35 +120,11 @@ extension UIViewController {
     )
   }
 
-  public func setupUserNavButton(
-    currentAccount: Account,
-    userButton: inout UIButton?,
-    userBarButtonItem: inout UIBarButtonItem?
-  ) {
-    let image = UIImage.userCircle(withConfiguration: UIImage.SymbolConfiguration(
-      pointSize: 24,
-      weight: .regular
-    )).withTintColor(
-      appDelegate.storage.settings.accounts.getSetting(currentAccount.info).read
-        .themePreference.asColor,
-      renderingMode: .alwaysTemplate
+  public func setupUserNavButton() {
+    navigationItem.leftBarButtonItem = UIBarButtonItem(
+      image: .userCircle(),
+      menu: createUserButtonMenu()
     )
-
-    let button = UIButton(type: .system)
-    button.setImage(image, for: .normal)
-    button.layer.cornerRadius = 20
-    button.clipsToBounds = true
-    #if targetEnvironment(macCatalyst)
-      button.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
-    #else
-      button.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
-    #endif
-    button.menu = createUserButtonMenu()
-    button.showsMenuAsPrimaryAction = true
-    userButton = button
-
-    userBarButtonItem = UIBarButtonItem(customView: button)
-    navigationItem.leftBarButtonItem = userBarButtonItem!
     refreshOfflineBarButton()
   }
 

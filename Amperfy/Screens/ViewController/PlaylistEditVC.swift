@@ -223,7 +223,7 @@ class PlaylistEditVC: SingleSnapshotFetchedResultsTableViewController<PlaylistIt
 
   func refreshBarButtons() {
     doneButton = UIBarButtonItem(
-      title: "Done",
+      image: .check,
       style: .plain,
       target: self,
       action: #selector(doneBarButtonPressed)

@@ -56,14 +56,13 @@ extension UICellAccessory.CustomViewConfiguration {
 
   public static func createDone(target: Any?, action: Selector?) -> UICellAccessory
     .CustomViewConfiguration {
-    let label = UILabel()
-    label.text = "Done"
-    label.textColor = .secondaryLabel
-    label.isUserInteractionEnabled = true
+    let icon = UIImageView(image: .check)
+    icon.tintColor = .secondaryLabel
+    icon.isUserInteractionEnabled = true
     let gestureRecognizer = UITapGestureRecognizer(target: target, action: action)
-    label.addGestureRecognizer(gestureRecognizer)
+    icon.addGestureRecognizer(gestureRecognizer)
     return UICellAccessory.CustomViewConfiguration(
-      customView: label,
+      customView: icon,
       placement: .trailing(displayed: .whenEditing)
     )
   }
