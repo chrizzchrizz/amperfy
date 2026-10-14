@@ -80,6 +80,11 @@ final class HomeEditorVC: UICollectionViewController {
       guard let self else { return }
       var content = cell.defaultContentConfiguration()
       content.text = section.title
+      #if targetEnvironment(macCatalyst)
+        // Mac list rows are compact by default; match the row height of iOS
+        content.directionalLayoutMargins.top = 14
+        content.directionalLayoutMargins.bottom = 14
+      #endif
       cell.contentConfiguration = content
 
       // same checkbox/reorder handle accessories as the library editor
