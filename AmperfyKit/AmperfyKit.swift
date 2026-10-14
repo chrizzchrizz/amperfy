@@ -130,9 +130,6 @@ public class AmperKit {
         self.getMeta(accountInfo).backendApi
       },
       networkMonitor: networkMonitor,
-      getPlayableDownloaderCB: { accountInfo in
-        self.getMeta(accountInfo).playableDownloadManager
-      },
       cacheProxy: storage.main.library,
       userStatistics: userStatistics
     )
@@ -175,6 +172,7 @@ public class AmperKit {
     playerDownloadPreparationHandler = PlayerDownloadPreparationHandler(
       playerStatus: playerData,
       queueHandler: queueHandler,
+      notificationHandler: notificationHandler,
       getPlayableDownloaderCB: { accountInfo in
         self.getMeta(accountInfo).playableDownloadManager
       }

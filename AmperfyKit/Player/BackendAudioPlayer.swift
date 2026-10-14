@@ -90,7 +90,6 @@ enum BackendAudioQueueType {
 
 @MainActor
 class BackendAudioPlayer: NSObject {
-  private let getPlayableDownloaderCB: GetPlayableDownloadManagerCallback
   private let cacheProxy: PlayableFileCachable
   private let getBackendApiCB: GetBackendApiCallback
   private let userStatistics: UserStatistics
@@ -139,7 +138,6 @@ class BackendAudioPlayer: NSObject {
   private var currentEqualizerSetting: EqualizerSetting = .off
 
   public var isOfflineMode: Bool = false
-  public var isAutoCachePlayedItems: Bool = true
   public var nextPlayablePreloadCB: NextPlayablePreloadCallback?
   public var triggerReinsertPlayableCB: TriggerReinsertPlayableCallback?
   public private(set) var isPlaying: Bool = false
@@ -220,7 +218,6 @@ class BackendAudioPlayer: NSObject {
     eventLogger: EventLogger,
     getBackendApiCB: @escaping GetBackendApiCallback,
     networkMonitor: NetworkMonitorFacade,
-    getPlayableDownloaderCB: @escaping GetPlayableDownloadManagerCallback,
     cacheProxy: PlayableFileCachable,
     userStatistics: UserStatistics
   ) {
@@ -229,7 +226,6 @@ class BackendAudioPlayer: NSObject {
     self.getBackendApiCB = getBackendApiCB
     self.networkMonitor = networkMonitor
     self.eventLogger = eventLogger
-    self.getPlayableDownloaderCB = getPlayableDownloaderCB
     self.cacheProxy = cacheProxy
     self.userStatistics = userStatistics
     self.audioAnalyzer = AudioAnalyzer()
@@ -287,10 +283,6 @@ class BackendAudioPlayer: NSObject {
           Task { @MainActor in
             do {
               try await insertStreamPlayable(playable: nextPreloadedPlayable, queueType: .queue)
-              if self.isAutoCachePlayedItems, nextPreloadedPlayable.isDownloadAvailable,
-                 let accountInfo = nextPreloadedPlayable.account?.info {
-                self.getPlayableDownloaderCB(accountInfo).download(object: nextPreloadedPlayable)
-              }
             } catch {
               self.nextPreloadedPlayable = nil
               self.eventLogger.report(topic: "Player", error: error)
@@ -507,10 +499,6 @@ class BackendAudioPlayer: NSObject {
           applyReplayGain()
           try await insertStreamPlayable(playable: playable)
           isPlaying = shouldPlaybackStart
-          if self.isAutoCachePlayedItems, !playable.isRadio,
-             let accountInfo = playable.account?.info {
-            self.getPlayableDownloaderCB(accountInfo).download(object: playable)
-          }
           self.responder?.notifyItemPreparationFinished()
         } catch {
           self.responder?.notifyErrorOccurred(error: error)

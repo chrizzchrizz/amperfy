@@ -419,7 +419,7 @@ actor DownloadManager: NSObject, DownloadManageable {
     task: URLSessionTask?,
     error: DownloadError
   ) async {
-    let isCanceled = try? await storage.performAndGet { asyncCompanion in
+    let downloadState = try? await storage.performAndGet { asyncCompanion in
       let download = Download(
         managedObject: asyncCompanion.context
           .object(with: downloadRequest.objectID) as! DownloadMO
@@ -429,8 +429,9 @@ actor DownloadManager: NSObject, DownloadManageable {
       }
       download.isDownloading = false
       asyncCompanion.library.saveContext()
-      return download.isCanceled
+      return (isCanceled: download.isCanceled, elementUniqueId: download.element?.uniqueID)
     }
+    let isCanceled = downloadState?.isCanceled
     if let isCanceled, !isCanceled {
       await getDownloadDelegateCB().failedDownload(
         downloadInfo: downloadRequest.info,
@@ -459,6 +460,13 @@ actor DownloadManager: NSObject, DownloadManageable {
       )
     }
 
+    if let downloadElementUniqueId = downloadState?.elementUniqueId {
+      await notificationHandler.post(
+        name: .downloadFinishedFailure,
+        object: self,
+        userInfo: DownloadNotification(id: downloadElementUniqueId).asNotificationUserInfo
+      )
+    }
     if let task { tasks.removeValue(forKey: task) }
     taskOperations[downloadRequest]?.complete()
     taskOperations.removeValue(forKey: downloadRequest)

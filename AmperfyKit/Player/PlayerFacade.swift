@@ -468,10 +468,7 @@ class PlayerFacadeImpl: PlayerFacade {
 
   var isAutoCachePlayedItems: Bool {
     get { playerStatus.isAutoCachePlayedItems }
-    set {
-      playerStatus.setAutoCachePlayedItems(newValue)
-      backendAudioPlayer.isAutoCachePlayedItems = newValue
-    }
+    set { playerStatus.setAutoCachePlayedItems(newValue) }
   }
 
   var isPopupBarAllowedToHide: Bool {

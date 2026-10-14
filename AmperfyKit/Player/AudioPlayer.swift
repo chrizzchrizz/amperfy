@@ -75,7 +75,6 @@ public class AudioPlayer: NSObject, BackendAudioPlayerNotifiable {
     self.playerStatus = coreData
     self.queueHandler = queueHandler
     self.backendAudioPlayer = backendAudioPlayer
-    self.backendAudioPlayer.isAutoCachePlayedItems = coreData.isAutoCachePlayedItems
     self.settings = settings
     self.userStatistics = userStatistics
     super.init()

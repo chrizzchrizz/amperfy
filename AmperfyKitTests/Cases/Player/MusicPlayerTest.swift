@@ -329,6 +329,8 @@ class MusicPlayerTest: XCTestCase {
   var testPlayer: AmperfyKit.PlayerFacade!
   var testQueueHandler: AmperfyKit.PlayQueueHandler!
   var mockAudioStreamingPlayer: MOCK_AudioStreamingPlayer!
+  var notificationHandler: EventNotificationHandler!
+  var downloadPreparationHandler: PlayerDownloadPreparationHandler!
 
   var songCached: Song!
   var songToDownload: Song!
@@ -355,7 +357,6 @@ class MusicPlayerTest: XCTestCase {
       eventLogger: eventLogger,
       getBackendApiCB: { accountInfo in self.backendApi },
       networkMonitor: networkMonitor,
-      getPlayableDownloaderCB: { accountInfo in self.songDownloader },
       cacheProxy: library,
       userStatistics: userStatistics
     )
@@ -377,6 +378,14 @@ class MusicPlayerTest: XCTestCase {
       backendAudioPlayer: backendPlayer,
       userStatistics: userStatistics
     )
+    notificationHandler = EventNotificationHandler()
+    downloadPreparationHandler = PlayerDownloadPreparationHandler(
+      playerStatus: playerData,
+      queueHandler: testQueueHandler,
+      notificationHandler: notificationHandler,
+      getPlayableDownloaderCB: { accountInfo in self.songDownloader }
+    )
+    testPlayer.addNotifier(notifier: downloadPreparationHandler)
     testPlayer.addNotifier(notifier: mockMusicPlayable)
 
     guard let songCachedFetched = library.getSong(for: account, id: "36") else { XCTFail(); return }
@@ -691,6 +700,39 @@ class MusicPlayerTest: XCTestCase {
       (songDownloader.downloadables.first! as! AbstractPlayable).asSong!,
       songToDownload
     )
+  }
+
+  func testPlay_UncachedQueue_DownloadsOneItemAtATimeInOrder() {
+    guard let current = library.getSong(for: account, id: "3"),
+          let next1 = library.getSong(for: account, id: "5"),
+          let next2 = library.getSong(for: account, id: "10T"),
+          let next3 = library.getSong(for: account, id: "19")
+    else { XCTFail(); return }
+    let requestedIds = { self.songDownloader.downloadables.map { ($0 as! AbstractPlayable).id } }
+
+    mockMusicPlayable.expectationDidStartPlaying = expectation(description: "download is triggered")
+    testPlayer.isAutoCachePlayedItems = true
+    testPlayer.play(context: PlayContext(name: "", playables: [current, next1, next2, next3]))
+    wait(for: [mockMusicPlayable.expectationDidStartPlaying!], timeout: 2.0)
+    // the next item first, for a gapless transition
+    XCTAssertEqual(requestedIds(), ["5"])
+
+    next1.relFilePath = URL(string: "cached")
+    notificationHandler.post(
+      name: .downloadFinishedSuccess,
+      object: nil,
+      userInfo: DownloadNotification(id: next1.uniqueID).asNotificationUserInfo
+    )
+    // then the streamed current item
+    XCTAssertEqual(requestedIds(), ["5", "3"])
+
+    notificationHandler.post(
+      name: .downloadFinishedFailure,
+      object: nil,
+      userInfo: DownloadNotification(id: current.uniqueID).asNotificationUserInfo
+    )
+    // a failed item is skipped
+    XCTAssertEqual(requestedIds(), ["5", "3", "10T"])
   }
 
   func testPlaySong_Cached() {
