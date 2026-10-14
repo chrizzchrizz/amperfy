@@ -154,8 +154,8 @@ extension UIButton.Configuration {
   }
 
   static func playerRound() -> UIButton.Configuration {
-    var config = UIButton.Configuration.gray()
-    config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(scale: .medium)
+    var config = UIButton.Configuration.plain()
+    config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(scale: .large)
     config.buttonSize = .small
     return config
   }
