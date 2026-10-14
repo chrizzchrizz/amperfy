@@ -3413,10 +3413,10 @@
 		};
 		50B166A82ED071A100F7A1D6 /* XCRemoteSwiftPackageReference "AudioStreaming" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/dimitris-c/AudioStreaming/";
+			repositoryURL = "https://github.com/chrizzchrizz/AudioStreaming";
 			requirement = {
-				kind = exactVersion;
-				version = 1.4.4;
+				branch = "fix/gapless-trim";
+				kind = branch;
 			};
 		};
 		50BE5DA3285713B100156FC6 /* XCRemoteSwiftPackageReference "CallbackURLKit" */ = {
