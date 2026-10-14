@@ -78,6 +78,7 @@ final class HomeVC: UICollectionViewController {
     accountNotificationHandler?.registerCallbackForActiveAccountChange { [weak self] accountInfo in
       guard let self else { return }
       setupUserNavButton()
+      arrangeNavButtonsForMac()
     }
 
     navigationController?.navigationBar.prefersLargeTitles = true
@@ -87,6 +88,7 @@ final class HomeVC: UICollectionViewController {
       target: self,
       action: #selector(editSectionsTapped)
     )
+    arrangeNavButtonsForMac()
     configureCollectionView()
     configureDataSource()
     sharedHome.createFetchController()
@@ -98,6 +100,18 @@ final class HomeVC: UICollectionViewController {
       name: .offlineModeChanged,
       object: nil
     )
+  }
+
+  /// On Mac the user button is shown right of the edit button (first item is rightmost).
+  /// Only the user button (first left item) is moved; other left items stay.
+  private func arrangeNavButtonsForMac() {
+    #if targetEnvironment(macCatalyst)
+      guard var leftItems = navigationItem.leftBarButtonItems, !leftItems.isEmpty,
+            let editItem = navigationItem.rightBarButtonItems?.last else { return }
+      let userItem = leftItems.removeFirst()
+      navigationItem.leftBarButtonItems = leftItems
+      navigationItem.rightBarButtonItems = [userItem, editItem]
+    #endif
   }
 
   override func viewWillAppear(_ animated: Bool) {
