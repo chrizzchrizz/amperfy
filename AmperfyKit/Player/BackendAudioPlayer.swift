@@ -43,6 +43,22 @@ protocol BackendAudioPlayerNotifiable {
 // MARK: - AudioStreamingPlayer
 
 public class AudioStreamingPlayer: AudioStreaming.AudioPlayer {
+  /// The next queued item is read only after the current one has been read completely,
+  /// which happens this many seconds before its end at the latest.
+  /// A larger buffer gives a queued stream more time to load before the transition.
+  static let bufferSizeInSeconds = 30.0
+
+  static var configuration: AudioPlayerConfiguration {
+    AudioPlayerConfiguration(
+      flushQueueOnSeek: false,
+      bufferSizeInSeconds: bufferSizeInSeconds,
+      secondsRequiredToStartPlaying: 1,
+      gracePeriodAfterSeekInSeconds: 0.5,
+      secondsRequiredToStartPlayingAfterBufferUnderrun: 7,
+      enableLogs: false
+    )
+  }
+
   public func elapsedTime() -> Double {
     progress
   }
@@ -90,6 +106,8 @@ class BackendAudioPlayer: NSObject {
     preferredTimescale: CMTimeScale(NSEC_PER_SEC)
   )
   private let fileManager = CacheFileManager.shared
+  /// Queue the next item before the player starts reading it
+  private let preloadLeadTimeInSeconds = AudioStreamingPlayer.bufferSizeInSeconds + 10
   private var audioSessionHandler: AudioSessionHandler
   private var isTriggerReinsertPlayableAllowed = true
   private var wasPlayingBeforeErrorOccurred: Bool = false
@@ -99,6 +117,8 @@ class BackendAudioPlayer: NSObject {
   private var nextPreloadedPlayable: AbstractPlayable?
   private var nextPreloadedUrl: String = ""
   private var isPreviousPlaylableFinshed = true
+  /// The next item changed after it had been preloaded; no new preload until the next item starts
+  private var isPreloadInvalidated = false
   private var isAutoStartPlayback = true
   private var seekTimeWhenStarted: Double?
   private var timerElapsedTimeInterval: Timer?
@@ -250,10 +270,14 @@ class BackendAudioPlayer: NSObject {
 
   private func checkForPreloadNextPlayerItem() {
     guard isAutoStartPlayback else { return }
-    if nextPreloadedPlayable == nil, elapsedTime.isFinite, elapsedTime > 0, duration.isFinite,
+    if let nextPreloadedPlayable {
+      invalidatePreloadIfNextChanged(preloadedPlayable: nextPreloadedPlayable)
+      return
+    }
+    if !isPreloadInvalidated, elapsedTime.isFinite, elapsedTime > 0, duration.isFinite,
        duration > 0 {
       let remainingTime = duration - elapsedTime
-      if remainingTime > 0, remainingTime < 10 {
+      if remainingTime > 0, remainingTime < preloadLeadTimeInSeconds {
         nextPreloadedPlayable = nextPlayablePreloadCB?()
         guard let nextPreloadedPlayable = nextPreloadedPlayable else { return }
         os_log(.default, "Preloading: %s", nextPreloadedPlayable.displayString)
@@ -275,6 +299,24 @@ class BackendAudioPlayer: NSObject {
         }
       }
     }
+  }
+
+  /// The queue may change after the next item has been preloaded (reorder, shuffle, repeat).
+  /// Remove the preloaded item from the player so it does not start instead of the new next item.
+  private func invalidatePreloadIfNextChanged(preloadedPlayable: AbstractPlayable) {
+    guard nextPlayablePreloadCB?() != preloadedPlayable else { return }
+    os_log(.default, "Preload invalidated: %s", preloadedPlayable.displayString)
+    if let preloadedUrl = URL(string: nextPreloadedUrl) {
+      player?.removeFromQueue(url: preloadedUrl)
+    }
+    nextPreloadedPlayable = nil
+    nextPreloadedUrl = ""
+    perloadedPlayType = nil
+    perloadedStreamingBitrate = nil
+    preloadTranscodingFormat = nil
+    // An item that is already buffering can not be removed. Without a new preload, the transition
+    // requests the new next item explicitly, which replaces the buffered one.
+    isPreloadInvalidated = true
   }
 
   @MainActor
@@ -393,6 +435,7 @@ class BackendAudioPlayer: NSObject {
   }
 
   private func handleRequest(playable: AbstractPlayable) {
+    isPreloadInvalidated = false
     if isPreviousPlaylableFinshed, let nextPreloadedPlayable = nextPreloadedPlayable,
        nextPreloadedPlayable == playable {
       // Do nothing next preloaded playable has already been queued to player
@@ -505,6 +548,7 @@ class BackendAudioPlayer: NSObject {
 
   private func clearPlayer() {
     isPreviousPlaylableFinshed = true
+    isPreloadInvalidated = false
     currentPreparedUrl = ""
     currentPlayUrl = ""
     nextPreloadedPlayable = nil
@@ -587,6 +631,10 @@ class BackendAudioPlayer: NSObject {
       }
     }
     let streamUrl = try await provideUrl()
+    // the preload might have been invalidated or replaced while the URL was generated
+    if queueType == .queue, nextPreloadedPlayable != playable {
+      return
+    }
 
     if queueType == .play {
       os_log(
