@@ -25,6 +25,11 @@ import os.log
 
 @MainActor
 public class AudioSessionHandler {
+  private nonisolated static let sessionQueue = DispatchQueue(
+    label: "amperfy.audio-session",
+    qos: .userInitiated
+  )
+
   var musicPlayer: AudioPlayer?
   var eventLogger: EventLogger?
 
@@ -117,11 +122,16 @@ public class AudioSessionHandler {
   }
 
   func configureBackgroundPlayback() {
-    do {
-      try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
-      try AVAudioSession.sharedInstance().setActive(true)
-    } catch {
-      eventLogger?.report(topic: "Audio Session", error: error)
+    // setCategory/setActive can block for a long time, don't call them on the main thread
+    Self.sessionQueue.async {
+      do {
+        try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
+        try AVAudioSession.sharedInstance().setActive(true)
+      } catch {
+        Task { @MainActor in
+          self.eventLogger?.report(topic: "Audio Session", error: error)
+        }
+      }
     }
   }
 }
