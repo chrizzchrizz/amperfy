@@ -27,7 +27,7 @@ import UIKit
 /// Colors a table screen (background, header, cells, search field, navigation bar) with the main color of an artwork.
 /// The owning screen forwards its lifecycle events and passes `contentColor` to its cells.
 @MainActor
-final class ArtworkBackgroundController {
+final class ArtworkBackgroundController: NSObject {
   private unowned let owner: BasicTableViewController
   private let account: Account
   private let detailHeader: () -> GenericDetailTableHeader?
@@ -48,6 +48,26 @@ final class ArtworkBackgroundController {
     self.account = account
     self.detailHeader = detailHeader
     self.imagePath = imagePath
+    super.init()
+    // the artwork is often downloaded after the screen is shown
+    let meta = owner.appDelegate.getMeta(account.info)
+    for manager in [meta.artworkDownloadManager, meta.playableDownloadManager] as [Any] {
+      owner.appDelegate.notificationHandler.register(
+        self,
+        selector: #selector(downloadFinishedSuccessful(notification:)),
+        name: .downloadFinishedSuccess,
+        object: manager
+      )
+    }
+  }
+
+  @objc
+  private func downloadFinishedSuccessful(notification: Notification) {
+    Task { @MainActor in
+      // a color is already shown, it is not changed by unrelated downloads
+      guard self.contentColor == nil else { return }
+      self.update()
+    }
   }
 
   /// Title, back button and bar buttons follow the artwork background while the screen is visible.
