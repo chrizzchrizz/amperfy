@@ -546,6 +546,11 @@ public class ArtistAlbumsItemsFetchedResultsController: BasicFetchedResultsContr
   ) {
     self.artist = artist
     let fetchRequest = AlbumMO.releaseYearSortedFetchRequest
+    // newest releases first
+    fetchRequest.sortDescriptors = [
+      NSSortDescriptor(key: #keyPath(AlbumMO.year), ascending: false),
+      NSSortDescriptor(key: #keyPath(AlbumMO.name), ascending: true),
+    ]
     fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
       NSCompoundPredicate(orPredicateWithSubpredicates: [
         AbstractLibraryEntityMO.excludeRemoteDeleteFetchPredicate,
