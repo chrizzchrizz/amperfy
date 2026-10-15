@@ -180,6 +180,16 @@ extension LibrarySyncerProxy: LibrarySyncer {
   }
 
   @MainActor
+  func requestSimilarAlbums(album: Album, count: Int) async throws -> [Album] {
+    try await activeSyncer.requestSimilarAlbums(album: album, count: count)
+  }
+
+  @MainActor
+  func requestSimilarArtists(artist: Artist, count: Int) async throws -> [Artist] {
+    try await activeSyncer.requestSimilarArtists(artist: artist, count: count)
+  }
+
+  @MainActor
   func requestPodcastEpisodeDelete(podcastEpisode: PodcastEpisode) async throws {
     try await activeSyncer.requestPodcastEpisodeDelete(podcastEpisode: podcastEpisode)
   }

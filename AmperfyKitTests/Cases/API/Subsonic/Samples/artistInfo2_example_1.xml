@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<subsonic-response xmlns="http://subsonic.org/restapi" status="ok" version="1.16.1" type="navidrome" serverVersion="0.64.2" openSubsonic="true">
+  <artistInfo2>
+    <biography>Formed in Basildon, Essex, England in 1980.</biography>
+    <smallImageUrl>http://example.com/share/img/small</smallImageUrl>
+    <similarArtist id="2wBfZhWsUl8yOsRrxxiMEU" name="The Cure" albumCount="9"/>
+    <similarArtist id="32vINxMkCa26bYO0OQnueB" name="Duran Duran" albumCount="2"/>
+    <similarArtist id="-1" name="New Order" albumCount="0"/>
+    <similarArtist id="77sZUX04Hl1n2D5XV4xb63" name="Soft Cell" albumCount="0"/>
+  </artistInfo2>
+</subsonic-response>

@@ -190,6 +190,10 @@ public protocol LibrarySyncer: Sendable {
   @MainActor
   func requestSimilarSongs(song: Song, count: Int) async throws -> [Song]
   @MainActor
+  func requestSimilarAlbums(album: Album, count: Int) async throws -> [Album]
+  @MainActor
+  func requestSimilarArtists(artist: Artist, count: Int) async throws -> [Artist]
+  @MainActor
   func requestPodcastEpisodeDelete(podcastEpisode: PodcastEpisode) async throws
   @MainActor
   func syncNowPlaying(song: Song, songPosition: NowPlayingSongPosition) async throws

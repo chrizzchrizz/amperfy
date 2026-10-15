@@ -906,8 +906,13 @@ class SubsonicLibrarySyncer: CommonLibrarySyncer, LibrarySyncer {
 
   @MainActor
   func requestSimilarSongs(song: Song, count: Int) async throws -> [Song] {
+    try await requestSimilarSongs(id: song.id, count: count)
+  }
+
+  @MainActor
+  private func requestSimilarSongs(id: String, count: Int) async throws -> [Song] {
     guard isSyncAllowed else { return [] }
-    let response = try await subsonicServerApi.requestSimilarSongs(id: song.id, count: count)
+    let response = try await subsonicServerApi.requestSimilarSongs(id: id, count: count)
 
     let similarSongObjectIds: [NSManagedObjectID] = try await storage.async.performAndGet {
       asyncCompanion in
@@ -936,6 +941,24 @@ class SubsonicLibrarySyncer: CommonLibrarySyncer, LibrarySyncer {
     return try similarSongObjectIds.map {
       Song(managedObject: try storage.main.context.existingObject(with: $0) as! SongMO)
     }
+  }
+
+  @MainActor
+  func requestSimilarAlbums(album: Album, count: Int) async throws -> [Album] {
+    let songs = try await requestSimilarSongs(id: album.id, count: count)
+    var seenIds: Set<String> = [album.id]
+    return songs.compactMap { $0.album }.filter { seenIds.insert($0.id).inserted }
+  }
+
+  @MainActor
+  func requestSimilarArtists(artist: Artist, count: Int) async throws -> [Artist] {
+    guard isSyncAllowed, let account = artist.account else { return [] }
+    let response = try await subsonicServerApi.requestArtistInfo(id: artist.id, count: count)
+    let parserDelegate = SsSimilarArtistParserDelegate(performanceMonitor: performanceMonitor)
+    try parse(response: response, delegate: parserDelegate, isThrowingErrorsAllowed: false)
+    return parserDelegate.artistIDs.compactMap {
+      storage.main.library.getArtist(for: account, id: $0)
+    }.filter { $0.albumCount > 0 }
   }
 
   @MainActor

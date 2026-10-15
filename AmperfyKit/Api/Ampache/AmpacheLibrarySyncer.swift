@@ -1008,6 +1008,12 @@ class AmpacheLibrarySyncer: CommonLibrarySyncer, LibrarySyncer {
   }
 
   @MainActor
+  func requestSimilarAlbums(album: Album, count: Int) async throws -> [Album] { [] }
+
+  @MainActor
+  func requestSimilarArtists(artist: Artist, count: Int) async throws -> [Artist] { [] }
+
+  @MainActor
   func requestSimilarSongs(song: Song, count: Int) async throws -> [Song] {
     guard isSyncAllowed else { return [] }
     let response = try await ampacheXmlServerApi.requestSimilarSongs(id: song.id, count: count)

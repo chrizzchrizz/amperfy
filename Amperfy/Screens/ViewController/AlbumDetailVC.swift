@@ -43,6 +43,7 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
   private var optionsButton: UIBarButtonItem!
   private var detailOperationsView: GenericDetailTableHeader?
   private var artworkBackground: ArtworkBackgroundController!
+  private var similarContentFooter: SimilarContentFooterView?
   let album: Album
 
   init(account: Account, album: Album) {
@@ -178,6 +179,72 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
       self.detailOperationsView?.refresh()
       self.artworkBackground.update()
     }
+    loadSimilarContent()
+  }
+
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    layoutSimilarContentFooter()
+  }
+
+  private func loadSimilarContent() {
+    guard similarContentFooter == nil else { return }
+    let footer = SimilarContentFooterView(
+      theme: appDelegate.storage.settings.accounts.getSetting(account.info).read.themePreference
+    )
+    footer.onArtistSelected = { [weak self] artist in
+      guard let self else { return }
+      navigationController?.pushViewController(
+        AppStoryboard.Main.segueToArtistDetail(account: account, artist: artist),
+        animated: true
+      )
+    }
+    footer.onAlbumSelected = { [weak self] album in
+      guard let self else { return }
+      navigationController?.pushViewController(
+        AppStoryboard.Main.segueToAlbumDetail(account: account, album: album),
+        animated: true
+      )
+    }
+    similarContentFooter = footer
+
+    let librarySyncer = appDelegate.getMeta(account.info).librarySyncer
+    Task { @MainActor in
+      // similar content is optional, a failing server agent must not disturb the screen
+      if let artist = album.artist {
+        do {
+          footer.display(artists: try await librarySyncer.requestSimilarArtists(
+            artist: artist,
+            count: 15
+          ))
+        } catch {
+          appDelegate.eventLogger.report(topic: "Similar Artists", error: error)
+        }
+      }
+      do {
+        let albums = try await librarySyncer.requestSimilarAlbums(album: album, count: 40)
+        footer.display(albums: Array(albums.prefix(12)))
+      } catch {
+        appDelegate.eventLogger.report(topic: "Similar Albums", error: error)
+      }
+      if footer.hasContent {
+        tableView.tableFooterView = footer
+        layoutSimilarContentFooter()
+      }
+    }
+  }
+
+  private func layoutSimilarContentFooter() {
+    guard let footer = similarContentFooter, tableView.tableFooterView === footer,
+          tableView.bounds.width > 0 else { return }
+    let height = footer.systemLayoutSizeFitting(
+      CGSize(width: tableView.bounds.width, height: UIView.layoutFittingCompressedSize.height),
+      withHorizontalFittingPriority: .required,
+      verticalFittingPriority: .fittingSizeLevel
+    ).height
+    guard footer.frame.size != CGSize(width: tableView.bounds.width, height: height) else { return }
+    footer.frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: height)
+    tableView.tableFooterView = footer
   }
 
   override func viewDidAppear(_ animated: Bool) {
