@@ -30,6 +30,7 @@ class ArtistDetailVC: MultiSourceTableViewController {
   private var songsFetchedResultsController: ArtistSongsItemsFetchedResultsController!
   private var optionsButton: UIBarButtonItem!
   private var detailOperationsView: GenericDetailTableHeader?
+  private var artworkBackground: ArtworkBackgroundController!
 
   init(account: Account, artist: Artist) {
     self.artist = artist
@@ -96,6 +97,18 @@ class ArtistDetailVC: MultiSourceTableViewController {
       EntityPreviewActionBuilder(container: self.artist, on: self).createMenuActions()
     }
     navigationItem.rightBarButtonItem = optionsButton
+
+    // as early as possible, so the default color is barely visible during the push
+    artworkBackground = ArtworkBackgroundController(
+      owner: self,
+      account: account,
+      detailHeader: { [weak self] in self?.detailOperationsView },
+      imagePath: { [weak self] setting in self?.artist.imagePath(setting: setting) }
+    )
+    artworkBackground.update()
+    registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, _) in
+      self.artworkBackground.update(animated: true)
+    }
 
     containableAtIndexPathCallback = { indexPath in
       switch indexPath.section + 1 {
@@ -172,6 +185,7 @@ class ArtistDetailVC: MultiSourceTableViewController {
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     navigationController?.navigationBar.prefersLargeTitles = false
+    artworkBackground.applyNavigationBarStyle()
   }
 
   override func viewIsAppearing(_ animated: Bool) {
@@ -191,11 +205,14 @@ class ArtistDetailVC: MultiSourceTableViewController {
         self.appDelegate.eventLogger.report(topic: "Artist Sync", error: error)
       }
       self.detailOperationsView?.refresh()
+      self.artworkBackground.update()
     }
   }
 
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
+    // the navigation bar is shared with other screens
+    artworkBackground.resetNavigationBarStyle()
     albumsFetchedResultsController?.delegate = nil
     songsFetchedResultsController?.delegate = nil
   }
@@ -280,6 +297,7 @@ class ArtistDetailVC: MultiSourceTableViewController {
         row: indexPath.row,
         section: 0
       ))
+      cell.contentColorOverride = artworkBackground.contentColor
       cell.display(playable: song, playContextCb: convertCellViewToPlayContext, rootView: self)
       return cell
     default:
