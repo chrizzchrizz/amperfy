@@ -49,17 +49,17 @@ class SplitVC: UISplitViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    // plain navigation: the offline button is shown in the secondary column only
     setViewController(
-      embeddInNavigation(vc: AppStoryboard.Main.segueToSideBar(account: account)),
+      UINavigationController(
+        rootViewController: AppStoryboard.Main
+          .segueToSideBar(account: account)
+      ),
       for: .primary
     )
     setViewController(defaultSecondaryVC, for: .secondary)
     primaryEdge = .leading
     primaryBackgroundStyle = .sidebar
-
-    if appDelegate.storage.settings.user.isOfflineMode {
-      appDelegate.eventLogger.info(topic: "Reminder", message: "Offline Mode is active.")
-    }
 
     miniPlayer = MiniPlayerView(player: appDelegate.player)
     miniPlayer!.configureForMac()
@@ -149,7 +149,7 @@ class SplitVC: UISplitViewController {
   }
 
   func embeddInNavigation(vc: UIViewController) -> UINavigationController {
-    UINavigationController(rootViewController: vc)
+    OfflineIndicatingNavigationController(rootViewController: vc)
   }
 
   var defaultSecondaryVC: UINavigationController {

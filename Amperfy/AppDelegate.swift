@@ -365,12 +365,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   }
 
   func switchOnlineOfflineMode(isOfflineMode: Bool) {
+    // posts .offlineModeChanged if the value changed
     appDelegate.storage.settings.user.isOfflineMode = isOfflineMode
-    appDelegate.notificationHandler.post(
-      name: .offlineModeChanged,
-      object: nil,
-      userInfo: nil
-    )
   }
 
   func setAppAppearanceMode(style: UIUserInterfaceStyle) {

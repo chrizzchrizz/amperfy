@@ -47,7 +47,7 @@ class TabBarVC: UITabBarController {
     var fixTabs = [UITab]()
 
     searchTab = UISearchTab { _ in
-      UINavigationController(
+      OfflineIndicatingNavigationController(
         rootViewController: TabNavigatorItem.search
           .getController(account: self.account)
       )
@@ -60,7 +60,7 @@ class TabBarVC: UITabBarController {
       image: TabNavigatorItem.home.icon,
       identifier: "Tabs.\(TabNavigatorItem.home.title)"
     ) { _ in
-      UINavigationController(
+      OfflineIndicatingNavigationController(
         rootViewController: TabNavigatorItem.home
           .getController(account: self.account)
       )
@@ -109,7 +109,7 @@ class TabBarVC: UITabBarController {
     ) { tab in
       AppStoryboard.Main.segueToLibrary(account: self.account)
     }
-    libraryGroup!.managingNavigationController = UINavigationController()
+    libraryGroup!.managingNavigationController = OfflineIndicatingNavigationController()
     libraryGroup!.allowsReordering = true
     fixTabs.append(libraryGroup!)
 
@@ -148,10 +148,6 @@ class TabBarVC: UITabBarController {
         self.configureTraitChangesForMiniPlayer()
       }
     )
-
-    if appDelegate.storage.settings.user.isOfflineMode {
-      appDelegate.eventLogger.info(topic: "Reminder", message: "Offline Mode is active.")
-    }
   }
 
   private func mainContent() -> UIView {
