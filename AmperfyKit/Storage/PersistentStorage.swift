@@ -192,7 +192,14 @@ public class PersistentStorage {
       let isOfflineMode = newValue.user.isOfflineMode
       guard isOfflineMode != notifiedOfflineMode else { return }
       notifiedOfflineMode = isOfflineMode
-      NotificationCenter.default.post(name: .offlineModeChanged, object: nil)
+      // observers update UI, so always deliver on the main thread
+      if Thread.isMainThread {
+        NotificationCenter.default.post(name: .offlineModeChanged, object: nil)
+      } else {
+        DispatchQueue.main.async {
+          NotificationCenter.default.post(name: .offlineModeChanged, object: nil)
+        }
+      }
     }
   }
 

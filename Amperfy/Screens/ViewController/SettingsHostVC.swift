@@ -48,6 +48,14 @@ class SettingsHostVC: UIViewController {
       refreshAccountSettings(accountInfo: accountInfo)
     }
 
+    // offline mode can also change outside of the settings (e.g. offline button in the navigation bar)
+    appDelegate.notificationHandler.register(
+      self,
+      selector: #selector(offlineModeChanged),
+      name: .offlineModeChanged,
+      object: nil
+    )
+
     self.isForOwnWindow = isForOwnWindow
 
     var settingsRootView: AnyView? = nil
@@ -81,6 +89,12 @@ class SettingsHostVC: UIViewController {
 
   required init?(coder: NSCoder) {
     super.init(coder: coder)
+  }
+
+  @objc
+  private func offlineModeChanged() {
+    // the isOfflineMode sink ignores this, as the stored value is already equal
+    settings.isOfflineMode = appDelegate.storage.settings.user.isOfflineMode
   }
 
   override func viewIsAppearing(_ animated: Bool) {
