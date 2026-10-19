@@ -39,6 +39,7 @@ public struct AbstractPlayableInfo: Sendable {
   let objectID: NSManagedObjectID
   let type: DerivedPlayableType
   let streamId: String? // Can vary for Subsonic: Podcast Episode -> streamId
+  let contentType: String? // original format on the server
 }
 
 // MARK: - AbstractPlayable
@@ -315,7 +316,8 @@ public class AbstractPlayable: AbstractLibraryEntity, Downloadable {
       id: id,
       objectID: objectID,
       type: derivedType,
-      streamId: asPodcastEpisode?.streamId
+      streamId: asPodcastEpisode?.streamId,
+      contentType: contentType
     )
   }
 

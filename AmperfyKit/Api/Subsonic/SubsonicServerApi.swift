@@ -327,12 +327,16 @@ final class SubsonicServerApi: URLCleanser, Sendable {
     }
   }
 
-  public func generateUrl(forDownloadingPlayableId apiId: String) async throws -> URL {
+  public func generateUrl(
+    forDownloadingPlayableId apiId: String,
+    contentType: String?
+  ) async throws
+    -> URL {
     let version = try await determineApiVersionToUse()
     // If transcoding is selected for caching the subsonic API method 'stream' must be used
     // For raw format subsonic API method 'download' can be used
-    switch settings.user.cacheTranscodingFormatPreference {
-    case .mp3:
+    switch settings.user.cacheTranscodingFormatPreference.resolved(contentType: contentType) {
+    case .auto, .mp3: // not returned by resolved(contentType:)
       var urlComp = try createAuthApiUrlComponent(version: version, forAction: "stream", id: apiId)
       urlComp.addQueryItem(name: "format", value: "mp3")
       let url = try createUrl(from: urlComp)
@@ -363,7 +367,7 @@ final class SubsonicServerApi: URLCleanser, Sendable {
     var urlComp = try createAuthApiUrlComponent(version: version, forAction: "stream", id: apiId)
 
     switch formatPreference {
-    case .mp3:
+    case .auto, .mp3: // .auto is resolved by the player beforehand
       urlComp.addQueryItem(name: "format", value: "mp3")
     case .raw:
       urlComp.addQueryItem(name: "format", value: "raw")

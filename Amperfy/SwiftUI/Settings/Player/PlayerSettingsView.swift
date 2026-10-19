@@ -135,7 +135,7 @@ struct PlayerSettingsView: View {
               }
             }
           },
-          footer: "Select a transcoding format for streaming while using Cellular. Transcoding is recommended for better compatibility."
+          footer: "Select a transcoding format for streaming while using Cellular. Auto streams the original file if its format is supported and within the bitrate limit, otherwise mp3."
         )
 
         SettingsSection(
@@ -165,7 +165,7 @@ struct PlayerSettingsView: View {
               }
             }
           },
-          footer: "Select a transcoding format for streaming while on WiFi. Transcoding is recommended for better compatibility."
+          footer: "Select a transcoding format for streaming while on WiFi. Auto streams the original file if its format is supported and within the bitrate limit, otherwise mp3."
         )
         // Streaming Bitrate Settings
         SettingsSection(
@@ -195,7 +195,7 @@ struct PlayerSettingsView: View {
             }
           }
         }, footer: """
-        Select a transcoding format for cached songs. Changes will not apply to already downloaded songs; clear cache and redownload if needed.
+        Select a transcoding format for cached songs. Auto keeps the original file if its format is supported, otherwise mp3. Changes will not apply to already downloaded songs; clear cache and redownload if needed.
         \(
           appDelegate.storage.settings.accounts.getSetting(settings.activeAccountInfo).read
             .loginCredentials?.backendApi

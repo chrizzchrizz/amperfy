@@ -771,15 +771,20 @@ final class AmpacheXmlServerApi: URLCleanser, Sendable {
     try await reauthenticate()
   }
 
-  public func generateUrlForDownloadingPlayable(isSong: Bool, id: String) async throws -> URL {
+  public func generateUrlForDownloadingPlayable(
+    isSong: Bool,
+    id: String,
+    contentType: String?
+  ) async throws
+    -> URL {
     let auth = try await reauthenticate()
 
     var urlComp = try createAuthApiUrlComponent(auth: auth)
     urlComp.addQueryItem(name: "action", value: "download")
     urlComp.addQueryItem(name: "type", value: isSong ? "song" : "podcast_episode")
     urlComp.addQueryItem(name: "id", value: id)
-    switch settings.user.cacheTranscodingFormatPreference {
-    case .mp3:
+    switch settings.user.cacheTranscodingFormatPreference.resolved(contentType: contentType) {
+    case .auto, .mp3: // not returned by resolved(contentType:)
       urlComp.addQueryItem(name: "format", value: "mp3")
     default:
       urlComp.addQueryItem(name: "format", value: "raw")
@@ -802,7 +807,7 @@ final class AmpacheXmlServerApi: URLCleanser, Sendable {
     urlComp.addQueryItem(name: "id", value: id)
 
     switch formatPreference {
-    case .mp3:
+    case .auto, .mp3: // .auto is resolved by the player beforehand
       urlComp.addQueryItem(name: "format", value: "mp3")
     case .raw:
       urlComp.addQueryItem(name: "format", value: "raw")

@@ -53,6 +53,26 @@ public class MimeFileConverter {
     !iOSIncompatibleMimeTypes.contains(where: { $0 == mimeType.lowercased() })
   }
 
+  /// Formats the player handles reliably without transcoding (incl. gapless and seeking).
+  static let nativelyStreamableMimeTypes = [
+    "audio/mpeg",
+    "audio/mp3",
+    "audio/mp4",
+    "audio/x-m4a",
+    "audio/aac",
+    "audio/flac",
+    "audio/wav",
+    "audio/x-wav",
+    "audio/aiff",
+    "audio/x-aiff",
+  ]
+
+  static func isMimeTypeNativelyStreamable(mimeType: String?) -> Bool {
+    guard let mimeType else { return false }
+    return nativelyStreamableMimeTypes
+      .contains(convertToValidMimeTypeWhenNeccessary(mimeType: mimeType))
+  }
+
   static func getMIMEType(filenameExtension: String?) -> String? {
     guard let filenameExtension = filenameExtension?.lowercased(),
           filenameExtension != "raw"

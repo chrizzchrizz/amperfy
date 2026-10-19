@@ -63,7 +63,8 @@ final class AmpacheApi: BackendApi {
     -> URL {
     try await ampacheXmlServerApi.generateUrlForDownloadingPlayable(
       isSong: playableInfo.type == .song,
-      id: playableInfo.id
+      id: playableInfo.id,
+      contentType: playableInfo.contentType
     )
   }
 
