@@ -2063,6 +2063,13 @@ public class LibraryStorage: PlayableFileCachable {
 
   // MARK: PlayerData
 
+  private func createPlayerMO() -> PlayerMO {
+    let playerMO = PlayerMO(context: context)
+    // Auto-cache is opt-in; the Core Data model default is 1 (enabled).
+    playerMO.autoCachePlayedItemSetting = 0
+    return playerMO
+  }
+
   func getPlayerData() -> PlayerData {
     let fetchRequest = PlayerMO.fetchRequest()
     fetchRequest.relationshipKeyPathsForPrefetching = PlayerMO.relationshipKeyPathsForPrefetching
@@ -2074,15 +2081,15 @@ public class LibraryStorage: PlayableFileCachable {
       if fetchResults.count == 1 {
         playerMO = fetchResults[0]
       } else if fetchResults.isEmpty {
-        playerMO = PlayerMO(context: context)
+        playerMO = createPlayerMO()
         saveContext()
       } else {
         clearStorage(ofType: PlayerData.entityName)
-        playerMO = PlayerMO(context: context)
+        playerMO = createPlayerMO()
         saveContext()
       }
     } else {
-      playerMO = PlayerMO(context: context)
+      playerMO = createPlayerMO()
       saveContext()
     }
 
