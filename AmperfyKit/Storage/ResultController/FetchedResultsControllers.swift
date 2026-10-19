@@ -538,13 +538,17 @@ public class ArtistFetchedResultsController: CachedFetchedResultsController<Arti
 
 public class ArtistAlbumsItemsFetchedResultsController: BasicFetchedResultsController<AlbumMO> {
   let artist: Artist
+  /// nil: all albums, true: only compilations, false: no compilations
+  let isCompilation: Bool?
 
   public init(
     for artist: Artist,
+    isCompilation: Bool? = nil,
     coreDataCompanion: CoreDataCompanion,
     isGroupedInAlphabeticSections: Bool
   ) {
     self.artist = artist
+    self.isCompilation = isCompilation
     let fetchRequest = AlbumMO.releaseYearSortedFetchRequest
     // newest releases first
     fetchRequest.sortDescriptors = [
@@ -560,6 +564,7 @@ public class ArtistAlbumsItemsFetchedResultsController: BasicFetchedResultsContr
         coreDataCompanion.library.getFetchPredicate(forArtist: artist),
         AlbumMO.getFetchPredicateForAlbumsWhoseSongsHave(artist: artist),
       ]),
+      Self.getCompilationPredicate(isCompilation),
     ])
     fetchRequest.relationshipKeyPathsForPrefetching = AlbumMO.relationshipKeyPathsForPrefetching
     fetchRequest.returnsObjectsAsFaults = false
@@ -583,11 +588,21 @@ public class ArtistAlbumsItemsFetchedResultsController: BasicFetchedResultsContr
         ]),
         coreDataCompanion.library.getFetchPredicate(onlyCachedAlbums: onlyCached),
         ArtistMO.getIdentifierBasedSearchPredicate(searchText: searchText),
+        Self.getCompilationPredicate(isCompilation),
       ])
       search(predicate: predicate)
     } else {
       showAllResults()
     }
+  }
+
+  private static func getCompilationPredicate(_ isCompilation: Bool?) -> NSPredicate {
+    guard let isCompilation else { return NSPredicate(value: true) }
+    return NSPredicate(
+      format: "%K == %@",
+      #keyPath(AlbumMO.isCompilation),
+      NSNumber(value: isCompilation)
+    )
   }
 }
 

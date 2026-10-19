@@ -26,14 +26,24 @@ import UIKit
 // MARK: - ArtistDetailVC
 
 class ArtistDetailVC: MultiSourceTableViewController {
+  /// The top section is needed due to display bugs
+  private enum Section: Int, CaseIterable {
+    case top
+    case albums
+    case compilations
+    case songs
+  }
+
   private let artist: Artist
   var albumToScrollTo: Album?
   private var albumsFetchedResultsController: ArtistAlbumsItemsFetchedResultsController!
+  private var compilationsFetchedResultsController: ArtistAlbumsItemsFetchedResultsController!
   private var songsFetchedResultsController: ArtistSongsItemsFetchedResultsController!
   private var optionsButton: UIBarButtonItem!
   private var detailOperationsView: GenericDetailTableHeader?
   private var artworkBackground: ArtworkBackgroundController!
   private var albumsGridVC: ArtistAlbumsGridVC!
+  private var compilationsGridVC: ArtistAlbumsGridVC!
 
   init(account: Account, artist: Artist) {
     self.artist = artist
@@ -52,10 +62,18 @@ class ArtistDetailVC: MultiSourceTableViewController {
 
     albumsFetchedResultsController = ArtistAlbumsItemsFetchedResultsController(
       for: artist,
+      isCompilation: false,
       coreDataCompanion: appDelegate.storage.main,
       isGroupedInAlphabeticSections: false
     )
     albumsFetchedResultsController.delegate = self
+    compilationsFetchedResultsController = ArtistAlbumsItemsFetchedResultsController(
+      for: artist,
+      isCompilation: true,
+      coreDataCompanion: appDelegate.storage.main,
+      isGroupedInAlphabeticSections: false
+    )
+    compilationsFetchedResultsController.delegate = self
     songsFetchedResultsController = ArtistSongsItemsFetchedResultsController(
       for: artist,
       displayFilter: appDelegate.storage.settings.user.artistsFilterSetting,
@@ -82,6 +100,21 @@ class ArtistDetailVC: MultiSourceTableViewController {
     )
     addChild(albumsGridVC)
     albumsGridVC.didMove(toParent: self)
+    compilationsGridVC = ArtistAlbumsGridVC(
+      account: account,
+      albumCount: { [weak self] in
+        self?.compilationsFetchedResultsController.sections?[0].numberOfObjects ?? 0
+      },
+      album: { [weak self] row in
+        self?.compilationsFetchedResultsController.getWrappedEntity(at: IndexPath(
+          row: row,
+          section: 0
+        ))
+      },
+      owner: self
+    )
+    addChild(compilationsGridVC)
+    compilationsGridVC.didMove(toParent: self)
     tableView.sectionHeaderHeight = 0.0
     tableView.estimatedSectionHeaderHeight = 0.0
     tableView.sectionFooterHeight = 0.0
@@ -132,8 +165,8 @@ class ArtistDetailVC: MultiSourceTableViewController {
     }
 
     containableAtIndexPathCallback = { indexPath in
-      switch indexPath.section + 1 {
-      case LibraryElement.Song.rawValue:
+      switch Section(rawValue: indexPath.section) {
+      case .songs:
         return self.songsFetchedResultsController.getWrappedEntity(at: IndexPath(
           row: indexPath.row,
           section: 0
@@ -143,8 +176,8 @@ class ArtistDetailVC: MultiSourceTableViewController {
       }
     }
     playContextAtIndexPathCallback = { indexPath in
-      switch indexPath.section + 1 {
-      case LibraryElement.Song.rawValue:
+      switch Section(rawValue: indexPath.section) {
+      case .songs:
         let songIndexPath = IndexPath(row: indexPath.row, section: 0)
         return self.convertIndexPathToPlayContext(songIndexPath: songIndexPath)
       default:
@@ -152,8 +185,8 @@ class ArtistDetailVC: MultiSourceTableViewController {
       }
     }
     swipeCallback = { indexPath, completionHandler in
-      switch indexPath.section + 1 {
-      case LibraryElement.Song.rawValue:
+      switch Section(rawValue: indexPath.section) {
+      case .songs:
         let songIndexPath = IndexPath(row: indexPath.row, section: 0)
         let song = self.songsFetchedResultsController.getWrappedEntity(at: songIndexPath)
         let playContext = self.convertIndexPathToPlayContext(songIndexPath: songIndexPath)
@@ -174,6 +207,7 @@ class ArtistDetailVC: MultiSourceTableViewController {
     super.viewIsAppearing(animated)
     extendSafeAreaToAccountForMiniPlayer()
     albumsFetchedResultsController?.delegate = self
+    compilationsFetchedResultsController?.delegate = self
     songsFetchedResultsController?.delegate = self
     Task { @MainActor in
       do {
@@ -196,20 +230,30 @@ class ArtistDetailVC: MultiSourceTableViewController {
     // the navigation bar is shared with other screens
     artworkBackground.resetNavigationBarStyle()
     albumsFetchedResultsController?.delegate = nil
+    compilationsFetchedResultsController?.delegate = nil
     songsFetchedResultsController?.delegate = nil
   }
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     defer { albumToScrollTo = nil }
-    guard let albumToScrollTo = albumToScrollTo,
-          let indexPath = albumsFetchedResultsController.fetchResultsController
-          .indexPath(forObject: albumToScrollTo.managedObject)
-    else { return }
-    // all albums are inside one row
-    let albumsIndexPath = IndexPath(row: 0, section: LibraryElement.Album.rawValue - 1)
-    tableView.scrollToRow(at: albumsIndexPath, at: .top, animated: true)
-    albumsGridVC.scrollToAlbum(at: indexPath.row)
+    guard let albumToScrollTo else { return }
+    let grids: [(Section, ArtistAlbumsItemsFetchedResultsController, ArtistAlbumsGridVC)] = [
+      (.albums, albumsFetchedResultsController, albumsGridVC),
+      (.compilations, compilationsFetchedResultsController, compilationsGridVC),
+    ]
+    for (section, fetchedResultsController, gridVC) in grids {
+      guard let indexPath = fetchedResultsController.fetchResultsController
+        .indexPath(forObject: albumToScrollTo.managedObject) else { continue }
+      // all albums of a section are inside one row
+      tableView.scrollToRow(
+        at: IndexPath(row: 0, section: section.rawValue),
+        at: .top,
+        animated: true
+      )
+      gridVC.scrollToAlbum(at: indexPath.row)
+      return
+    }
   }
 
   func convertIndexPathToPlayContext(songIndexPath: IndexPath) -> PlayContext? {
@@ -223,7 +267,7 @@ class ArtistDetailVC: MultiSourceTableViewController {
 
   func convertCellViewToPlayContext(cell: UITableViewCell) -> PlayContext? {
     guard let indexPath = tableView.indexPath(for: cell),
-          indexPath.section + 1 == LibraryElement.Song.rawValue
+          indexPath.section == Section.songs.rawValue
     else { return nil }
     return convertIndexPathToPlayContext(songIndexPath: IndexPath(row: indexPath.row, section: 0))
   }
@@ -231,8 +275,7 @@ class ArtistDetailVC: MultiSourceTableViewController {
   // MARK: - Table view data source
 
   override func numberOfSections(in tableView: UITableView) -> Int {
-    // 2 section + 1 top section. The top section is needed due to display bugs
-    3
+    Section.allCases.count
   }
 
   override func tableView(
@@ -240,10 +283,12 @@ class ArtistDetailVC: MultiSourceTableViewController {
     viewForHeaderInSection section: Int
   )
     -> UIView? {
-    switch section + 1 {
-    case LibraryElement.Album.rawValue:
+    switch Section(rawValue: section) {
+    case .albums:
       return ArtistSectionHeaderView(title: "Albums", bottomPadding: 0)
-    case LibraryElement.Song.rawValue:
+    case .compilations:
+      return ArtistSectionHeaderView(title: "Compilations", bottomPadding: 0)
+    case .songs:
       return ArtistSectionHeaderView(
         title: "Songs",
         bottomPadding: ArtistSectionHeaderView.contentSpacing
@@ -254,11 +299,13 @@ class ArtistDetailVC: MultiSourceTableViewController {
   }
 
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    switch section + 1 {
-    case LibraryElement.Album.rawValue:
+    switch Section(rawValue: section) {
+    case .albums:
       // all albums are shown in one horizontally scrolling row
       return (albumsFetchedResultsController.sections?[0].numberOfObjects ?? 0) > 0 ? 1 : 0
-    case LibraryElement.Song.rawValue:
+    case .compilations:
+      return (compilationsFetchedResultsController.sections?[0].numberOfObjects ?? 0) > 0 ? 1 : 0
+    case .songs:
       return songsFetchedResultsController.sections?[0].numberOfObjects ?? 0
     default:
       return 0
@@ -270,15 +317,22 @@ class ArtistDetailVC: MultiSourceTableViewController {
     cellForRowAt indexPath: IndexPath
   )
     -> UITableViewCell {
-    switch indexPath.section + 1 {
-    case LibraryElement.Album.rawValue:
+    switch Section(rawValue: indexPath.section) {
+    case .albums:
       let cell = tableView.dequeueReusableCell(
         withIdentifier: ArtistAlbumsGridCell.reuseID,
         for: indexPath
       ) as! ArtistAlbumsGridCell
       cell.embed(gridVC: albumsGridVC)
       return cell
-    case LibraryElement.Song.rawValue:
+    case .compilations:
+      let cell = tableView.dequeueReusableCell(
+        withIdentifier: ArtistAlbumsGridCell.reuseID,
+        for: indexPath
+      ) as! ArtistAlbumsGridCell
+      cell.embed(gridVC: compilationsGridVC)
+      return cell
+    case .songs:
       let cell: PlayableTableCell = dequeueCell(for: tableView, at: indexPath)
       let song = songsFetchedResultsController.getWrappedEntity(at: IndexPath(
         row: indexPath.row,
@@ -297,11 +351,14 @@ class ArtistDetailVC: MultiSourceTableViewController {
     heightForHeaderInSection section: Int
   )
     -> CGFloat {
-    switch section + 1 {
-    case LibraryElement.Album.rawValue:
+    switch Section(rawValue: section) {
+    case .albums:
       return albumsFetchedResultsController.sections?[0]
         .numberOfObjects ?? 0 > 0 ? ArtistSectionHeaderView.height(bottomPadding: 0) : 0
-    case LibraryElement.Song.rawValue:
+    case .compilations:
+      return compilationsFetchedResultsController.sections?[0]
+        .numberOfObjects ?? 0 > 0 ? ArtistSectionHeaderView.height(bottomPadding: 0) : 0
+    case .songs:
       return songsFetchedResultsController.sections?[0]
         .numberOfObjects ?? 0 > 0 ?
         ArtistSectionHeaderView.height(bottomPadding: ArtistSectionHeaderView.contentSpacing) : 0
@@ -315,10 +372,12 @@ class ArtistDetailVC: MultiSourceTableViewController {
     heightForRowAt indexPath: IndexPath
   )
     -> CGFloat {
-    switch indexPath.section + 1 {
-    case LibraryElement.Album.rawValue:
+    switch Section(rawValue: indexPath.section) {
+    case .albums:
       return albumsGridVC.contentHeight
-    case LibraryElement.Song.rawValue:
+    case .compilations:
+      return compilationsGridVC.contentHeight
+    case .songs:
       return PlayableTableCell.rowHeight
     default:
       return 0.0
@@ -330,10 +389,12 @@ class ArtistDetailVC: MultiSourceTableViewController {
     estimatedHeightForRowAt indexPath: IndexPath
   )
     -> CGFloat {
-    switch indexPath.section + 1 {
-    case LibraryElement.Album.rawValue:
+    switch Section(rawValue: indexPath.section) {
+    case .albums:
       return albumsGridVC.contentHeight
-    case LibraryElement.Song.rawValue:
+    case .compilations:
+      return compilationsGridVC.contentHeight
+    case .songs:
       return PlayableTableCell.rowHeight
     default:
       return 0.0
@@ -348,12 +409,15 @@ class ArtistDetailVC: MultiSourceTableViewController {
     guard let searchText = searchController.searchBar.text else { return }
     if !searchText.isEmpty, searchController.searchBar.selectedScopeButtonIndex == 0 {
       albumsFetchedResultsController.search(searchText: searchText, onlyCached: false)
+      compilationsFetchedResultsController.search(searchText: searchText, onlyCached: false)
       songsFetchedResultsController.search(searchText: searchText, onlyCachedSongs: false)
     } else if searchController.searchBar.selectedScopeButtonIndex == 1 {
       albumsFetchedResultsController.search(searchText: searchText, onlyCached: true)
+      compilationsFetchedResultsController.search(searchText: searchText, onlyCached: true)
       songsFetchedResultsController.search(searchText: searchText, onlyCachedSongs: true)
     } else {
       albumsFetchedResultsController.showAllResults()
+      compilationsFetchedResultsController.showAllResults()
       songsFetchedResultsController.showAllResults()
     }
     tableView.reloadData()
@@ -368,11 +432,12 @@ class ArtistDetailVC: MultiSourceTableViewController {
   ) {
     var section = 0
     switch controller {
-    case albumsFetchedResultsController.fetchResultsController:
-      // the grid is reloaded as a whole in controllerDidChangeContent
+    case albumsFetchedResultsController.fetchResultsController,
+         compilationsFetchedResultsController.fetchResultsController:
+      // the grids are reloaded as a whole in controllerDidChangeContent
       return
     case songsFetchedResultsController.fetchResultsController:
-      section = LibraryElement.Song.rawValue - 1
+      section = Section.songs.rawValue
     default:
       return
     }
@@ -391,18 +456,34 @@ class ArtistDetailVC: MultiSourceTableViewController {
     _ controller: NSFetchedResultsController<NSFetchRequestResult>
   ) {
     super.controllerDidChangeContent(controller)
-    if controller == albumsFetchedResultsController.fetchResultsController {
-      reloadAlbumsGrid()
+    switch controller {
+    case albumsFetchedResultsController.fetchResultsController:
+      reloadGrid(
+        albumsGridVC,
+        in: .albums,
+        fetchedResultsController: albumsFetchedResultsController
+      )
+    case compilationsFetchedResultsController.fetchResultsController:
+      reloadGrid(
+        compilationsGridVC,
+        in: .compilations,
+        fetchedResultsController: compilationsFetchedResultsController
+      )
+    default:
+      break
     }
   }
 
-  private func reloadAlbumsGrid() {
-    let albumsSection = LibraryElement.Album.rawValue - 1
-    let hasAlbums = (albumsFetchedResultsController.sections?[0].numberOfObjects ?? 0) > 0
-    if hasAlbums != (tableView.numberOfRows(inSection: albumsSection) > 0) {
-      tableView.reloadSections([albumsSection], with: .none)
+  private func reloadGrid(
+    _ gridVC: ArtistAlbumsGridVC,
+    in section: Section,
+    fetchedResultsController: ArtistAlbumsItemsFetchedResultsController
+  ) {
+    let hasAlbums = (fetchedResultsController.sections?[0].numberOfObjects ?? 0) > 0
+    if hasAlbums != (tableView.numberOfRows(inSection: section.rawValue) > 0) {
+      tableView.reloadSections([section.rawValue], with: .none)
     } else {
-      albumsGridVC.reload()
+      gridVC.reload()
       tableView.performBatchUpdates(nil)
     }
   }
@@ -435,6 +516,8 @@ final class ArtistAlbumsGridCell: UITableViewCell {
   func embed(gridVC: ArtistAlbumsGridVC) {
     let gridView: UIView = gridVC.view
     guard gridView.superview !== contentView else { return }
+    // a reused cell may still host the grid of the other section
+    contentView.subviews.forEach { $0.removeFromSuperview() }
     gridView.translatesAutoresizingMaskIntoConstraints = false
     contentView.addSubview(gridView)
     NSLayoutConstraint.activate([
