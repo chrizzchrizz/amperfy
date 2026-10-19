@@ -92,6 +92,9 @@ class PlayableTableCell: BasicTableCell {
   private var playContextCb: GetPlayContextFromTableCellCallback?
   private var playable: AbstractPlayable?
   private var download: Download?
+  /// the file of the playable is downloading right now, the cache icon is animated meanwhile
+  private var isDownloadRunning = false
+  private var isCacheIconAnimating = false
   private var rootView: UIViewController?
   private var playIndicator: PlayIndicator?
   private var isDislayAlbumTrackNumberStyle: Bool = false
@@ -131,6 +134,18 @@ class PlayableTableCell: BasicTableCell {
         self.playIndicator?.applyStyle()
       }
       playContextCb = nil
+      for name in [
+        Notification.Name.downloadStarted,
+        .downloadFinishedSuccess,
+        .downloadFinishedFailure,
+      ] {
+        appDelegate.notificationHandler.register(
+          self,
+          selector: #selector(downloadStateChanged(notification:)),
+          name: name,
+          object: nil
+        )
+      }
       #if targetEnvironment(macCatalyst) // ok
         hoverGestureRecognizer = UIHoverGestureRecognizer(
           target: self,
@@ -284,6 +299,7 @@ class PlayableTableCell: BasicTableCell {
     self.isDislayAlbumTrackNumberStyle = isDislayAlbumTrackNumberStyle
     self.download = download
     self.isMarked = isMarked
+    isDownloadRunning = playable.isDownloading
 
     #if targetEnvironment(macCatalyst) // ok
       hoverGestureRecognizer.isEnabled = (displayMode == .normal)
@@ -464,11 +480,35 @@ class PlayableTableCell: BasicTableCell {
       max(0, starWidth - 30) : 0.0
     labelTrailingCellConstraint.constant = labelToAccessoriesGap + ratingExtraSpace
 
-    cacheIconImage.isHidden = !playable.isCached
+    refreshCacheIcon(playable: playable)
     durationLabel.isHidden = !isDurationVisible
     if isDurationVisible {
       durationLabel.text = playable.duration.asColonDurationString
     }
+  }
+
+  /// Shows the arrow if the playable is cached and an animated dotted arrow while it is downloading.
+  private func refreshCacheIcon(playable: AbstractPlayable) {
+    let isDownloading = !playable.isCached && isDownloadRunning
+    cacheIconImage.isHidden = !playable.isCached && !isDownloading
+    guard isDownloading != isCacheIconAnimating else { return }
+    isCacheIconAnimating = isDownloading
+    if isDownloading {
+      cacheIconImage.image = .downloading
+      cacheIconImage.addSymbolEffect(.pulse, options: .repeating)
+    } else {
+      cacheIconImage.removeAllSymbolEffects()
+      cacheIconImage.image = .download
+    }
+  }
+
+  @objc
+  private func downloadStateChanged(notification: Notification) {
+    guard let downloadNotification = DownloadNotification.fromNotification(notification),
+          let playable, playable.uniqueID == downloadNotification.id
+    else { return }
+    isDownloadRunning = (notification.name == .downloadStarted)
+    refreshCacheAndDuration()
   }
 
   private func refreshSubtitleColor() {

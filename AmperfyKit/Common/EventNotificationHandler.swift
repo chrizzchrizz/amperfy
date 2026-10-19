@@ -28,6 +28,8 @@ extension Notification.Name {
     .Name(rawValue: "de.amperfy.account.added")
   public static let accountDeleted = Notification
     .Name(rawValue: "de.amperfy.account.deleted")
+  public static let downloadStarted = Notification
+    .Name(rawValue: "de.amperfy.download.started")
   public static let downloadFinishedSuccess = Notification
     .Name(rawValue: "de.amperfy.download.finished.success")
   public static let downloadFinishedFailure = Notification

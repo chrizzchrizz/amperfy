@@ -281,6 +281,12 @@ public class AbstractPlayable: AbstractLibraryEntity, Downloadable {
     relFilePath != nil
   }
 
+  /// a download of the file is running right now (not only requested)
+  public var isDownloading: Bool {
+    guard let downloadMO = playableManagedObject.download else { return false }
+    return Download(managedObject: downloadMO).isDownloading
+  }
+
   public var relFilePath: URL? {
     get {
       if let relFilePathString = playableManagedObject.relFilePath {

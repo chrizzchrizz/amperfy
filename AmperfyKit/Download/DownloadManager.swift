@@ -382,7 +382,7 @@ actor DownloadManager: NSObject, DownloadManageable {
       taskOperations.removeValue(forKey: downloadRequest)
       return
     }
-    try? await storage.perform { asyncCompanion in
+    let downloadElementUniqueId = try? await storage.performAndGet { asyncCompanion in
       let download = Download(
         managedObject: asyncCompanion.context
           .object(with: downloadRequest.objectID) as! DownloadMO
@@ -390,6 +390,14 @@ actor DownloadManager: NSObject, DownloadManageable {
       download.reset()
       download.isDownloading = true
       asyncCompanion.saveContext()
+      return download.element?.uniqueID
+    }
+    if let downloadElementUniqueId {
+      await notificationHandler.post(
+        name: .downloadStarted,
+        object: self,
+        userInfo: DownloadNotification(id: downloadElementUniqueId).asNotificationUserInfo
+      )
     }
     os_log("Fetching %s ...", log: self.log, type: .info, downloadRequest.title)
 
