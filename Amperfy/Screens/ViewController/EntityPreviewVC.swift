@@ -749,13 +749,13 @@ class EntityPreviewActionBuilder {
   }
 
   private func createDeleteCacheAction() -> UIAction {
-    UIAction(title: "Delete Cache", image: .trash) { action in
+    UIAction(title: "Remove Download", image: .trash) { action in
       guard self.entityPlayables.hasCachedItems,
             let account = self.entityContainer.account else { return }
 
       let alert = UIAlertController(
         title: nil,
-        message: "Are you sure to delete the cached file\(self.entityPlayables.count > 1 ? "s" : "")?",
+        message: "Are you sure you want to delete the download\(self.entityPlayables.count > 1 ? "s" : "")?",
         preferredStyle: .alert
       )
       alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in

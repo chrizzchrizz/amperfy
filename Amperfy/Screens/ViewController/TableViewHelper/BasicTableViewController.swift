@@ -359,7 +359,7 @@ class BasicTableViewController: KeyCommandTableViewController {
         case .removeFromCache:
           let alert = UIAlertController(
             title: nil,
-            message: "Are you sure to delete the cached file\(actionContext.playables.count > 1 ? "s" : "")?",
+            message: "Are you sure you want to delete the download\(actionContext.playables.count > 1 ? "s" : "")?",
             preferredStyle: .alert
           )
           alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
