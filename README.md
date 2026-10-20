@@ -1,12 +1,10 @@
-# ![Logo](.github/Icon-40.png) Amperfy (fork)
+# Eigenton
 
-This is an independent fork of [Amperfy](https://github.com/BLeeEZ/amperfy) by Maximilian Bauer and its contributors. It continues development in its own direction: UI refinements, behavior changes, new features and a simpler app with fewer features.
+Eigenton is an iOS/iPadOS/macOS app written in Swift to play music from an [Ampache](http://ampache.github.io) or [Subsonic](http://www.subsonic.org) server.
 
-The fork is not affiliated with the original project. Please report issues for this fork [here](https://github.com/chrizzchrizz/amperfy/issues), not upstream. The original Amperfy is available on the [App Store](https://apps.apple.com/app/amperfy-music/id1530145038).
+It is an independent fork of [Amperfy](https://github.com/BLeeEZ/amperfy) by Maximilian Bauer and its contributors, and continues development in its own direction: UI refinements, behavior changes, new features and a simpler app with fewer features.
 
-## Basics
-
-Amperfy is an iOS/iPadOS/macOS app written in Swift to interact with an [Ampache](http://ampache.github.io) or [Subsonic](http://www.subsonic.org) server.
+Eigenton is not affiliated with the Amperfy project. Please report issues [here](https://github.com/chrizzchrizz/eigenton/issues), not upstream. The original Amperfy is available on the [App Store](https://apps.apple.com/app/amperfy-music/id1530145038).
 
 ## Features
 
@@ -32,12 +30,12 @@ Amperfy is an iOS/iPadOS/macOS app written in Swift to interact with an [Ampache
 
 1. Check out the project and, next to it, the AudioStreaming fork it uses as a local package:
   ```
-  git clone https://github.com/chrizzchrizz/amperfy.git
+  git clone https://github.com/chrizzchrizz/eigenton.git
   git clone https://github.com/chrizzchrizz/AudioStreaming.git
-  cd amperfy
+  cd eigenton
   ```
 
-2. Open the `Amperfy.xcodeproj` file.
+2. Open the `Amperfy.xcodeproj` file (project and scheme still carry the original name).
 
 3. Build and run the "Amperfy" scheme
 

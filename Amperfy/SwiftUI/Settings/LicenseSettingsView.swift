@@ -25,6 +25,7 @@ import SwiftUI
 
 struct LicenseSettingsView: View {
   var licenseText = """
+  Eigenton
   Based on Amperfy by Maximilian Bauer and contributors
   https://github.com/BLeeEZ/amperfy
 

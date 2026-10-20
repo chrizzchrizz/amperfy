@@ -104,7 +104,7 @@ extension AppDelegate {
 
     builder.insertChild(UIMenu(options: .displayInline, children: [
       UIAction(title: "Report an issue on GitHub") { _ in
-        if let url = URL(string: "https://github.com/chrizzchrizz/amperfy/issues") {
+        if let url = URL(string: "https://github.com/chrizzchrizz/eigenton/issues") {
           UIApplication.shared.open(url)
         }
       },
