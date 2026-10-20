@@ -28,10 +28,10 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>de.familie-zimba.Amperfy</string>
+			<string>de.chrizz-gelbach.eigenton</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>amperfy</string>
+				<string>eigenton</string>
 			</array>
 		</dict>
 	</array>
