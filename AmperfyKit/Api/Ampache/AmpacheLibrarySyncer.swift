@@ -1038,7 +1038,10 @@ class AmpacheLibrarySyncer: CommonLibrarySyncer, LibrarySyncer {
         parseNotifier: nil
       )
       try self.parse(response: response, delegate: parserDelegate)
-      return parserDelegate.parsedSongs.compactMap { $0.managedObject.objectID }
+      // newly created songs only have temporary IDs, which the main context can't resolve after the save
+      let songMOs = parserDelegate.parsedSongs.map { $0.managedObject }
+      try asyncCompanion.context.obtainPermanentIDs(for: songMOs)
+      return songMOs.map { $0.objectID }
     }
 
     return try similarSongObjectIds.map {
