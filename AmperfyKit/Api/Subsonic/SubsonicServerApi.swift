@@ -66,6 +66,7 @@ extension ResponseError {
 
 enum OpenSubsonicExtension: String {
   case songLyrics
+  case transcodeOffset
 }
 
 // MARK: - OpenSubsonicExtensionsSupport
@@ -360,7 +361,8 @@ final class SubsonicServerApi: URLCleanser, Sendable {
   public func generateUrl(
     forStreamingPlayableId apiId: String,
     maxBitrate: StreamingMaxBitratePreference,
-    formatPreference: StreamingFormatPreference
+    formatPreference: StreamingFormatPreference,
+    timeOffset: Int = 0
   ) async throws
     -> URL {
     let version = try await determineApiVersionToUse()
@@ -379,6 +381,9 @@ final class SubsonicServerApi: URLCleanser, Sendable {
       break
     default:
       urlComp.addQueryItem(name: "maxBitRate", value: maxBitrate.rawValue)
+    }
+    if timeOffset > 0 {
+      urlComp.addQueryItem(name: "timeOffset", value: timeOffset)
     }
     return try createUrl(from: urlComp)
   }
