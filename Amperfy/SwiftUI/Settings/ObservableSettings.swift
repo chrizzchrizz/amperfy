@@ -72,6 +72,8 @@ final class Settings: ObservableObject {
   var cacheSizeLimit: Int = 0 // limit in byte
   @Published
   var isHapticsEnabled = true
+  @Published
+  var isHideNetworkErrorBanners = false
 
   @Published
   var activeAccountInfo: AccountInfo?

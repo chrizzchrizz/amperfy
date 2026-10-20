@@ -211,6 +211,7 @@
 		50BE5D552850F4E700156FC6 /* UtilitiesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5090963726496A9500DD9826 /* UtilitiesTest.swift */; };
 		A1F0C0DE2A00000000000001 /* OfflineModeNotificationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F0C0DE2A00000000000002 /* OfflineModeNotificationTest.swift */; };
 		B5A5CE010000000000000001 /* ShareSongActionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A5CE010000000000000002 /* ShareSongActionTest.swift */; };
+		B5A5CE010000000000000003 /* EventLoggerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A5CE010000000000000004 /* EventLoggerTest.swift */; };
 		50BE5D562850F4E700156FC6 /* PlayQueueHandlerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5011712D27453D1300B7C08D /* PlayQueueHandlerTest.swift */; };
 		50BE5D572850F4F600156FC6 /* album_missing_artistId.xml in Resources */ = {isa = PBXBuildFile; fileRef = 50ED2B9227BB932700331BF7 /* album_missing_artistId.xml */; };
 		50BE5D582850F4F600156FC6 /* artist_example_1.xml in Resources */ = {isa = PBXBuildFile; fileRef = 50AB92C526661F5800DCE45C /* artist_example_1.xml */; };
@@ -858,6 +859,7 @@
 		5090963726496A9500DD9826 /* UtilitiesTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilitiesTest.swift; sourceTree = "<group>"; };
 		A1F0C0DE2A00000000000002 /* OfflineModeNotificationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineModeNotificationTest.swift; sourceTree = "<group>"; };
 		B5A5CE010000000000000002 /* ShareSongActionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSongActionTest.swift; sourceTree = "<group>"; };
+		B5A5CE010000000000000004 /* EventLoggerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventLoggerTest.swift; sourceTree = "<group>"; };
 		509357512E3BF47800CD4075 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerView.swift; sourceTree = "<group>"; };
 		509362EC28E041FF005C2AAC /* Amperfy v28.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Amperfy v28.xcdatamodel"; sourceTree = "<group>"; };
 		50947E0227DA011F00C368D7 /* ScrobbleEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobbleEntry.swift; sourceTree = "<group>"; };
@@ -1594,6 +1596,7 @@
 				5090963726496A9500DD9826 /* UtilitiesTest.swift */,
 				A1F0C0DE2A00000000000002 /* OfflineModeNotificationTest.swift */,
 				B5A5CE010000000000000002 /* ShareSongActionTest.swift */,
+				B5A5CE010000000000000004 /* EventLoggerTest.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -2906,6 +2909,7 @@
 				50BE5D552850F4E700156FC6 /* UtilitiesTest.swift in Sources */,
 				A1F0C0DE2A00000000000001 /* OfflineModeNotificationTest.swift in Sources */,
 				B5A5CE010000000000000001 /* ShareSongActionTest.swift in Sources */,
+				B5A5CE010000000000000003 /* EventLoggerTest.swift in Sources */,
 				50BE5D6A2850F4FB00156FC6 /* SsAlbumParserTest.swift in Sources */,
 				50BE5D702850F4FB00156FC6 /* SsIndexesParserTest.swift in Sources */,
 				50BE5D712850F4FB00156FC6 /* SsMusicFolderParserTest.swift in Sources */,

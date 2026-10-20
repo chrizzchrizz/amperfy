@@ -19,6 +19,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
+import Alamofire
 import Foundation
 import os.log
 import UIKit
@@ -163,16 +164,28 @@ public class EventLogger {
     if let apiError = error as? ResponseError {
       return report(topic: topic, error: apiError, displayPopup: displayPopup)
     }
+    let isHiddenNetworkError = Self.isNetworkError(error) && storage.settings.user
+      .isHideNetworkErrorBanners
     saveAndDisplay(
       topic: topic,
       logType: .error,
       errorType: .commonError,
       statusCode: 0,
       logMessage: topic + ": " + error.localizedDescription,
-      displayPopup: displayPopup,
+      displayPopup: displayPopup && !isHiddenNetworkError,
       popupMessage: error.localizedDescription,
       detailMessage: error.localizedDescription
     )
+  }
+
+  /// Transport level failures (server unreachable, connection lost, timeout), not errors returned by the server
+  static func isNetworkError(_ error: Error) -> Bool {
+    if let afError = error.asAFError {
+      if afError.isSessionTaskError { return true }
+      guard let underlyingError = afError.underlyingError else { return false }
+      return isNetworkError(underlyingError)
+    }
+    return (error as NSError).domain == NSURLErrorDomain
   }
 
   public func report(topic: String, error: ResponseError, displayPopup: Bool) {

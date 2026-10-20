@@ -250,6 +250,11 @@ class SettingsHostVC: UIViewController {
       self.appDelegate.storage.settings.user.isHapticsEnabled = newValue
     }))
 
+    settings.isHideNetworkErrorBanners = appDelegate.storage.settings.user.isHideNetworkErrorBanners
+    changesAgent.append(settings.$isHideNetworkErrorBanners.sink(receiveValue: { newValue in
+      self.appDelegate.storage.settings.user.isHideNetworkErrorBanners = newValue
+    }))
+
     settings.isMiniPlayerAlwaysOnTop = appDelegate.storage.settings.user.isMiniPlayerAlwaysOnTop
     changesAgent.append(settings.$isMiniPlayerAlwaysOnTop.sink(receiveValue: { newValue in
       let hasValueChanged = self.appDelegate.storage.settings.user
