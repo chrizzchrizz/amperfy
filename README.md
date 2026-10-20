@@ -1,26 +1,12 @@
-# ![Logo](.github/Icon-40.png) Amperfy
+# ![Logo](.github/Icon-40.png) Amperfy (fork)
+
+This is an independent fork of [Amperfy](https://github.com/BLeeEZ/amperfy) by Maximilian Bauer and its contributors. It continues development in its own direction: UI refinements, behavior changes, new features and a simpler app with fewer features.
+
+The fork is not affiliated with the original project. Please report issues for this fork [here](https://github.com/chrizzchrizz/amperfy/issues), not upstream. The original Amperfy is available on the [App Store](https://apps.apple.com/app/amperfy-music/id1530145038).
 
 ## Basics
 
 Amperfy is an iOS/iPadOS/macOS app written in Swift to interact with an [Ampache](http://ampache.github.io) or [Subsonic](http://www.subsonic.org) server.
-
-### iOS
-
-<a href="https://apps.apple.com/app/amperfy-music/id1530145038#?platform=iphone">
-  <img src=".github/AppStore/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" height="45" />
-</a>
-
-<img src=".github/Screenshots/Player.jpg" width="250" alt="Screenshot of the Amperfy player" /> &nbsp;
-<img src=".github/Screenshots/AlbumDetail.jpg" width="250" alt="Screenshot of the Amperfy artist detail view" /> &nbsp;
-<img src=".github/Screenshots/Library.jpg" width="250" alt="Screenshot of the Amperfy library view" />
-
-### macOS
-
-<a href="https://apps.apple.com/app/amperfy-music/id1530145038#?platform=mac">
-  <img src=".github/AppStore/Download_on_the_Mac_App_Store_Badge_US-UK_RGB_blk_092917.svg" height="45" />
-</a>
-
-<img src=".github/Screenshots/macOS-Playlist.png" width="750" alt="Screenshot of the Amperfy playlist view in macOS" />
 
 ## Features
 
@@ -44,25 +30,22 @@ Amperfy is an iOS/iPadOS/macOS app written in Swift to interact with an [Ampache
 
 ## Getting Started
 
-1. Check out the latest version of the project:
+1. Check out the project and, next to it, the AudioStreaming fork it uses as a local package:
   ```
-  git clone https://github.com/BLeeEZ/amperfy.git
+  git clone https://github.com/chrizzchrizz/amperfy.git
+  git clone https://github.com/chrizzchrizz/AudioStreaming.git
   cd amperfy
   ```
 
-3. Open the `Amperfy.xcodeproj` file.
+2. Open the `Amperfy.xcodeproj` file.
 
-4. Build and run the "Amperfy" scheme
+3. Build and run the "Amperfy" scheme
 
-  >Real device testing: Amperfy has Apple CarPlay and Siri support. To test it on a real device a developer certificate with granted access to `com.apple.developer.playable-content` and `com.apple.developer.siri` is required. To test Amperfy without Apple CarPlay and Siri clear all entries in `Amperfy/Amperfy.entitlements`.
-
-## Beta test releases
-
-For more information, and to participate in the public beta releases, please visit [Amperfy Beta](https://github.com/BLeeEZ/amperfy/issues/25).
+  >Real device testing: the CarPlay entitlement is removed in this fork. Siri support needs a developer certificate with granted access to `com.apple.developer.siri`; to test without it, clear the remaining entries in `Amperfy/Amperfy.entitlements`.
 
 ## Contribution
 
-Pull requests are always welcome. Please execute `AmperfyKitTests` to ensure code quality. Running tests will trigger [SwiftFormat](https://github.com/nicklockwood/SwiftFormat) to apply the [Google Swift Style Guide](https://google.github.io/swift), as configured by [Google-SwiftFormat-Config](https://github.com/NoemiRozpara/Google-SwiftFormat-Config). You can also apply the code style manually by executing `./BuildTools/applyFormat.sh`.
+Issues and pull requests for this fork are welcome. Please execute `AmperfyKitTests` to ensure code quality. Running tests will trigger [SwiftFormat](https://github.com/nicklockwood/SwiftFormat) to apply the [Google Swift Style Guide](https://google.github.io/swift), as configured by [Google-SwiftFormat-Config](https://github.com/NoemiRozpara/Google-SwiftFormat-Config). You can also apply the code style manually by executing `./BuildTools/applyFormat.sh`.
 
 ## Attributions
 
@@ -80,6 +63,6 @@ Pull requests are always welcome. Please execute `AmperfyKitTests` to ensure cod
 - [swift-collections](https://github.com/apple/swift-collections) by [Apple](https://github.com/apple) is licensed under [Apache License 2.0](https://github.com/apple/swift-collections/blob/main/LICENSE.txt)
 - [iOS-swiftUI-spotify-equalizer](https://github.com/urvi-k/iOS-swiftUI-spotify-equalizer) by [urvi koladiya](https://github.com/urvi-k) is licensed under [MIT License](https://github.com/urvi-k/iOS-swiftUI-spotify-equalizer/blob/main/LICENSE)
 
-**Amperfy license:** [GPLv3](https://github.com/BLeeEZ/Amperfy/blob/master/LICENSE)
+**License:** [GPLv3](LICENSE). Based on [Amperfy](https://github.com/BLeeEZ/amperfy), copyright © 2019-2026 Maximilian Bauer and contributors. Modifications copyright © 2026 Chrizz Gelbach.
 
 **Special thanks:** [Dirk Hildebrand](https://apps.apple.com/us/developer/dirk-hildebrand/id654444924)
