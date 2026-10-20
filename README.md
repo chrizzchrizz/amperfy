@@ -45,7 +45,7 @@ Eigenton is not affiliated with the Amperfy project. Please report issues [here]
 
 ## Contribution
 
-Issues and pull requests for this fork are welcome. Please execute `AmperfyKitTests` to ensure code quality. Running tests will trigger [SwiftFormat](https://github.com/nicklockwood/SwiftFormat) to apply the [Google Swift Style Guide](https://google.github.io/swift), as configured by [Google-SwiftFormat-Config](https://github.com/NoemiRozpara/Google-SwiftFormat-Config). You can also apply the code style manually by executing `./BuildTools/applyFormat.sh`.
+Issues and pull requests for this fork are welcome.
 
 ## Attributions
 
@@ -64,5 +64,3 @@ Issues and pull requests for this fork are welcome. Please execute `AmperfyKitTe
 - [iOS-swiftUI-spotify-equalizer](https://github.com/urvi-k/iOS-swiftUI-spotify-equalizer) by [urvi koladiya](https://github.com/urvi-k) is licensed under [MIT License](https://github.com/urvi-k/iOS-swiftUI-spotify-equalizer/blob/main/LICENSE)
 
 **License:** [GPLv3](LICENSE). Based on [Amperfy](https://github.com/BLeeEZ/amperfy), copyright © 2019-2026 Maximilian Bauer and contributors. Modifications copyright © 2026 Chrizz Gelbach.
-
-**Special thanks:** [Dirk Hildebrand](https://apps.apple.com/us/developer/dirk-hildebrand/id654444924)
