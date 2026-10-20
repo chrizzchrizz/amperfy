@@ -41,7 +41,7 @@ struct SupportSettingsView: View {
             title: "Report an issue on GitHub",
             splitPercentage: splitPercentage
           ) {
-            if let url = URL(string: "https://github.com/BLeeEZ/amperfy/issues") {
+            if let url = URL(string: "https://github.com/chrizzchrizz/amperfy/issues") {
               UIApplication.shared.open(url)
             }
           }
