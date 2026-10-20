@@ -37,7 +37,7 @@ let defaultWindowActivityType = "amperfy.main"
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
-  static let name = "Amperfy"
+  static let name = "Eigenton"
   static var version: String {
     (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? ""
   }
@@ -236,8 +236,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   func restartByUser() {
     Task {
       await localNotificationManager.notifyDebugAndWait(
-        title: "Amperfy Restart",
-        body: "Tap to reopen Amperfy"
+        title: "Eigenton Restart",
+        body: "Tap to reopen Eigenton"
       )
       stopForInit()
       // close Amperfy
