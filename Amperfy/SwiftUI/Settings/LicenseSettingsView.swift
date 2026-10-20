@@ -25,7 +25,11 @@ import SwiftUI
 
 struct LicenseSettingsView: View {
   var licenseText = """
+  Based on Amperfy by Maximilian Bauer and contributors
+  https://github.com/BLeeEZ/amperfy
+
   Copyright © 2019-2026 Maximilian Bauer
+  Modifications copyright © 2026 Chrizz Gelbach
   All rights reserved.
   GPLv3 Licensed
 
