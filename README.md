@@ -1,3 +1,5 @@
+<img src=".github/Eigenton-Icon.png" width="80" height="80" alt="Eigenton icon" /> 
+
 # Eigenton
 
 Eigenton is an iOS/iPadOS/macOS app written in Swift to play music from an [Ampache](http://ampache.github.io) or [Subsonic](http://www.subsonic.org) server.
