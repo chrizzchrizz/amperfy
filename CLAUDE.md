@@ -44,4 +44,9 @@ Two main modules:
 
 ## Git
 
+- Commit subject format (follows the original Amperfy history): `<Area>: <what changed>`, e.g. `Player: fall back to metadata duration for transcoded streams`, `CarPlay: show album's song list instead of auto-playing`, `CoreData: add Album.releaseSortDate (model v50)`.
+  - `<Area>` is one CamelCase word, preferably the type, screen or module touched (`Player`, `PopupPlayer`, `HomeVC`, `AlbumDetailVC`, `PlayableTableCell`, `CarPlay`, `Intents`, `Subsonic`, `Ampache`, `CoreData`, `Download`, `Settings`, `Library`, `Home`) or a project-wide area (`General`, `README`, `License`, `AppConf`, `Package`). No spaces (`AlbumDetailVC`, not `Album Detail`; `HomeEditor`, not `Home editor`).
+  - After the colon: lowercase imperative, no trailing period (`fix …`, `add …`, `remove …`, not `Fix …` / `Fixed …`). A fix is `<Area>: fix …`, not a subject starting with `Fix`.
+  - Optional issue/PR reference in parentheses at the end: `(#654)`.
+  - Every subject has an area; if a change spans several areas, name the main one or split the commit.
 - Do not add `Co-Authored-By` trailers (or any other attribution lines) to commit messages or pull request descriptions.
