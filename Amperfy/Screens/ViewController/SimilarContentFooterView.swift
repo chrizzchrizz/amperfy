@@ -95,19 +95,19 @@ private class SimilarContentTile: UIControl {
 
 /// Table footer showing horizontally scrollable rows of similar artists and albums.
 /// Rows without content are hidden; the whole view is hidden if nothing is left.
+/// Selecting an item pushes its detail screen onto the navigation controller of the owner.
 class SimilarContentFooterView: UIView {
-  private let theme: ThemePreference
+  private let account: Account
+  private weak var owner: UIViewController?
   private let stack = UIStackView()
   private let artistsRow = UIStackView()
   private let albumsRow = UIStackView()
   private let artistsSection: UIView
   private let albumsSection: UIView
 
-  var onArtistSelected: ((Artist) -> ())?
-  var onAlbumSelected: ((Album) -> ())?
-
-  init(theme: ThemePreference) {
-    self.theme = theme
+  init(account: Account, owner: UIViewController) {
+    self.account = account
+    self.owner = owner
     self.artistsSection = Self.createSection(
       title: NSLocalizedString("Similar Artists", comment: ""),
       row: artistsRow
@@ -140,22 +140,69 @@ class SimilarContentFooterView: UIView {
     fatalError("init(coder:) has not been implemented")
   }
 
+  private var theme: ThemePreference {
+    appDelegate.storage.settings.accounts.getSetting(account.info).read.themePreference
+  }
+
   var hasContent: Bool { !artistsSection.isHidden || !albumsSection.isHidden }
 
-  func display(artists: [Artist]) {
+  /// Requests the artists similar to `artist` and the albums similar to `album`.
+  /// Similar content is optional, so a failing server agent is only logged and never shown.
+  func load(similarTo artist: Artist?, album: Album? = nil) async {
+    let librarySyncer = appDelegate.getMeta(account.info).librarySyncer
+    if let artist {
+      do {
+        display(artists: try await librarySyncer.requestSimilarArtists(artist: artist, count: 15))
+      } catch {
+        appDelegate.eventLogger.report(topic: "Similar Artists", error: error, displayPopup: false)
+      }
+    }
+    if let album {
+      do {
+        let albums = try await librarySyncer.requestSimilarAlbums(album: album, count: 40)
+        display(albums: Array(albums.prefix(12)))
+      } catch {
+        appDelegate.eventLogger.report(topic: "Similar Albums", error: error, displayPopup: false)
+      }
+    }
+  }
+
+  /// Sizes the footer to fit the width of the table view; the table view only picks up
+  /// a changed footer height when the footer is assigned again.
+  func layout(in tableView: UITableView) {
+    guard tableView.tableFooterView === self, tableView.bounds.width > 0 else { return }
+    let height = systemLayoutSizeFitting(
+      CGSize(width: tableView.bounds.width, height: UIView.layoutFittingCompressedSize.height),
+      withHorizontalFittingPriority: .required,
+      verticalFittingPriority: .fittingSizeLevel
+    ).height
+    guard frame.size != CGSize(width: tableView.bounds.width, height: height) else { return }
+    frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: height)
+    tableView.tableFooterView = self
+  }
+
+  private func display(artists: [Artist]) {
     fill(
       row: artistsRow,
       section: artistsSection,
       containers: artists,
       isImageCircular: true
     ) { [weak self] artist in
-      self?.onArtistSelected?(artist)
+      guard let self else { return }
+      owner?.navigationController?.pushViewController(
+        AppStoryboard.Main.segueToArtistDetail(account: account, artist: artist),
+        animated: true
+      )
     }
   }
 
-  func display(albums: [Album]) {
+  private func display(albums: [Album]) {
     fill(row: albumsRow, section: albumsSection, containers: albums) { [weak self] album in
-      self?.onAlbumSelected?(album)
+      guard let self else { return }
+      owner?.navigationController?.pushViewController(
+        AppStoryboard.Main.segueToAlbumDetail(account: account, album: album),
+        animated: true
+      )
     }
   }
 
