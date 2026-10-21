@@ -897,6 +897,9 @@ class EntityPreviewActionBuilder {
   private func reloadRootView() {
     if let rootTableView = rootView as? UITableViewController {
       rootTableView.tableView.reloadData()
+      // e.g. the favorite heart next to the album title
+      rootTableView.tableView.tableHeaderView?.subviews
+        .compactMap { $0 as? GenericDetailTableHeader }.forEach { $0.refresh() }
     } else if let popupPlayer = rootView as? PopupPlayerVC {
       popupPlayer.tableView.reloadData()
     }

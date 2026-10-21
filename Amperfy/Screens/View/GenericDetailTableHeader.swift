@@ -166,7 +166,11 @@ class GenericDetailTableHeader: UIView {
       container: entityContainer,
       cornerRadius: .medium
     )
-    titleLabel.text = entityContainer.name
+    if let album = entityContainer as? Album, album.isFavorite {
+      titleLabel.attributedText = titleWithFavoriteHeart(album.name)
+    } else {
+      titleLabel.text = entityContainer.name
+    }
     subtitleView.isHidden = entityContainer.subtitle == nil
     subtitleLabel.text = entityContainer.subtitle
 
@@ -194,6 +198,39 @@ class GenericDetailTableHeader: UIView {
     }
 
     playShuffleInfoView?.refresh()
+  }
+
+  /// Size of the favorite heart relative to the title font size.
+  private static let favoriteHeartRelativeSize: CGFloat = 0.5
+  private static let favoriteHeartAlpha: CGFloat = 0.5
+
+  /// Title followed by a small, translucent heart centered on the capital letters.
+  /// The heart wraps together with the last word.
+  private func titleWithFavoriteHeart(_ title: String) -> NSAttributedString {
+    let font = titleLabel.font ?? .preferredFont(forTextStyle: .title2)
+    let heart = UIImage.heartFill.applyingSymbolConfiguration(
+      UIImage.SymbolConfiguration(
+        pointSize: (font.pointSize * Self.favoriteHeartRelativeSize).rounded(),
+        weight: .semibold,
+        scale: .medium
+      )
+    ) ?? UIImage.heartFill
+    let attachment = NSTextAttachment(image: heart)
+    attachment.bounds = CGRect(
+      x: 0,
+      y: ((font.capHeight - heart.size.height) / 2).rounded(),
+      width: heart.size.width,
+      height: heart.size.height
+    )
+    let heartText = NSMutableAttributedString(attachment: attachment)
+    heartText.addAttribute(
+      .foregroundColor,
+      value: (titleLabel.textColor ?? .label).withAlphaComponent(Self.favoriteHeartAlpha),
+      range: NSRange(location: 0, length: heartText.length)
+    )
+    let text = NSMutableAttributedString(string: title + "\u{00A0}")
+    text.append(heartText)
+    return text
   }
 
   func applyTraitCollectionChange() {
