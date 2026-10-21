@@ -40,6 +40,10 @@ public enum HomeSection: Int, Sendable, CaseIterable, Codable {
 
   static let defaultValue: [HomeSection] = [
     .randomAlbums,
+    .decadeAlbums,
+    .genreAlbums,
+    .compilations,
+    .latestReleasedAlbums,
     .recentlyPlayedAlbums,
     .lastTimePlayedPlaylists,
     .newestAlbums,
