@@ -166,7 +166,6 @@
 		50AC4E5628D99A410091FF33 /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AC4E5528D99A410091FF33 /* ButtonStyles.swift */; };
 		50AC4E5828D9D12D0091FF33 /* ObservableSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AC4E5728D9D12D0091FF33 /* ObservableSettings.swift */; };
 		50AD70DB2D5FBB0100E369BF /* AsyncOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AD70DA2D5FBAFB00E369BF /* AsyncOperation.swift */; };
-		50AE79AC2C1CCBEC0085CBB3 /* DeveloperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AE79AB2C1CCBEC0085CBB3 /* DeveloperView.swift */; };
 		50AE79AE2C1E23930085CBB3 /* SsOpenSubsonicExtensionsParserDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AE79AD2C1E23920085CBB3 /* SsOpenSubsonicExtensionsParserDelegate.swift */; };
 		50AE79B02C1F58C60085CBB3 /* SsLyricsParserDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AE79AF2C1F58C60085CBB3 /* SsLyricsParserDelegate.swift */; };
 		50AE79B22C1F64E40085CBB3 /* getLyricsBySongId_example_1.xml in Resources */ = {isa = PBXBuildFile; fileRef = 50AE79B12C1F64E30085CBB3 /* getLyricsBySongId_example_1.xml */; };
@@ -931,7 +930,6 @@
 		50ACAF1127B144040039913C /* SwipeActionSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeActionSettings.swift; sourceTree = "<group>"; };
 		50ACAF1327B277B50039913C /* Amperfy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Amperfy.entitlements; sourceTree = "<group>"; };
 		50AD70DA2D5FBAFB00E369BF /* AsyncOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncOperation.swift; sourceTree = "<group>"; };
-		50AE79AB2C1CCBEC0085CBB3 /* DeveloperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperView.swift; sourceTree = "<group>"; };
 		50AE79AD2C1E23920085CBB3 /* SsOpenSubsonicExtensionsParserDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SsOpenSubsonicExtensionsParserDelegate.swift; sourceTree = "<group>"; };
 		50AE79AF2C1F58C60085CBB3 /* SsLyricsParserDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SsLyricsParserDelegate.swift; sourceTree = "<group>"; };
 		50AE79B12C1F64E30085CBB3 /* getLyricsBySongId_example_1.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = getLyricsBySongId_example_1.xml; sourceTree = "<group>"; };
@@ -1438,7 +1436,6 @@
 				503BAF332E4A1EAC00AE50B4 /* SettingsTabView.swift */,
 				631C166C2C6D61110085F62E /* NavigationTarget.swift */,
 				5078AFB12B40CA5E0038FD17 /* DisplaySettingsView.swift */,
-				50AE79AB2C1CCBEC0085CBB3 /* DeveloperView.swift */,
 				50791E8428D36F1F006CE6E5 /* LibrarySettingsView.swift */,
 				504B441828D6F0920033982C /* LicenseSettingsView.swift */,
 				504B441C28D7A6330033982C /* XCallbackURLsSetttingsView.swift */,
@@ -2514,7 +2511,6 @@
 				50CFB59728D4FC0100A47D44 /* ArtworkSettingsView.swift in Sources */,
 				5005939128E42F66008C8DF6 /* BasicCollectionCell.swift in Sources */,
 				5059A31E28ABDDCD0068E4D2 /* CarPlaySceneDelegate.swift in Sources */,
-				50AE79AC2C1CCBEC0085CBB3 /* DeveloperView.swift in Sources */,
 				504262B32BF5FC3800B5EF38 /* PlayMediaIntentHandler.swift in Sources */,
 				507148AD2B767FE200557904 /* ContextQueuePrevSectionHeader.swift in Sources */,
 				500B7D4721EDB0890083ED6F /* LibraryElementDetailTableHeaderView.swift in Sources */,

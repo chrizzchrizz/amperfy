@@ -106,10 +106,6 @@ struct SettingsView: View {
             navigationLink(.support)
             navigationLink(.license)
             navigationLink(.xcallback)
-
-            #if DEBUG
-              navigationLink(.developer)
-            #endif
           }
         #endif
       }

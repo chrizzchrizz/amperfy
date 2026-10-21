@@ -436,47 +436,55 @@ extension UIImage {
       UIImage()
   }
 
+  private static var generatedArtworkCache = [String: UIImageAsset]()
+  private static let generatedArtworkSize = CGSize(width: 200, height: 200)
+
+  /// Placeholder artwork: the template icon from the "Placeholder" asset folder tinted with the theme color.
+  /// The returned image adapts to light and dark mode.
   public static func getGeneratedArtwork(
     theme: ThemePreference,
     artworkType: ArtworkType
   )
     -> UIImage {
-    let resourceName = "\(theme.description)\(artworkType.description)"
-    return UIImage(imageLiteralResourceName: resourceName)
+    let cacheKey = "\(theme.description)\(artworkType.description)"
+    if let cachedAsset = generatedArtworkCache[cacheKey] {
+      return cachedAsset.image(with: .current)
+    }
+    let imageAsset = UIImageAsset()
+    for lightDarkMode in LightDarkModeType.allCases {
+      let image = renderPlaceholderArtwork(
+        theme: theme,
+        lightDarkMode: lightDarkMode,
+        artworkType: artworkType
+      )
+      let style: UIUserInterfaceStyle = lightDarkMode == .light ? .light : .dark
+      imageAsset.register(image, with: UITraitCollection(userInterfaceStyle: style))
+    }
+    generatedArtworkCache[cacheKey] = imageAsset
+    return imageAsset.image(with: .current)
   }
 
-  public static func generateArtwork(
+  private static func renderPlaceholderArtwork(
     theme: ThemePreference,
     lightDarkMode: LightDarkModeType,
     artworkType: ArtworkType
   )
     -> UIImage {
-    var generatedArtwork: UIImage?
-    switch artworkType {
-    case .album, .artist, .folder, .genre, .podcast, .radio:
-      generatedArtwork = UIImage.createArtwork(
-        with: artworkType.image.asUIImage,
-        iconSizeType: .big,
-        theme: theme,
-        lightDarkMode: lightDarkMode
-      )
-    case .podcastEpisode, .song:
-      generatedArtwork = UIImage.createArtwork(
-        with: artworkType.image.asUIImage,
-        iconSizeType: .small,
-        theme: theme,
-        lightDarkMode: lightDarkMode
-      )
-    case .playlist:
-      generatedArtwork = UIImage.createArtwork(
-        with: UIImage.playlist,
-        iconSizeType: .small,
-        theme: theme,
-        lightDarkMode: lightDarkMode,
-        switchColors: true
-      )
+    let icon = UIImage(named: "Placeholder/\(artworkType.description)")
+    let grayScale = lightDarkMode == .light ? 0.85 : 0.15
+    let grayColor = UIColor(red: grayScale, green: grayScale, blue: grayScale, alpha: 1)
+    let iconColor = theme.asColor
+    let backgroundColor = grayColor
+
+    let format = UIGraphicsImageRendererFormat()
+    format.scale = 3
+    format.opaque = true
+    let rect = CGRect(origin: .zero, size: generatedArtworkSize)
+    return UIGraphicsImageRenderer(size: generatedArtworkSize, format: format).image { context in
+      backgroundColor.setFill()
+      context.fill(rect)
+      icon?.withTintColor(iconColor, renderingMode: .alwaysOriginal).draw(in: rect)
     }
-    return generatedArtwork ?? UIImage()
   }
 
   private static func create(_ named: String) -> UIImage {

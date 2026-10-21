@@ -33,9 +33,6 @@ enum NavigationTarget: String, CaseIterable, @MainActor Identifiable {
   case support
   case license
   case xcallback
-  #if DEBUG
-    case developer = "developer"
-  #endif
 
   var id: String { rawValue }
 
@@ -52,9 +49,6 @@ enum NavigationTarget: String, CaseIterable, @MainActor Identifiable {
     case .support: SupportSettingsView()
     case .license: LicenseSettingsView()
     case .xcallback: XCallbackURLsSetttingsView()
-    #if DEBUG
-      case .developer: DeveloperView()
-    #endif
     }
   }
 
@@ -71,9 +65,6 @@ enum NavigationTarget: String, CaseIterable, @MainActor Identifiable {
     case .equalizer: "Equalizer"
     case .player: "Player, Stream & Scrobble"
     case .xcallback: "X-Callback-URL Documentation"
-    #if DEBUG
-      case .developer: "Developer"
-    #endif
     }
   }
 
@@ -91,9 +82,6 @@ enum NavigationTarget: String, CaseIterable, @MainActor Identifiable {
     case .support: .person
     case .license: .doc
     case .xcallback: .arrowTurnUp
-    #if DEBUG
-      case .developer: .hammer
-    #endif
     }
   }
 
@@ -110,9 +98,6 @@ enum NavigationTarget: String, CaseIterable, @MainActor Identifiable {
     case .support: "person.circle"
     case .license: "doc.fill"
     case .xcallback: "arrowshape.turn.up.backward.circle.fill"
-    #if DEBUG
-      case .developer: "hammer.circle.fill"
-    #endif
     }
   }
 }
