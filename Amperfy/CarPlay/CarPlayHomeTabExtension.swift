@@ -107,6 +107,10 @@ extension CarPlaySceneDelegate {
             await sharedHome.updateCompilations(isOfflineMode: isOfflineMode)
           case .randomArtists:
             await sharedHome.updateRandomArtists(isOfflineMode: isOfflineMode)
+          case .favoriteAlbums:
+            await sharedHome.updateFavoriteAlbums(isOfflineMode: isOfflineMode)
+          case .favoriteArtists:
+            await sharedHome.updateFavoriteArtists(isOfflineMode: isOfflineMode)
           case .randomGenres:
             await sharedHome.updateRandomGenres()
           case .randomSongs:

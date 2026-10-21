@@ -193,6 +193,16 @@ class HomeManager: NSObject {
         await updateRandomArtists(isOfflineMode: isOfflineMode)
       }
     }
+    if orderedVisibleSections.contains(where: { $0 == .favoriteAlbums }) {
+      Task { @MainActor in
+        await updateFavoriteAlbums(isOfflineMode: isOfflineMode)
+      }
+    }
+    if orderedVisibleSections.contains(where: { $0 == .favoriteArtists }) {
+      Task { @MainActor in
+        await updateFavoriteArtists(isOfflineMode: isOfflineMode)
+      }
+    }
     if orderedVisibleSections.contains(where: { $0 == .randomGenres }) {
       Task { @MainActor in
         await updateRandomGenres()
@@ -370,6 +380,19 @@ class HomeManager: NSObject {
     applySnapshotCB?()
   }
 
+  func updateFavoriteAlbums(isOfflineMode: Bool) async {
+    let favoriteAlbums = storage.main.library.getRandomAlbums(
+      for: account,
+      count: Self.sectionMaxItemCount,
+      onlyCached: isOfflineMode,
+      onlyFavorites: true
+    )
+    data[.favoriteAlbums] = favoriteAlbums.compactMap {
+      HomeItem(section: .favoriteAlbums, playableContainable: $0)
+    }
+    applySnapshotCB?()
+  }
+
   /// Title for the decade section header, e.g. "Albums from the 90s".
   var decadeSectionTitle: String {
     guard let currentDecade else { return HomeSection.decadeAlbums.title }
@@ -534,6 +557,19 @@ class HomeManager: NSObject {
     )
     data[.randomArtists] = randomArtists.compactMap {
       HomeItem(section: .randomArtists, playableContainable: $0)
+    }
+    applySnapshotCB?()
+  }
+
+  func updateFavoriteArtists(isOfflineMode: Bool) async {
+    let favoriteArtists = storage.main.library.getRandomArtists(
+      for: account,
+      count: Self.sectionMaxItemCount,
+      onlyCached: isOfflineMode,
+      onlyFavorites: true
+    )
+    data[.favoriteArtists] = favoriteArtists.compactMap {
+      HomeItem(section: .favoriteArtists, playableContainable: $0)
     }
     applySnapshotCB?()
   }

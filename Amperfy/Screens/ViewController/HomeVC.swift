@@ -250,6 +250,12 @@ final class HomeVC: UICollectionViewController {
       } else if section == .randomArtists {
         header.showsRefreshButton = true
         header.setRefreshHandler { [weak self] in self?.refreshRandomArtistsSection() }
+      } else if section == .favoriteAlbums {
+        header.showsRefreshButton = true
+        header.setRefreshHandler { [weak self] in self?.refreshFavoriteAlbumsSection() }
+      } else if section == .favoriteArtists {
+        header.showsRefreshButton = true
+        header.setRefreshHandler { [weak self] in self?.refreshFavoriteArtistsSection() }
       } else if section == .randomGenres {
         header.showsRefreshButton = true
         header.setRefreshHandler { [weak self] in self?.refreshRandomGenresSection() }
@@ -373,6 +379,22 @@ final class HomeVC: UICollectionViewController {
     Task { @MainActor in
       await sharedHome.updateRandomArtists(isOfflineMode: sharedHome.isOfflineMode)
       scrollSectionToStart(.randomArtists)
+    }
+  }
+
+  @objc
+  func refreshFavoriteAlbumsSection() {
+    Task { @MainActor in
+      await sharedHome.updateFavoriteAlbums(isOfflineMode: sharedHome.isOfflineMode)
+      scrollSectionToStart(.favoriteAlbums)
+    }
+  }
+
+  @objc
+  func refreshFavoriteArtistsSection() {
+    Task { @MainActor in
+      await sharedHome.updateFavoriteArtists(isOfflineMode: sharedHome.isOfflineMode)
+      scrollSectionToStart(.favoriteArtists)
     }
   }
 
@@ -741,6 +763,8 @@ extension HomeSection {
     case .newestAlbums: return .newestAlbums
     case .latestReleasedAlbums: return .latestReleasedAlbums
     case .compilations: return .compilations
+    case .favoriteAlbums: return .favoriteAlbums
+    case .favoriteArtists: return .favoriteArtists
     case .lastTimePlayedPlaylists: return .playlists
     case .podcasts: return .podcasts
     case .radios: return .radios

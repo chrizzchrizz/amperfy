@@ -37,6 +37,8 @@ public enum HomeSection: Int, Sendable, CaseIterable, Codable {
   case decadeAlbums
   case genreAlbums
   case compilations
+  case favoriteAlbums
+  case favoriteArtists
 
   static let defaultValue: [HomeSection] = [
     .randomAlbums,
@@ -47,6 +49,26 @@ public enum HomeSection: Int, Sendable, CaseIterable, Codable {
     .recentlyPlayedAlbums,
     .lastTimePlayedPlaylists,
     .newestAlbums,
+  ]
+
+  /// Order of the sections in the home editor (`allCases` order is bound to the raw values).
+  public static let displayOrder: [HomeSection] = [
+    .lastTimePlayedPlaylists,
+    .recentlyPlayedAlbums,
+    .newestAlbums,
+    .favoriteAlbums,
+    .favoriteArtists,
+    .randomAlbums,
+    .newestPodcastEpisodes,
+    .podcasts,
+    .radios,
+    .randomArtists,
+    .randomGenres,
+    .randomSongs,
+    .latestReleasedAlbums,
+    .decadeAlbums,
+    .genreAlbums,
+    .compilations,
   ]
 
   public var title: String {
@@ -65,6 +87,8 @@ public enum HomeSection: Int, Sendable, CaseIterable, Codable {
     case .decadeAlbums: return "Decade"
     case .genreAlbums: return "Genre"
     case .compilations: return "Compilations"
+    case .favoriteAlbums: return "Favorite Albums"
+    case .favoriteArtists: return "Favorite Artists"
     }
   }
 
@@ -88,6 +112,8 @@ public enum HomeSection: Int, Sendable, CaseIterable, Codable {
     case .decadeAlbums: return false
     case .genreAlbums: return false
     case .compilations: return true
+    case .favoriteAlbums: return true
+    case .favoriteArtists: return true
     }
   }
 }

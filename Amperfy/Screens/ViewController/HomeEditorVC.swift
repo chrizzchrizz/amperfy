@@ -35,7 +35,7 @@ final class HomeEditorVC: UICollectionViewController {
   init(current: [HomeSection], onDone: @escaping ([HomeSection]) -> ()) {
     self.visibleSections = Set(current)
     // visible sections in their current order, followed by the hidden ones
-    self.orderedSections = current + HomeSection.allCases.filter { !current.contains($0) }
+    self.orderedSections = current + HomeSection.displayOrder.filter { !current.contains($0) }
     self.onDone = onDone
     super.init(collectionViewLayout: UICollectionViewCompositionalLayout { _, environment in
       let config = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
