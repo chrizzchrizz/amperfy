@@ -282,6 +282,8 @@ public enum SyncCompletionStatus: Int, CaseIterable, Sendable, Codable {
 // MARK: - ThemePreference
 
 public enum ThemePreference: Int, CaseIterable, Sendable, Codable {
+  // declaration order defines the order in allCases (picker and new account assignment)
+  case eigenton = 6
   case blue = 0
   case green = 1
   case red = 2
@@ -289,10 +291,12 @@ public enum ThemePreference: Int, CaseIterable, Sendable, Codable {
   case orange = 4
   case purple = 5
 
-  public static let defaultValue: ThemePreference = .blue
+  public static let defaultValue: ThemePreference = .eigenton
 
   public var description: String {
     switch self {
+    case .eigenton:
+      return "Eigenton"
     case .blue:
       return "Blue"
     case .green:
@@ -308,42 +312,38 @@ public enum ThemePreference: Int, CaseIterable, Sendable, Codable {
     }
   }
 
-  public var asSwiftUIColor: Color {
+  /// Color set in the asset catalog; the system theme colors reference the matching system color
+  private var colorResource: ColorResource {
     switch self {
+    case .eigenton:
+      return .themeEigenton
     case .blue:
-      return .blue
+      return .themeBlue
     case .green:
-      return .green
+      return .themeGreen
     case .red:
-      return .red
+      return .themeRed
     case .yellow:
-      return .yellow
+      return .themeYellow
     case .orange:
-      return .orange
+      return .themeOrange
     case .purple:
-      return .purple
+      return .themePurple
     }
   }
 
+  public var asSwiftUIColor: Color {
+    Color(colorResource)
+  }
+
   public var asColor: UIColor {
-    switch self {
-    case .blue:
-      return .systemBlue
-    case .green:
-      return .systemGreen
-    case .red:
-      return .systemRed
-    case .yellow:
-      return .systemYellow
-    case .orange:
-      return .systemOrange
-    case .purple:
-      return .systemPurple
-    }
+    UIColor(resource: colorResource)
   }
 
   public var contrastColor: UIColor {
     switch self {
+    case .eigenton:
+      return .white
     case .blue:
       return .white
     case .green:

@@ -156,6 +156,9 @@ struct AccountSettingsView: View {
           SettingsSection {
             SettingsRow(title: "Theme Color") {
               Menu(settings.themePreference.description) {
+                Button(ThemePreference.eigenton.description) {
+                  setThemePreference(preference: .eigenton)
+                }
                 Button(ThemePreference.blue.description) {
                   setThemePreference(preference: .blue)
                 }

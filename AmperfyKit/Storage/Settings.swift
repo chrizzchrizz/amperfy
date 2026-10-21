@@ -465,16 +465,13 @@ public struct AccountSettings: Sendable, Codable {
   }
 
   private var themeColorForNextNewAccount: ThemePreference {
-    var theme = ThemePreference.blue
+    var theme = ThemePreference.defaultValue
     let usedThemes = Set(_accounts.compactMap { $0.value.themePreference })
-    let allThemes = Set(ThemePreference.allCases)
-    let availableThemes = allThemes.subtracting(usedThemes)
-    if let firstAvailable = availableThemes.sorted(by: { $0.rawValue < $1.rawValue }).first {
+    if let firstAvailable = ThemePreference.allCases.first(where: { !usedThemes.contains($0) }) {
       theme = firstAvailable
     } else if let activeAccount = _activeAccount {
       let activeTheme = getSetting(activeAccount).read.themePreference
-      theme = allThemes.subtracting(Set([activeTheme])).sorted(by: { $0.rawValue < $1.rawValue })
-        .first ?? .blue
+      theme = ThemePreference.allCases.first(where: { $0 != activeTheme }) ?? .defaultValue
     }
     return theme
   }
