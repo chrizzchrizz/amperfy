@@ -20,6 +20,7 @@
 //
 
 import AmperfyKit
+import Network
 import SwiftUI
 import UIKit
 
@@ -51,6 +52,50 @@ extension UITextField {
     leftViewMode = .always
 
     backgroundColor = .clear
+  }
+}
+
+// MARK: - LocalNetworkAuthorization
+
+/// Triggers the local network permission prompt by browsing for a Bonjour service.
+/// iOS only asks on the first local network access, which would otherwise be the login request itself.
+@MainActor
+final class LocalNetworkAuthorization {
+  static let shared = LocalNetworkAuthorization()
+  // Must be listed in NSBonjourServices in Info.plist
+  private static let serviceType = "_eigenton-lnp._tcp"
+
+  private(set) var isDenied = false
+  private var browser: NWBrowser?
+
+  func trigger() {
+    guard browser == nil else { return }
+    let browser = NWBrowser(
+      for: .bonjour(type: Self.serviceType, domain: nil),
+      using: NWParameters()
+    )
+    browser.stateUpdateHandler = { [weak self] state in
+      MainActor.assumeIsolated {
+        guard let self else { return }
+        switch state {
+        case let .waiting(error):
+          self.isDenied = error == .dns(DNSServiceErrorType(kDNSServiceErr_PolicyDenied))
+        case .ready:
+          self.isDenied = false
+        case .failed:
+          self.stop()
+        default:
+          break
+        }
+      }
+    }
+    browser.start(queue: .main)
+    self.browser = browser
+  }
+
+  func stop() {
+    browser?.cancel()
+    browser = nil
   }
 }
 
@@ -472,6 +517,10 @@ class LoginVC: UIViewController {
       } catch {
         if error is AuthenticationError {
           self.showErrorMsg(message: error.localizedDescription)
+        } else if LocalNetworkAuthorization.shared.isDenied {
+          self.showErrorMsg(
+            message: "Not able to login! Access to the local network is denied. If your server is in your local network, allow access in Settings > Privacy & Security > Local Network."
+          )
         } else {
           self.showErrorMsg(message: "Not able to login!")
         }
@@ -625,6 +674,16 @@ class LoginVC: UIViewController {
       usernameTF.text = credentials.username
       httpHeaders = credentials.httpHeaders
     }
+  }
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    LocalNetworkAuthorization.shared.trigger()
+  }
+
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    LocalNetworkAuthorization.shared.stop()
   }
 
   override func viewWillAppear(_ animated: Bool) {
