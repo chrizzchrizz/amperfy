@@ -49,6 +49,8 @@ class ArtistDetailVC: MultiSourceTableViewController {
   private var albumsGridVC: ArtistAlbumsGridVC!
   private var compilationsGridVC: ArtistAlbumsGridVC!
   private var topSongsGridVC: ArtistTopSongsGridVC!
+  private var similarContentFooter: SimilarContentFooterView?
+  private var isLoadingSimilarContent = false
 
   init(account: Account, artist: Artist) {
     self.artist = artist
@@ -218,6 +220,29 @@ class ArtistDetailVC: MultiSourceTableViewController {
       }
       self.detailOperationsView?.refresh()
       self.artworkBackground.update()
+    }
+    loadSimilarContent()
+  }
+
+  override func viewDidLayoutSubviews() {
+    super.viewDidLayoutSubviews()
+    similarContentFooter?.layout(in: tableView)
+  }
+
+  private func loadSimilarContent() {
+    // the footer is only kept once it has content, so a failed or empty load is tried again
+    guard similarContentFooter == nil, !isLoadingSimilarContent else { return }
+    isLoadingSimilarContent = true
+    let footer = SimilarContentFooterView(account: account, owner: self)
+    let artist = artist
+    Task { @MainActor [weak self] in
+      await footer.load(similarTo: artist)
+      guard let self else { return }
+      isLoadingSimilarContent = false
+      guard footer.hasContent else { return }
+      similarContentFooter = footer
+      tableView.tableFooterView = footer
+      footer.layout(in: tableView)
     }
   }
 
