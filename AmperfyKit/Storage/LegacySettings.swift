@@ -378,7 +378,7 @@ extension PersistentStorage {
       get {
         UserDefaults.standard
           .object(forKey: UserDefaultsKey.AlbumsGridSizeSetting.rawValue) as? Int ??
-          ((UIDevice.current.userInterfaceIdiom == .pad) ? 4 : 3)
+          ((UIDevice.current.userInterfaceIdiom == .phone) ? 2 : 3)
       }
       set { UserDefaults.standard.set(
         newValue,

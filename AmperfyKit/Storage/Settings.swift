@@ -312,7 +312,7 @@ public struct UserSettings: Sendable, Codable {
   @MainActor
   public var albumsGridSizeSetting: Int {
     get {
-      _albumsGridSizeSetting ?? ((UIDevice.current.userInterfaceIdiom == .pad) ? 4 : 3)
+      _albumsGridSizeSetting ?? ((UIDevice.current.userInterfaceIdiom == .phone) ? 2 : 3)
     }
     set { _albumsGridSizeSetting = newValue }
   }
