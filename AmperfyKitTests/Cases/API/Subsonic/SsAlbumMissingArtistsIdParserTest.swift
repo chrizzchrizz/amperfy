@@ -29,6 +29,7 @@ class SsAlbumMissingArtistsIdParserTest: AbstractSsParserTest {
     try await super.setUp()
     xmlData = getTestFileData(name: "album_missing_artistId")
     createTestAlbum()
+    createLocallyPlayedSong()
   }
 
   override func createParserDelegate() {
@@ -47,6 +48,13 @@ class SsAlbumMissingArtistsIdParserTest: AbstractSsParserTest {
     let album = library.createAlbum(account: account)
     album.id = albumId
     album.name = "FabricLive 25: High Contrast"
+  }
+
+  /// Song 7 has no play count in the response, its local count must be reset.
+  func createLocallyPlayedSong() {
+    let song = library.createSong(account: account)
+    song.id = "77f133217b12ab3c21ae0cb52f9c32ce"
+    song.playCount = 5
   }
 
   override func checkCorrectParsing() {
@@ -73,6 +81,7 @@ class SsAlbumMissingArtistsIdParserTest: AbstractSsParserTest {
 
     var song = songs[0]
     XCTAssertEqual(1, song.track)
+    XCTAssertEqual(1, song.playCount)
     XCTAssertEqual("Adam F", song.artist?.name)
     XCTAssertEqual(albumId, song.album?.id)
     XCTAssertEqual(song.album?.account?.serverHash, TestAccountInfo.test1ServerHash)
@@ -98,6 +107,9 @@ class SsAlbumMissingArtistsIdParserTest: AbstractSsParserTest {
     XCTAssertEqual("Funky Technicians", song.artist?.name)
     song = songs[6]
     XCTAssertEqual(7, song.track)
+    // Navidrome omits the play count of songs that have never been played,
+    // the local count is reset
+    XCTAssertEqual(0, song.playCount)
     XCTAssertEqual("Martyn", song.artist?.name)
     song = songs[21]
     XCTAssertEqual(22, song.track)

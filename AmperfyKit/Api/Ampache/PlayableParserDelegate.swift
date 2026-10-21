@@ -73,6 +73,10 @@ class PlayableParserDelegate: AmpacheXmlLibParser {
       playableBuffer?.isFavorite = flag == 1 ? true : false
     case "track":
       playableBuffer?.track = Int(buffer) ?? 0
+    case "playcount":
+      if let playCount = Int(buffer) {
+        playableBuffer?.playCount = playCount
+      }
     case "url":
       playableBuffer?.url = buffer
     case "year":

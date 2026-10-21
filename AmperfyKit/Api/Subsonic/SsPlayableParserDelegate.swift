@@ -87,6 +87,14 @@ class SsPlayableParserDelegate: SsXmlLibWithArtworkParser {
         playableBuffer?.disk = disk
       }
       playableBuffer?.rating = Int(attributeDict["userRating"] ?? "0") ?? 0
+      if let attributePlayCount = attributeDict["playCount"],
+         let playCount = Int(attributePlayCount) {
+        playableBuffer?.playCount = playCount
+      } else if elementName != "episode" {
+        // Navidrome omits the play count of songs that have never been played, a local count
+        // (incremented on every playback start) would otherwise rank them too high
+        playableBuffer?.playCount = 0
+      }
       if let starredDate = attributeDict["starred"] {
         playableBuffer?.isFavorite = true
         let dateFormatter = ISO8601DateFormatter()
