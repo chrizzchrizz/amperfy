@@ -158,16 +158,6 @@ struct AccountSettingsView: View {
             )
           }, header: "Auto Cache")
 
-          SettingsSection(
-            content: {
-              SettingsCheckBoxRow(
-                title: "Scrobble streamed Songs",
-                isOn: $settings.isScrobbleStreamedItems
-              )
-            },
-            footer: "Enable to scrobble all streamed songs, even if the server already marks them as played."
-          )
-
           SettingsSection {
             SettingsRow(title: "Backend API", splitPercentage: splitPercentage) {
               Text(

@@ -98,6 +98,17 @@ struct PlayerSettingsView: View {
           footer: "Played tracks (songs and podcast episodes) are cached automatically. The next \(PlayerDownloadPreparationHandler.preDownloadCount) tracks are downloaded in advance."
         )
 
+        // the setting belongs to the active account
+        SettingsSection(
+          content: {
+            SettingsCheckBoxRow(
+              title: "Scrobble streamed Songs",
+              isOn: $settings.isScrobbleStreamedItems
+            )
+          },
+          footer: "Enable to scrobble all streamed songs, even if the server already marks them as played. Applies to the active account."
+        )
+
         SettingsSection(
           content: {
             SettingsCheckBoxRow(
