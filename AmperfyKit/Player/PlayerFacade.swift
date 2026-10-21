@@ -170,6 +170,8 @@ public protocol PlayerFacade {
   var currentlyPlaying: AbstractPlayable? { get }
   var currentMusicItem: AbstractPlayable? { get }
   var currentPodcastItem: AbstractPlayable? { get }
+  /// True if any queue (music, user or podcast) holds a playable, independent of the player mode.
+  var hasLoadedPlayables: Bool { get }
   var currentRadioNowPlaying: RadioNowPlayingInfo? { get }
   var contextName: String { get }
   var elapsedTime: Double { get }
@@ -403,6 +405,10 @@ class PlayerFacadeImpl: PlayerFacade {
 
   var currentPodcastItem: AbstractPlayable? {
     musicPlayer.currentPodcastItem
+  }
+
+  var hasLoadedPlayables: Bool {
+    queueHandler.hasLoadedPlayables
   }
 
   var currentRadioNowPlaying: RadioNowPlayingInfo? {

@@ -40,6 +40,11 @@ public class PlayQueueHandler {
     playerQueues.currentPodcastItem
   }
 
+  /// True if any queue (music, user or podcast) holds a playable, independent of the player mode.
+  var hasLoadedPlayables: Bool {
+    currentMusicItem != nil || currentPodcastItem != nil || userQueuePlaylist.songCount > 0
+  }
+
   var totalPlayDuration: Int {
     activeQueue.duration + userQueuePlaylist.duration
   }

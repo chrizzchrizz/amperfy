@@ -580,6 +580,26 @@ class MiniPlayerView: UIView {
   }
 
   public var tabAccessoryTraitChangeCB: VoidFunctionCallback?
+  /// Called with `true` once a playable is loaded and with `false` when all queues are empty.
+  /// Setting it reports the current state right away.
+  public var visibilityChangeCB: ((Bool) -> ())? {
+    didSet {
+      reportedPlayableLoaded = nil
+      refreshVisibility()
+    }
+  }
+
+  public var isPlayableLoaded: Bool { player.hasLoadedPlayables }
+  private var reportedPlayableLoaded: Bool?
+
+  /// Only called from player notifications, not from UI refreshes, because showing or hiding
+  /// moves this view in the hierarchy.
+  private func refreshVisibility() {
+    let isLoaded = isPlayableLoaded
+    guard isLoaded != reportedPlayableLoaded else { return }
+    reportedPlayableLoaded = isLoaded
+    visibilityChangeCB?(isLoaded)
+  }
 
   private func refreshForTabAccessoryTraitChange() {
     let isInline = traitCollection.tabAccessoryEnvironment == .inline
@@ -920,6 +940,7 @@ extension MiniPlayerView: MusicPlayable {
 
   func didStartPlaying() {
     refreshPlayer()
+    refreshVisibility()
   }
 
   func didPause() {
@@ -928,6 +949,7 @@ extension MiniPlayerView: MusicPlayable {
 
   func didStopPlaying() {
     refreshPlayer()
+    refreshVisibility()
   }
 
   func didElapsedTimeChange() {
@@ -943,6 +965,7 @@ extension MiniPlayerView: MusicPlayable {
 
   func didPlaylistChange() {
     refreshPlayer()
+    refreshVisibility()
   }
 
   func didArtworkChange() {

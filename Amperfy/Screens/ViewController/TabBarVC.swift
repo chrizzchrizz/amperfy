@@ -40,6 +40,8 @@ class TabBarVC: UITabBarController {
   }
 
   var miniPlayer: MiniPlayerView?
+  /// Kept while hidden, so the mini player can be shown again once a song is loaded.
+  private var miniPlayerAccessory: UITabAccessory?
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -128,16 +130,16 @@ class TabBarVC: UITabBarController {
     miniPlayer!.configureForiOS()
     miniPlayer!.glassContainer.translatesAutoresizingMaskIntoConstraints = false
 
-    let accessory = UITabAccessory(contentView: miniPlayer!.glassContainer)
-    bottomAccessory = accessory
+    miniPlayerAccessory = UITabAccessory(contentView: miniPlayer!.glassContainer)
 
     heightConstraint = miniPlayer!.glassContainer.heightAnchor.constraint(equalToConstant: 48.0)
     heightConstraint?.isActive = true
-    compactWidthConstraint = miniPlayer!.glassContainer.widthAnchor
-      .constraint(equalTo: miniPlayer!.glassContainer.superview!.widthAnchor)
 
     miniPlayer!.tabAccessoryTraitChangeCB = configureTraitChangesForMiniPlayer
-    configureTraitChangesForMiniPlayer()
+    // Reports the current state right away and attaches the accessory if a song is loaded
+    miniPlayer!.visibilityChangeCB = { [weak self] isVisible in
+      self?.setMiniPlayerVisible(isVisible)
+    }
 
     registerForTraitChanges(
       [UITraitUserInterfaceStyle.self, UITraitHorizontalSizeClass.self],
@@ -147,6 +149,17 @@ class TabBarVC: UITabBarController {
         self.configureTraitChangesForMiniPlayer()
       }
     )
+  }
+
+  private func setMiniPlayerVisible(_ isVisible: Bool) {
+    let isOnScreen = viewIfLoaded?.window != nil
+    setBottomAccessory(isVisible ? miniPlayerAccessory : nil, animated: isOnScreen)
+    // The accessory is attached synchronously; lay it out before the show animation runs
+    configureTraitChangesForMiniPlayer()
+    if isOnScreen {
+      view.setNeedsLayout()
+      view.layoutIfNeeded()
+    }
   }
 
   private func mainContent() -> UIView {
@@ -165,9 +178,18 @@ class TabBarVC: UITabBarController {
 
   func configureTraitChangesForMiniPlayer() {
     guard let miniPlayer else { return }
+    // While hidden the accessory is detached, so constraints to the main content can't be
+    // activated; viewWillLayoutSubviews configures it again once it is shown
+    guard miniPlayer.glassContainer.isDescendant(of: view),
+          mainContent().isDescendant(of: view) else {
+      centerConstraint?.isActive = false
+      regularWidthConstraint?.isActive = false
+      return
+    }
     let isInline = miniPlayer.glassContainer.traitCollection.tabAccessoryEnvironment == .inline
 
     if traitCollection.horizontalSizeClass == .regular {
+      centerConstraint?.isActive = false
       centerConstraint = miniPlayer.glassContainer.safeAreaLayoutGuide.centerXAnchor.constraint(
         equalTo: mainContent().safeAreaLayoutGuide.centerXAnchor,
         constant: 0
@@ -187,16 +209,29 @@ class TabBarVC: UITabBarController {
       heightConstraint?.constant = 48.0
       centerConstraint?.isActive = false
       regularWidthConstraint?.isActive = false
-      compactWidthConstraint?.isActive = true
+      activateCompactWidthConstraint()
     } else {
       heightConstraint?.constant = 48.0
       centerConstraint?.isActive = false
       regularWidthConstraint?.isActive = false
-      compactWidthConstraint?.isActive = true
+      activateCompactWidthConstraint()
     }
 
     miniPlayer.glassContainer.setNeedsLayout()
     miniPlayer.glassContainer.layoutIfNeeded()
+  }
+
+  /// The accessory moves the mini player into a new container each time it is shown again,
+  /// so the width constraint has to follow the current superview.
+  private func activateCompactWidthConstraint() {
+    guard let glassContainer = miniPlayer?.glassContainer,
+          let superview = glassContainer.superview else { return }
+    if compactWidthConstraint?.secondItem !== superview {
+      compactWidthConstraint?.isActive = false
+      compactWidthConstraint = glassContainer.widthAnchor
+        .constraint(equalTo: superview.widthAnchor)
+    }
+    compactWidthConstraint?.isActive = true
   }
 
   override func viewWillLayoutSubviews() {
