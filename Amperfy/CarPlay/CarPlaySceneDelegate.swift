@@ -72,7 +72,8 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     _ templateApplicationScene: CPTemplateApplicationScene,
     didConnect interfaceController: CPInterfaceController
   ) {
-    Task { @MainActor in
+    Task { @MainActor [weak self] in
+      guard let self else { return }
       os_log("CarPlay: didConnect", log: self.log, type: .info)
       appDelegate.notificationHandler.register(
         self,
@@ -111,7 +112,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
       CPNowPlayingTemplate.shared.add(self)
       self.interfaceController = interfaceController
       self.interfaceController?.delegate = self
-      self.configureNowPlayingTemplate()
+      configureNowPlayingTemplate()
 
       accountNotificationHandler?
         .registerCallbackForActiveAccountChange { [weak self] accountInfo in
@@ -153,9 +154,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
           }
         }
 
-      if self.appDelegate.player.currentlyPlaying != nil, self.appDelegate.player.isPlaying {
-        self.updatePlayerQueueSection()
-        self.displayNowPlaying(immediately: true) {}
+      if appDelegate.player.currentlyPlaying != nil, appDelegate.player.isPlaying {
+        updatePlayerQueueSection()
+        displayNowPlaying(immediately: true) {}
       }
     }
   }
@@ -165,7 +166,8 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     _ templateApplicationScene: CPTemplateApplicationScene,
     didDisconnectInterfaceController interfaceController: CPInterfaceController
   ) {
-    Task { @MainActor in
+    Task { @MainActor [weak self] in
+      guard let self else { return }
       os_log("CarPlay: didDisconnect", log: self.log, type: .info)
       guard activeAccountInfo != nil, activeAccount != nil else {
         os_log("CarPlay: no account available -> do nothing", log: self.log, type: .info)

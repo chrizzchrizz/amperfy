@@ -220,21 +220,22 @@ final class HomeVC: UICollectionViewController {
       return cell
     }
 
-    dataSource.supplementaryViewProvider = { collectionView, kind, indexPath in
-      guard kind == UICollectionView.elementKindSectionHeader,
+    dataSource.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath in
+      guard let self,
+            kind == UICollectionView.elementKindSectionHeader,
             let header = collectionView.dequeueReusableSupplementaryView(
               ofKind: kind,
               withReuseIdentifier: SectionHeaderView.reuseID,
               for: indexPath
             ) as? SectionHeaderView,
-            let section = self.dataSource.snapshot().sectionIdentifiers.element(at: indexPath.section)
+            let section = dataSource.snapshot().sectionIdentifiers.element(at: indexPath.section)
       else {
         return nil
       }
       header.setRefreshMenu(nil)
       switch section {
-      case .decadeAlbums: header.title = self.sharedHome.decadeSectionTitle
-      case .genreAlbums: header.title = self.sharedHome.genreSectionTitle
+      case .decadeAlbums: header.title = sharedHome.decadeSectionTitle
+      case .genreAlbums: header.title = sharedHome.genreSectionTitle
       default: header.title = section.title
       }
       if let displayType = section.libraryDisplayType {
@@ -268,13 +269,13 @@ final class HomeVC: UICollectionViewController {
         header.showsRefreshButton = true
         header.setRefreshHandler { [weak self] in self?.refreshGenreAlbumsSection() }
         #if DEBUG
-          header.setRefreshMenu(self.createGenreDebugMenu())
+          header.setRefreshMenu(createGenreDebugMenu())
         #endif
       } else if section == .decadeAlbums {
         header.showsRefreshButton = true
         header.setRefreshHandler { [weak self] in self?.refreshDecadeAlbumsSection() }
         #if DEBUG
-          header.setRefreshMenu(self.createDecadeDebugMenu())
+          header.setRefreshMenu(createDecadeDebugMenu())
         #endif
       } else {
         header.showsRefreshButton = false
