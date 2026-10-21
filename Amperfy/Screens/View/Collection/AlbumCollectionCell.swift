@@ -43,14 +43,16 @@ class AlbumCollectionCell: BasicCollectionCell {
     container: PlayableContainable,
     rootView: UICollectionViewController,
     itemWidth: CGFloat,
-    initialIndexPath: IndexPath
+    initialIndexPath: IndexPath,
+    isImageCircular: Bool = false
   ) {
     self.itemWidth = itemWidth
     rootFlowLayout = nil
     apply(
       container: container,
       rootView: rootView,
-      initialIndexPath: initialIndexPath
+      initialIndexPath: initialIndexPath,
+      isImageCircular: isImageCircular
     )
   }
 
@@ -72,7 +74,8 @@ class AlbumCollectionCell: BasicCollectionCell {
   private func apply(
     container: PlayableContainable,
     rootView: UICollectionViewController,
-    initialIndexPath: IndexPath
+    initialIndexPath: IndexPath,
+    isImageCircular: Bool = false
   ) {
     self.container = container
     self.rootView = rootView
@@ -84,6 +87,10 @@ class AlbumCollectionCell: BasicCollectionCell {
       container: container,
       cornerRadius: .medium
     )
+    // circular image on a frame filled with the main color of the image
+    entityImage.setCircularImage(frameColor: isImageCircular ? { [weak self] image in
+      image.mainColor(forDarkBackground: self?.traitCollection.userInterfaceStyle == .dark)
+    } : nil)
     updateArtworkImageConstraint(indexPath: initialIndexPath)
     layoutIfNeeded()
   }

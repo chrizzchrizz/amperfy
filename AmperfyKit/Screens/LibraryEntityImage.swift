@@ -60,6 +60,17 @@ public class LibraryEntityImage: RoundedImage {
   private var backupArtworkType: ArtworkType?
   private var accountNotificationHandler: AccountNotificationHandler?
 
+  /// True if the generated placeholder is shown because there is no artwork
+  /// (false while an existing artwork is still loading).
+  public private(set) var isShowingPlaceholder = false
+
+  /// Called whenever the shown image changes, e.g. when the loaded artwork replaces the placeholder.
+  public var imageDidChange: ((UIImage?) -> ())?
+
+  override public var image: UIImage? {
+    didSet { imageDidChange?(image) }
+  }
+
   required public init?(coder: NSCoder) {
     self.appDelegate = AmperKit.shared
     super.init(coder: coder)
@@ -138,6 +149,7 @@ public class LibraryEntityImage: RoundedImage {
   }
 
   internal func display(image: UIImage) {
+    isShowingPlaceholder = false
     self.image = image
     entity = nil
     standaloneArtwork = nil
@@ -179,10 +191,12 @@ public class LibraryEntityImage: RoundedImage {
 
     if let imagePathToDisplay,
        let cachedImg = Self.cache.object(forKey: imagePathToDisplay as NSString) {
+      isShowingPlaceholder = false
       image = cachedImg
       return
     }
 
+    isShowingPlaceholder = imagePathToDisplay == nil
     image = placeholderImage
     guard let imagePathToDisplay else { return }
 

@@ -36,6 +36,10 @@ open class EntityImageView: UIView {
 
   private var view: UIView!
 
+  /// Inset of the circular image relative to the frame size.
+  private static let circularImageInset: CGFloat = 0.1
+  private var circularFrameColor: ((UIImage) -> UIColor)?
+
   private var quadImages: [LibraryEntityImage] {
     [
       quadImage1,
@@ -82,6 +86,59 @@ open class EntityImageView: UIView {
     quadImages[1].layer.maskedCorners = [.layerMaxXMinYCorner]
     quadImages[2].layer.maskedCorners = [.layerMinXMaxYCorner]
     quadImages[3].layer.maskedCorners = [.layerMaxXMaxYCorner]
+
+    registerForTraitChanges(
+      [UITraitUserInterfaceStyle.self],
+      handler: { (self: EntityImageView, previousTraitCollection: UITraitCollection) in
+        self.updateCircularStyle()
+      }
+    )
+  }
+
+  /// Shows the single image as a circle inside the frame, the frame is filled with the color
+  /// `frameColor` derives from the shown image. The placeholder of an entity without artwork
+  /// and nil show the image across the whole frame.
+  public func setCircularImage(frameColor: ((UIImage) -> UIColor)?) {
+    let wasCircular = circularFrameColor != nil
+    circularFrameColor = frameColor
+    if frameColor != nil {
+      singleImage.imageDidChange = { [weak self] _ in self?.updateCircularStyle() }
+      updateCircularStyle()
+    } else if wasCircular {
+      singleImage.imageDidChange = nil
+      resetCircularStyle()
+    }
+  }
+
+  private var showsCircularImage: Bool {
+    circularFrameColor != nil && !singleImage.isShowingPlaceholder
+  }
+
+  private func updateCircularStyle() {
+    guard let circularFrameColor else { return }
+    if showsCircularImage, let image = singleImage.image {
+      view.backgroundColor = circularFrameColor(image)
+      setNeedsLayout()
+    } else {
+      resetCircularStyle()
+    }
+  }
+
+  private func resetCircularStyle() {
+    singleImage.layer.cornerRadius = RoundedImage.cornerRadius
+    view.layoutMargins = .zero
+    view.backgroundColor = .clear
+    setNeedsLayout()
+  }
+
+  override open func layoutSubviews() {
+    if showsCircularImage {
+      let side = min(bounds.width, bounds.height)
+      let inset = (side * Self.circularImageInset).rounded()
+      view.layoutMargins = UIEdgeInsets(top: inset, left: inset, bottom: inset, right: inset)
+      singleImage.layer.cornerRadius = (side - 2 * inset) / 2
+    }
+    super.layoutSubviews()
   }
 
   public func display(

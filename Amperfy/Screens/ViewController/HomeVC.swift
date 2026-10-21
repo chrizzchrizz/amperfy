@@ -213,7 +213,9 @@ final class HomeVC: UICollectionViewController {
         container: item.playableContainable,
         rootView: self,
         itemWidth: Self.itemWidth,
-        initialIndexPath: indexPath
+        initialIndexPath: indexPath,
+        isImageCircular: [.favoriteArtists, .randomArtists]
+          .contains(self.dataSource.sectionIdentifier(for: indexPath.section))
       )
       return cell
     }
