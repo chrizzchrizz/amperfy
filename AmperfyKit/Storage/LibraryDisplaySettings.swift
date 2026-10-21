@@ -178,23 +178,37 @@ public struct LibraryDisplaySettings: Sendable, Codable {
 
   public init(inUse: [LibraryDisplayType]) {
     let notUsedSet = Set(LibraryDisplayType.allCases).subtracting(Set(inUse))
-    self.combined = [inUse, Array(notUsedSet).sorted(by: { $0.rawValue < $1.rawValue })]
+    self.combined = [inUse, Self.displayOrder.filter { notUsedSet.contains($0) }]
   }
+
+  // order used for not used types
+  private static let displayOrder: [LibraryDisplayType] = [
+    .playlists,
+    .albums,
+    .artists,
+    .songs,
+    .compilations,
+    .genres,
+    .favoriteAlbums,
+    .favoriteArtists,
+    .favoriteSongs,
+    .latestReleasedAlbums,
+    .newestAlbums,
+    .recentAlbums,
+    .podcasts,
+    .radios,
+    .directories,
+    .downloads,
+  ]
 
   public static var defaultSettings: LibraryDisplaySettings {
     LibraryDisplaySettings(
       inUse: [
-        .artists,
-        .albums,
-        .compilations,
-        .newestAlbums,
-        .recentAlbums,
-        .songs,
-        .favoriteSongs,
-        .directories,
         .playlists,
-        .podcasts,
-        .radios,
+        .albums,
+        .artists,
+        .songs,
+        .compilations,
       ]
     )
   }
