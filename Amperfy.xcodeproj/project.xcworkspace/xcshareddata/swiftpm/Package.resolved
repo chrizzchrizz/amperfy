@@ -1,5 +1,5 @@
 {
-  "originHash" : "53f9b5d32cae714c739258126b7b5c45c5679dcd9afbae74bc00b0387e807b54",
+  "originHash" : "953f0860ea59bff50a038d71d78afa93e1711c440f7c3b040388a85d59204361",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "8dd85aee02e39dd280c75eef88ffdb86eed4b07b",
         "version" : "5.6.2"
+      }
+    },
+    {
+      "identity" : "audiostreaming",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/chrizzchrizz/AudioStreaming.git",
+      "state" : {
+        "branch" : "preview",
+        "revision" : "21d7d1c3e3394d8bf5d40c2ec27787b87588c688"
       }
     },
     {
