@@ -20,6 +20,8 @@
 
 import Foundation
 
+// MARK: - GenreGroup
+
 /// A named group of genres, used e.g. by the genre section of the home screen.
 /// Genre names like "Hip-Hop", "Hip Hop" and "Rap" are merged into one group.
 public struct GenreGroup: Sendable, Hashable {
@@ -37,6 +39,8 @@ public struct GenreGroup: Sendable, Hashable {
     ([name] + aliases).map { GenreGroups.normalize($0) }
   }
 }
+
+// MARK: - GenreGroups
 
 public enum GenreGroups {
   /// Only genres of these groups are considered. Adjust here to change the selection or merging.

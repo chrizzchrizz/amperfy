@@ -113,6 +113,7 @@ class PlayableTableCell: BasicTableCell {
       view.isHidden = true
       return view
     }()
+
     private var isNotificationRegistered = false
   #else
     private var singleTapGestureRecognizer: UITapGestureRecognizer!

@@ -471,7 +471,10 @@ class HomeManager: NSObject {
         count: Self.sectionMaxItemCount,
         onlyCached: isOfflineMode
       )
-      data[.decadeAlbums] = albums.compactMap { HomeItem(section: .decadeAlbums, playableContainable: $0) }
+      data[.decadeAlbums] = albums.compactMap { HomeItem(
+        section: .decadeAlbums,
+        playableContainable: $0
+      ) }
     } else {
       data[.decadeAlbums] = []
     }
@@ -530,7 +533,10 @@ class HomeManager: NSObject {
         count: Self.sectionMaxItemCount,
         onlyCached: isOfflineMode
       )
-      data[.genreAlbums] = albums.compactMap { HomeItem(section: .genreAlbums, playableContainable: $0) }
+      data[.genreAlbums] = albums.compactMap { HomeItem(
+        section: .genreAlbums,
+        playableContainable: $0
+      ) }
     } else {
       data[.genreAlbums] = []
     }

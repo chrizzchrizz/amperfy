@@ -139,7 +139,8 @@ class GenericDetailTableHeader: UIView {
   /// The view is pinned to the cover, so the shadow never lags behind the cover's frame.
   func enableCoverShadow() {
     guard coverShadowView.superview == nil, let container = entityImage.superview else { return }
-    coverShadowView.cornerRadiusProvider = { [weak self] in self?.entityImage.layer.cornerRadius ?? 0 }
+    coverShadowView
+      .cornerRadiusProvider = { [weak self] in self?.entityImage.layer.cornerRadius ?? 0 }
     container.insertSubview(coverShadowView, belowSubview: entityImage)
     NSLayoutConstraint.activate([
       coverShadowView.leadingAnchor.constraint(equalTo: entityImage.leadingAnchor),

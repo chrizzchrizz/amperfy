@@ -56,7 +56,8 @@ import UIKit
       slider.minimumTrackTintColor = .label
       slider.maximumTrackTintColor = UIColor.label.withAlphaComponent(0.3)
       // invisible thumb; it must keep a real size, otherwise the slider can't be grabbed
-      let invisibleThumb = UIGraphicsImageRenderer(size: CGSize(width: 28, height: 28)).image { _ in }
+      let invisibleThumb = UIGraphicsImageRenderer(size: CGSize(width: 28, height: 28))
+        .image { _ in }
       slider.setThumbImage(invisibleThumb, for: .normal)
       slider.setThumbImage(invisibleThumb, for: .highlighted)
       slider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
@@ -112,6 +113,8 @@ import UIKit
     }
   }
 #endif
+
+// MARK: - PlayerControlView
 
 class PlayerControlView: UIView {
   static private let margin = UIEdgeInsets(

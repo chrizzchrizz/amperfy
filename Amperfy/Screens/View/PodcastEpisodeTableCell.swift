@@ -23,7 +23,6 @@ import AmperfyKit
 import UIKit
 
 class PodcastEpisodeTableCell: BasicTableCell {
-
   override var usesSystemHorizontalMargins: Bool { true }
 
   @IBOutlet

@@ -681,7 +681,11 @@ final class SectionHeaderView: UICollectionReusableView {
     let result = NSMutableAttributedString(string: title)
     if tapHandler != nil {
       let pointSize = UIFont.preferredFont(forTextStyle: .subheadline).pointSize + 2
-      let config = UIImage.SymbolConfiguration(pointSize: pointSize, weight: .semibold, scale: .small)
+      let config = UIImage.SymbolConfiguration(
+        pointSize: pointSize,
+        weight: .semibold,
+        scale: .small
+      )
       let attachment = NSTextAttachment()
       attachment.image = UIImage(systemName: "chevron.right", withConfiguration: config)?
         .withTintColor(.secondaryLabel, renderingMode: .alwaysOriginal)
@@ -771,8 +775,8 @@ extension HomeSection {
     case .lastTimePlayedPlaylists: return .playlists
     case .podcasts: return .podcasts
     case .radios: return .radios
-    case .newestPodcastEpisodes, .randomAlbums, .randomArtists, .randomGenres, .randomSongs,
-         .decadeAlbums, .genreAlbums:
+    case .decadeAlbums, .genreAlbums, .newestPodcastEpisodes, .randomAlbums, .randomArtists,
+         .randomGenres, .randomSongs:
       return nil
     }
   }

@@ -143,7 +143,8 @@ final class TableSectionHeaderView: UIView {
     isPinnedToTable = true
     NSLayoutConstraint.activate([
       listContentView.leadingAnchor.constraint(equalTo: tableView.layoutMarginsGuide.leadingAnchor),
-      listContentView.trailingAnchor.constraint(equalTo: tableView.layoutMarginsGuide.trailingAnchor),
+      listContentView.trailingAnchor
+        .constraint(equalTo: tableView.layoutMarginsGuide.trailingAnchor),
     ])
   }
 }
@@ -187,7 +188,11 @@ class BasicTableViewController: KeyCommandTableViewController {
 
   /// Tables whose cells draw their own separators (`separatorStyle = .none`) also align the
   /// section titles with the cell margins.
-  override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+  override func tableView(
+    _ tableView: UITableView,
+    viewForHeaderInSection section: Int
+  )
+    -> UIView? {
     guard tableView.separatorStyle == .none,
           let title = self.tableView(tableView, titleForHeaderInSection: section), !title.isEmpty
     else { return nil }

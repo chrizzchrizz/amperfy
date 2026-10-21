@@ -130,7 +130,7 @@ class BasicTableCell: UITableViewCell {
     appliedLeadingView = separatorLeadingView
     NSLayoutConstraint.deactivate(bottomSeparatorHorizontal)
     let guide = contentView.layoutMarginsGuide
-    
+
     switch style {
     case .edge:
       bottomSeparatorHorizontal = [
@@ -138,7 +138,8 @@ class BasicTableCell: UITableViewCell {
         bottomSeparator.trailingAnchor.constraint(equalTo: guide.trailingAnchor),
       ]
     case .row:
-      let leading = separatorLeadingView.map { bottomSeparator.leadingAnchor.constraint(equalTo: $0.leadingAnchor) }
+      let leading = separatorLeadingView
+        .map { bottomSeparator.leadingAnchor.constraint(equalTo: $0.leadingAnchor) }
         ?? bottomSeparator.leadingAnchor.constraint(equalTo: guide.leadingAnchor)
       bottomSeparatorHorizontal = [
         leading,

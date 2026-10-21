@@ -42,7 +42,8 @@ extension CarPlaySceneDelegate {
     guard let sharedHome else { return [] }
     var imageRows = [CPListImageRowItem]()
     // decade and genre sections are app home only for now
-    for section in sharedHome.orderedVisibleSections where section != .decadeAlbums && section != .genreAlbums {
+    for section in sharedHome.orderedVisibleSections
+      where section != .decadeAlbums && section != .genreAlbums {
       if let row = homeImageRows[section] {
         let alreadyCreatedData = homeRowData[section]
         let requestedData = sharedHome.data[section]

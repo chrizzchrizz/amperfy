@@ -179,7 +179,8 @@ class LibraryElementDetailTableHeaderView: UIView {
       title: nil,
       symbolName: "shuffle"
     )
-    playShuffledButton.accessibilityLabel = configuration.isShuffleOnContextNeccessary ? "Shuffle" : "Random"
+    playShuffledButton.accessibilityLabel = configuration
+      .isShuffleOnContextNeccessary ? "Shuffle" : "Random"
     playShuffledButton.isHidden = configuration.isShuffleHidden
     makeShuffleButtonRound()
     applyCustomBackgroundColor()
@@ -231,7 +232,8 @@ class LibraryElementDetailTableHeaderView: UIView {
       leadingSpacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
       leadingSpacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
       buttonStack.insertArrangedSubview(leadingSpacer, at: 0)
-      centeringConstraint = leadingSpacer.widthAnchor.constraint(equalTo: trailingSpacer.widthAnchor)
+      centeringConstraint = leadingSpacer.widthAnchor
+        .constraint(equalTo: trailingSpacer.widthAnchor)
       leadingAlignmentSpacer = leadingSpacer
       trailingAlignmentSpacer = trailingSpacer
       playAllButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 160).isActive = true
@@ -266,11 +268,12 @@ class LibraryElementDetailTableHeaderView: UIView {
     configuration.imagePadding = title == nil ? 0 : 8
     configuration.baseForegroundColor = .label
     configuration.baseBackgroundColor = .secondarySystemFill
-    configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
-      var attributes = attributes
-      attributes.font = UIFont.preferredFont(forTextStyle: .headline)
-      return attributes
-    }
+    configuration
+      .titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+        var attributes = attributes
+        attributes.font = UIFont.preferredFont(forTextStyle: .headline)
+        return attributes
+      }
     button.backgroundColor = .clear
     button.layer.cornerRadius = 0.0
     button.setTitle(nil, for: .normal)

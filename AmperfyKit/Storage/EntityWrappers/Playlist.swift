@@ -546,7 +546,8 @@ extension Playlist: PlayableContainable {
     if details.type == .long || details.type == .noCountInfo, let changeDate {
       let formatter = RelativeDateTimeFormatter()
       formatter.unitsStyle = .full
-      infoContent.append("modified \(formatter.localizedString(for: changeDate, relativeTo: Date()))")
+      infoContent
+        .append("modified \(formatter.localizedString(for: changeDate, relativeTo: Date()))")
     }
     if details.type == .long, details.isShowDetailedInfo {
       infoContent.append("ID: \(!id.isEmpty ? id : "-")")
