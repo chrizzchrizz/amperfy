@@ -98,6 +98,7 @@ class PlayableTableCell: BasicTableCell {
   private var rootView: UIViewController?
   private var playIndicator: PlayIndicator?
   private var isDislayAlbumTrackNumberStyle: Bool = false
+  private var isAlbumSubtitle: Bool = false
   private var displayMode: DisplayMode = .normal
   #if targetEnvironment(macCatalyst) // ok
     private var hoverGestureRecognizer: UIHoverGestureRecognizer!
@@ -283,6 +284,7 @@ class PlayableTableCell: BasicTableCell {
     rootView: UIViewController,
     playerIndexCb: GetPlayerIndexFromTableCellCallback? = nil,
     isDislayAlbumTrackNumberStyle: Bool = false,
+    isAlbumSubtitle: Bool = false,
     download: Download? = nil,
     isMarked: Bool = false
   ) {
@@ -297,6 +299,7 @@ class PlayableTableCell: BasicTableCell {
     self.playerIndexCb = playerIndexCb
     self.rootView = rootView
     self.isDislayAlbumTrackNumberStyle = isDislayAlbumTrackNumberStyle
+    self.isAlbumSubtitle = isAlbumSubtitle
     self.download = download
     self.isMarked = isMarked
     isDownloadRunning = playable.isDownloading
@@ -370,7 +373,12 @@ class PlayableTableCell: BasicTableCell {
   func refresh() {
     guard let playable = playable else { return }
     titleLabel.text = playable.title
-    artistLabel.text = playable.creatorName
+    // the second line shows the album instead of the artist, e.g. on the screen of that artist
+    if isAlbumSubtitle, let albumName = playable.asSong?.album?.name {
+      artistLabel.text = albumName
+    } else {
+      artistLabel.text = playable.creatorName
+    }
 
     configureStyle(
       playable: playable,

@@ -616,11 +616,13 @@ public class ArtistSongsItemsFetchedResultsController: BasicFetchedResultsContro
     for artist: Artist,
     displayFilter: ArtistCategoryFilter,
     coreDataCompanion: CoreDataCompanion,
-    isGroupedInAlphabeticSections: Bool
+    isGroupedInAlphabeticSections: Bool,
+    isSortedByPlayCount: Bool = false
   ) {
     self.artist = artist
     self.displayFilter = displayFilter
-    let fetchRequest = SongMO.alphabeticSortedFetchRequest
+    let fetchRequest = isSortedByPlayCount ? SongMO.playCountSortedFetchRequest : SongMO
+      .alphabeticSortedFetchRequest
     switch self.displayFilter {
     case .all, .favorites:
       fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [

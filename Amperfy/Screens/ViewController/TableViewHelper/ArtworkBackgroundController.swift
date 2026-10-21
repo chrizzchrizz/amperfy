@@ -34,6 +34,9 @@ final class ArtworkBackgroundController: NSObject {
   private let imagePath: (ArtworkDisplayPreference) -> String?
 
   private(set) var contentColor: UIColor?
+  /// Called after the colors changed, for content the controller does not reach itself,
+  /// e.g. cells inside a nested view.
+  var didApplyBackground: (() -> ())?
   private var navigationBarStyle: UIUserInterfaceStyle = .unspecified
 
   private static let mainColorCache = NSCache<NSString, UIColor>()
@@ -125,6 +128,7 @@ final class ArtworkBackgroundController: NSObject {
     }
     navigationBarStyle = prefersDarkContent ? .light : .dark
     applyNavigationBarStyle()
+    didApplyBackground?()
     let update = { tableView.backgroundColor = backgroundColor }
     if animated {
       UIView.animate(withDuration: 0.2, animations: update)
