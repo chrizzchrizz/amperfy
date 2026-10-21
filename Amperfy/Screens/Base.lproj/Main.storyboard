@@ -166,83 +166,9 @@
                     <view key="view" contentMode="scaleToFill" id="eKy-0T-u87">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Syncing" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8Hu-Ks-SWY">
-                                <rect key="frame" x="157" y="205" width="61" height="21"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="21" id="uSi-BX-2HO"/>
-                                </constraints>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="npf-bB-pkf">
-                                <rect key="frame" x="25" y="314" width="325" height="4"/>
-                            </progressView>
-                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="100.0%" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="KKh-tQ-byV">
-                                <rect key="frame" x="290" y="326" width="60" height="21"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="60" id="hbQ-OO-Ail"/>
-                                </constraints>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Info" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qe5-xR-nU8">
-                                <rect key="frame" x="25" y="326" width="29" height="21"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="3en-Wv-ZMc">
-                                <rect key="frame" x="330" y="326" width="20" height="20"/>
-                            </activityIndicatorView>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" preferredBehavioralStyle="pad" translatesAutoresizingMaskIntoConstraints="NO" id="stS-Nk-8XD" customClass="BasicButton" customModule="Amperfy" customModuleProvider="target">
-                                <rect key="frame" x="270" y="382" width="80" height="30"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="80" id="Iha-4v-U1b"/>
-                                    <constraint firstAttribute="height" constant="30" id="LrJ-CX-o5T"/>
-                                </constraints>
-                                <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="15"/>
-                                <color key="tintColor" systemColor="darkTextColor"/>
-                                <state key="normal" title="Login"/>
-                                <buttonConfiguration key="configuration" style="filled" title="Skip &gt;">
-                                    <fontDescription key="titleFontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="15"/>
-                                    <color key="baseForegroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <color key="baseBackgroundColor" systemColor="systemBlueColor"/>
-                                </buttonConfiguration>
-                                <connections>
-                                    <action selector="skipPressed:" destination="n1j-bZ-g7e" eventType="touchUpInside" id="fsK-Wq-U5N"/>
-                                </connections>
-                            </button>
-                        </subviews>
                         <viewLayoutGuide key="safeArea" id="fzc-Vu-2Fw"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                        <constraints>
-                            <constraint firstItem="KKh-tQ-byV" firstAttribute="top" secondItem="npf-bB-pkf" secondAttribute="bottom" constant="8" id="1EC-U3-R3B"/>
-                            <constraint firstItem="8Hu-Ks-SWY" firstAttribute="centerX" secondItem="eKy-0T-u87" secondAttribute="centerX" id="3uu-P3-pRL"/>
-                            <constraint firstItem="stS-Nk-8XD" firstAttribute="top" secondItem="KKh-tQ-byV" secondAttribute="bottom" constant="35" id="5Gz-cb-ruV"/>
-                            <constraint firstItem="8Hu-Ks-SWY" firstAttribute="top" secondItem="fzc-Vu-2Fw" secondAttribute="top" constant="105" id="AFT-rh-m1X"/>
-                            <constraint firstItem="npf-bB-pkf" firstAttribute="leading" secondItem="fzc-Vu-2Fw" secondAttribute="leading" constant="25" id="Fhv-0h-2ew"/>
-                            <constraint firstItem="KKh-tQ-byV" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="qe5-xR-nU8" secondAttribute="trailing" constant="8" id="NIu-Bu-c0c"/>
-                            <constraint firstItem="3en-Wv-ZMc" firstAttribute="trailing" secondItem="npf-bB-pkf" secondAttribute="trailing" id="UKn-Xo-PcW"/>
-                            <constraint firstItem="KKh-tQ-byV" firstAttribute="trailing" secondItem="npf-bB-pkf" secondAttribute="trailing" id="Yo9-zw-fD3"/>
-                            <constraint firstItem="fzc-Vu-2Fw" firstAttribute="trailing" secondItem="npf-bB-pkf" secondAttribute="trailing" constant="25" id="Z9Z-7x-Dmt"/>
-                            <constraint firstItem="qe5-xR-nU8" firstAttribute="leading" secondItem="npf-bB-pkf" secondAttribute="leading" id="dAw-V3-zzn"/>
-                            <constraint firstItem="npf-bB-pkf" firstAttribute="top" secondItem="8Hu-Ks-SWY" secondAttribute="bottom" constant="88" id="etY-SN-P1i"/>
-                            <constraint firstItem="3en-Wv-ZMc" firstAttribute="top" secondItem="npf-bB-pkf" secondAttribute="bottom" constant="8" id="h5V-IR-KPi"/>
-                            <constraint firstItem="stS-Nk-8XD" firstAttribute="trailing" secondItem="npf-bB-pkf" secondAttribute="trailing" id="yqC-6M-CdJ"/>
-                            <constraint firstItem="KKh-tQ-byV" firstAttribute="centerY" secondItem="qe5-xR-nU8" secondAttribute="centerY" id="zZb-RW-x56"/>
-                        </constraints>
                     </view>
-                    <connections>
-                        <outlet property="activitySpinner" destination="3en-Wv-ZMc" id="jKV-Yl-cfg"/>
-                        <outlet property="progressBar" destination="npf-bB-pkf" id="C83-ms-bZn"/>
-                        <outlet property="progressInfo" destination="qe5-xR-nU8" id="9mn-5u-yc5"/>
-                        <outlet property="progressLabel" destination="KKh-tQ-byV" id="Wib-rh-Gpj"/>
-                        <outlet property="skipButton" destination="stS-Nk-8XD" id="Y0I-Yo-dJ3"/>
-                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="M3f-FL-42B" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

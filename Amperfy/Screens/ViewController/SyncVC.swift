@@ -21,6 +21,7 @@
 
 import AmperfyKit
 import Foundation
+import SwiftUI
 import UIKit
 
 // MARK: - SyncVC
@@ -33,22 +34,37 @@ class SyncVC: UIViewController {
   var syncFinished = false
   var account: Account!
 
-  @IBOutlet
-  weak var progressBar: UIProgressView!
-  @IBOutlet
-  weak var progressLabel: UILabel!
-  @IBOutlet
-  weak var progressInfo: UILabel!
-  @IBOutlet
-  weak var activitySpinner: UIActivityIndicatorView!
-  @IBOutlet
-  weak var skipButton: BasicButton!
+  private let progressModel = SyncProgressModel()
+
+  private lazy var hostingController: UIHostingController<SyncView> = {
+    let rootView = SyncView(
+      model: progressModel,
+      theme: appDelegate.storage.settings.accounts.getSetting(account.info).read.themePreference,
+      onSkip: { [weak self] in self?.skipPressed() }
+    )
+    return UIHostingController(rootView: rootView)
+  }()
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    progressBar.setProgress(0.0, animated: true)
-    progressInfo.text = ""
-    progressLabel.text = String(format: "%.1f", 0.0) + "%"
+    if let credentials = appDelegate.storage.settings.accounts.getSetting(account.info).read
+      .loginCredentials {
+      progressModel.serverUrl = credentials.displayServerUrl
+      progressModel.username = credentials.username
+    }
+
+    addChild(hostingController)
+    hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+    hostingController.view.backgroundColor = .clear
+    view.addSubview(hostingController.view)
+    NSLayoutConstraint.activate([
+      hostingController.view.topAnchor.constraint(equalTo: view.topAnchor),
+      hostingController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      hostingController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      hostingController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+    ])
+    hostingController.didMove(toParent: self)
+
     appDelegate.isKeepScreenAlive = true
   }
 
@@ -85,10 +101,7 @@ class SyncVC: UIViewController {
     guard !syncFinished else { return }
 
     syncFinished = true
-    progressInfo.text = "Done"
-    activitySpinner.stopAnimating()
-    activitySpinner.isHidden = true
-    progressLabel.isHidden = true
+    progressModel.finish()
 
     appDelegate.storage.settings.app.librarySyncVersion = .newestVersion
     appDelegate.storage.settings.app.isLibrarySynced = true
@@ -108,16 +121,7 @@ class SyncVC: UIViewController {
       .replaceMainRootViewController(vc: AppStoryboard.Main.segueToMainWindow(account: account))
   }
 
-  private func updateSyncInfo(infoText: String? = nil, percentParsed: Float = 0.0) {
-    if let infoText = infoText {
-      progressInfo.text = infoText
-    }
-    progressBar.setProgress(percentParsed, animated: percentParsed != 0.0)
-    progressLabel.text = String(format: "%.1f", percentParsed * 100) + "%"
-  }
-
-  @IBAction
-  func skipPressed(_ sender: Any) {
+  private func skipPressed() {
     let alert = UIAlertController(
       title: "Skip Sync",
       message: "Skipping initial sync results in an incomplete library. Missing library elements can later be synced via various search/update functionalities.",
@@ -152,8 +156,9 @@ extension SyncVC: SyncCallbacks {
         parsePercent = min(Float(self.parsedObjectCount) / Float(self.libObjectsToParseCount), 1.0)
       }
       let percentDiff = Int(parsePercent * 1000) - Int(self.parsedObjectPercent * 1000)
-      if percentDiff > 0 {
-        self.updateSyncInfo(percentParsed: parsePercent)
+      // Steps without a known total count keep showing the spinner only
+      if percentDiff > 0, self.progressModel.progress != nil {
+        self.progressModel.progress = parsePercent
       }
       self.parsedObjectPercent = parsePercent
     }
@@ -165,32 +170,7 @@ extension SyncVC: SyncCallbacks {
       self.parsedObjectPercent = 0.0
       self.state = parsedObjectType
       self.libObjectsToParseCount = totalCount > 0 ? totalCount : 1
-
-      if totalCount > 0 {
-        activitySpinner.stopAnimating()
-        activitySpinner.isHidden = true
-      } else {
-        activitySpinner.startAnimating()
-        activitySpinner.isHidden = false
-      }
-      progressLabel.isHidden = totalCount <= 0
-
-      switch parsedObjectType {
-      case .artist:
-        self.updateSyncInfo(infoText: "Syncing artists ...", percentParsed: 0.0)
-      case .album:
-        self.updateSyncInfo(infoText: "Syncing albums ...", percentParsed: 0.0)
-      case .song:
-        self.updateSyncInfo(infoText: "Syncing songs ...", percentParsed: 0.0)
-      case .playlist:
-        self.updateSyncInfo(infoText: "Syncing playlists ...", percentParsed: 0.0)
-      case .genre:
-        self.updateSyncInfo(infoText: "Syncing genres ...", percentParsed: 0.0)
-      case .podcast:
-        self.updateSyncInfo(infoText: "Syncing podcasts ...", percentParsed: 0.0)
-      case .cache:
-        self.updateSyncInfo(infoText: "Applying cache ...", percentParsed: 0.0)
-      }
+      self.progressModel.start(step: parsedObjectType, totalCount: totalCount)
     }
   }
 }
