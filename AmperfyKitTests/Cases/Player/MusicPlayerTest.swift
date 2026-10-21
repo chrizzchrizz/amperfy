@@ -223,6 +223,7 @@ final class MOCK_BackendApi: BackendApi {
   let clientApiVersion: String = ""
   let serverApiVersion: String = ""
   let httpHeaders: [String: String] = [:]
+  let isScrobbleOfStreamedSongsNeeded = false
   func provideCredentials(credentials: LoginCredentials) {}
   func isAuthenticationValid(credentials: LoginCredentials) async throws {
     throw BackendError.notSupported

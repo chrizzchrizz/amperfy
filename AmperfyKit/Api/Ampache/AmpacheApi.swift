@@ -45,6 +45,9 @@ final class AmpacheApi: BackendApi {
 
   public var serverApiVersion: String { ampacheXmlServerApi.serverApiVersion.wrappedValue ?? "-" }
 
+  /// Ampache records a play when a song is streamed.
+  public var isScrobbleOfStreamedSongsNeeded: Bool { false }
+
   public var httpHeaders: [String: String] {
     ampacheXmlServerApi.httpHeaders
   }

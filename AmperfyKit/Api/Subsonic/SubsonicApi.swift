@@ -62,6 +62,11 @@ extension SubsonicApi: BackendApi {
     subsonicServerApi.serverApiVersion.wrappedValue?.description ?? "-"
   }
 
+  /// Navidrome increases the play count only for scrobbles, not for streams.
+  public var isScrobbleOfStreamedSongsNeeded: Bool {
+    subsonicServerApi.serverType.wrappedValue?.lowercased() == "navidrome"
+  }
+
   public var httpHeaders: [String: String] {
     subsonicServerApi.httpHeaders
   }

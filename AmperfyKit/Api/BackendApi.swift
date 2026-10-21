@@ -265,6 +265,9 @@ public protocol BackendApi: URLCleanser, Sendable {
   var clientApiVersion: String { get }
   var serverApiVersion: String { get }
   var httpHeaders: [String: String] { get }
+  /// True if the server counts a song as played only when it is scrobbled, not already when it
+  /// is streamed. Known after a successful authentication.
+  var isScrobbleOfStreamedSongsNeeded: Bool { get }
   func provideCredentials(credentials: LoginCredentials)
   func isAuthenticationValid(credentials: LoginCredentials) async throws
   func generateUrl(forDownloadingPlayable playableInfo: AbstractPlayableInfo) async throws -> URL

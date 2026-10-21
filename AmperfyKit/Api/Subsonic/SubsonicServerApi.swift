@@ -106,6 +106,7 @@ final class SubsonicServerApi: URLCleanser, Sendable {
 
   internal let serverApiVersion = Atomic<SubsonicVersion?>(wrappedValue: nil)
   internal let clientApiVersion = Atomic<SubsonicVersion?>(wrappedValue: nil)
+  internal let serverType = Atomic<String?>(wrappedValue: nil)
   internal let authType = Atomic<SubsonicApiAuthType>(wrappedValue: .autoDetect)
   internal var account: AccountInfo? {
     guard let credentials = credentials.wrappedValue else { return nil }
@@ -321,6 +322,7 @@ final class SubsonicServerApi: URLCleanser, Sendable {
       throw AuthenticationError.notAbleToLogin
     }
     if success, parserDelegate.isAuthValid {
+      serverType.wrappedValue = parserDelegate.serverType
       return
     } else {
       os_log("Couldn't login.", log: self.log, type: .error)

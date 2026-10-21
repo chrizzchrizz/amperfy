@@ -143,6 +143,12 @@ class LoginVC: UIViewController {
         meta.account.assignInfo(info: accountInfo)
         self.appDelegate.storage.main.saveContext()
         self.appDelegate.storage.settings.accounts.login(credentials)
+        if meta.backendApi.isScrobbleOfStreamedSongsNeeded {
+          // otherwise streamed songs would never count as played on the server
+          self.appDelegate.storage.settings.accounts.updateSetting(accountInfo) {
+            $0.isScrobbleStreamedItems = true
+          }
+        }
         meta.backendApi.provideCredentials(credentials: credentials)
 
         self.appDelegate.notificationHandler.post(name: .accountAdded, object: nil, userInfo: nil)

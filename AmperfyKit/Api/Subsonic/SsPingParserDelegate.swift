@@ -25,6 +25,8 @@ import os.log
 class SsPingParserDelegate: SsXmlParser {
   var isAuthValid: Bool = false
   var serverApiVersion: String?
+  /// Name of the server software, only provided by OpenSubsonic servers, e.g. "navidrome"
+  var serverType: String?
 
   override func parser(
     _ parser: XMLParser,
@@ -46,6 +48,7 @@ class SsPingParserDelegate: SsXmlParser {
       if let version = attributeDict["version"] {
         serverApiVersion = version
       }
+      serverType = attributeDict["type"]
     default:
       break
     }

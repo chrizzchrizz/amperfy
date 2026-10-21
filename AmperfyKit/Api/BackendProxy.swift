@@ -359,6 +359,8 @@ extension BackendProxy: BackendApi {
 
   public var serverApiVersion: String { activeApi.serverApiVersion }
 
+  public var isScrobbleOfStreamedSongsNeeded: Bool { activeApi.isScrobbleOfStreamedSongsNeeded }
+
   public var httpHeaders: [String: String] { activeApi.httpHeaders }
 
   public func provideCredentials(credentials: LoginCredentials) {

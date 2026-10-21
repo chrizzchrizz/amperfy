@@ -40,5 +40,24 @@ class SsPingParserTest: XCTestCase {
     XCTAssertNil(parserDelegate.error)
     XCTAssertTrue(parserDelegate.isAuthValid)
     XCTAssertEqual(parserDelegate.serverApiVersion, "1.1.1")
+    XCTAssertNil(parserDelegate.serverType)
+  }
+
+  func testParsingOpenSubsonicServerType() {
+    let xml = """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <subsonic-response xmlns="http://subsonic.org/restapi" status="ok" version="1.16.1" \
+    type="navidrome" serverVersion="0.53.3" openSubsonic="true">
+    </subsonic-response>
+    """
+    let parserDelegate = SsPingParserDelegate(performanceMonitor: MOCK_PerformanceMonitor())
+    let parser = XMLParser(data: xml.data(using: .utf8)!)
+    parser.delegate = parserDelegate
+    parser.parse()
+
+    XCTAssertNil(parserDelegate.error)
+    XCTAssertTrue(parserDelegate.isAuthValid)
+    XCTAssertEqual(parserDelegate.serverApiVersion, "1.16.1")
+    XCTAssertEqual(parserDelegate.serverType, "navidrome")
   }
 }
