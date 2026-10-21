@@ -29,7 +29,12 @@ private class SimilarContentTile: UIControl {
   private let container: PlayableContainable
   private let onTap: () -> ()
 
-  init(container: PlayableContainable, theme: ThemePreference, onTap: @escaping () -> ()) {
+  init(
+    container: PlayableContainable,
+    theme: ThemePreference,
+    isImageCircular: Bool,
+    onTap: @escaping () -> ()
+  ) {
     self.container = container
     self.onTap = onTap
     super.init(frame: .zero)
@@ -41,6 +46,12 @@ private class SimilarContentTile: UIControl {
       height: Self.imageSize
     ))
     imageView.display(theme: theme, container: container, cornerRadius: .medium)
+    // circular image on a frame filled with the main color of the image, like artists on Home
+    if isImageCircular {
+      imageView.setCircularImage { [weak self] image in
+        image.mainColor(forDarkBackground: self?.traitCollection.userInterfaceStyle == .dark)
+      }
+    }
     imageView.isUserInteractionEnabled = false
 
     let titleLabel = UILabel()
@@ -132,7 +143,12 @@ class SimilarContentFooterView: UIView {
   var hasContent: Bool { !artistsSection.isHidden || !albumsSection.isHidden }
 
   func display(artists: [Artist]) {
-    fill(row: artistsRow, section: artistsSection, containers: artists) { [weak self] artist in
+    fill(
+      row: artistsRow,
+      section: artistsSection,
+      containers: artists,
+      isImageCircular: true
+    ) { [weak self] artist in
       self?.onArtistSelected?(artist)
     }
   }
@@ -147,11 +163,16 @@ class SimilarContentFooterView: UIView {
     row: UIStackView,
     section: UIView,
     containers: [T],
+    isImageCircular: Bool = false,
     onSelect: @escaping (T) -> ()
   ) {
     row.arrangedSubviews.forEach { $0.removeFromSuperview() }
     for container in containers {
-      row.addArrangedSubview(SimilarContentTile(container: container, theme: theme) {
+      row.addArrangedSubview(SimilarContentTile(
+        container: container,
+        theme: theme,
+        isImageCircular: isImageCircular
+      ) {
         onSelect(container)
       })
     }
