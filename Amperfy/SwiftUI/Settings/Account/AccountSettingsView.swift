@@ -36,12 +36,6 @@ struct AccountSettingsView: View {
   @EnvironmentObject
   var settings: Settings
 
-  func setThemePreference(preference: ThemePreference) {
-    settings.themePreference = preference
-    appDelegate.setAppTheme(color: preference.asColor)
-    appDelegate.applyAppThemeToAlreadyLoadedViews()
-  }
-
   private func resyncLibrary(accountInfo: AccountInfo) {
     appDelegate.closeAllButActiveMainTabs()
     if appDelegate.storage.settings.accounts.allAccounts.count <= 1 {
@@ -150,34 +144,6 @@ struct AccountSettingsView: View {
                 appDelegate.storage.settings.accounts.getSetting(settings.activeAccountInfo).read
                   .loginCredentials?.username ?? ""
               )
-            }
-          }
-
-          SettingsSection {
-            SettingsRow(title: "Theme Color") {
-              Menu(settings.themePreference.description) {
-                Button(ThemePreference.eigenton.description) {
-                  setThemePreference(preference: .eigenton)
-                }
-                Button(ThemePreference.blue.description) {
-                  setThemePreference(preference: .blue)
-                }
-                Button(ThemePreference.green.description) {
-                  setThemePreference(preference: .green)
-                }
-                Button(ThemePreference.red.description) {
-                  setThemePreference(preference: .red)
-                }
-                Button(ThemePreference.yellow.description) {
-                  setThemePreference(preference: .yellow)
-                }
-                Button(ThemePreference.orange.description) {
-                  setThemePreference(preference: .orange)
-                }
-                Button(ThemePreference.purple.description) {
-                  setThemePreference(preference: .purple)
-                }
-              }
             }
           }
 
