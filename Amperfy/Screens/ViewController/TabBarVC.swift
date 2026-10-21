@@ -39,7 +39,6 @@ class TabBarVC: UITabBarController {
     fatalError("init(coder:) has not been implemented")
   }
 
-  private var welcomePopupPresenter = WelcomePopupPresenter()
   var miniPlayer: MiniPlayerView?
 
   override func viewDidLoad() {
@@ -209,7 +208,7 @@ class TabBarVC: UITabBarController {
     super.viewIsAppearing(animated)
     refresh()
     selectedTab = homeTab
-    welcomePopupPresenter.displayInfoPopupsIfNeeded()
+    appDelegate.localNotificationManager.requestAuthorization()
   }
 
   @objc

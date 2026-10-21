@@ -41,7 +41,6 @@
 		502041A22E2A3CDB003CE29A /* EquilizerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5020419F2E2A3CDB003CE29A /* EquilizerView.swift */; };
 		502041A32E2A3CDB003CE29A /* EQPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5020419E2E2A3CDB003CE29A /* EQPath.swift */; };
 		502041A42E2A3CDB003CE29A /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5020419D2E2A3CDB003CE29A /* Constants.swift */; };
-		5020D51A2E3B6FF6000A6F85 /* WelcomePopupPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5020D5192E3B6FF0000A6F85 /* WelcomePopupPresenter.swift */; };
 		5021B1282BC723F400893C33 /* FuzzySearcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5021B1272BC723F400893C33 /* FuzzySearcher.swift */; };
 		5023D9B02BD9A55E00310144 /* CacheFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5023D9AF2BD9A55E00310144 /* CacheFileManager.swift */; };
 		5023D9B22BDAA48200310144 /* UpdateVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5023D9B12BDAA48200310144 /* UpdateVC.swift */; };
@@ -691,7 +690,6 @@
 		5020419E2E2A3CDB003CE29A /* EQPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EQPath.swift; sourceTree = "<group>"; };
 		5020419F2E2A3CDB003CE29A /* EquilizerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquilizerView.swift; sourceTree = "<group>"; };
 		502041A02E2A3CDB003CE29A /* SliderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SliderView.swift; sourceTree = "<group>"; };
-		5020D5192E3B6FF0000A6F85 /* WelcomePopupPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomePopupPresenter.swift; sourceTree = "<group>"; };
 		5021B1272BC723F400893C33 /* FuzzySearcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuzzySearcher.swift; sourceTree = "<group>"; };
 		50223EF2264543EA007445BC /* LibrarySyncVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySyncVersion.swift; sourceTree = "<group>"; };
 		5023D9AE2BD8408B00310144 /* Amperfy v37.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Amperfy v37.xcdatamodel"; sourceTree = "<group>"; };
@@ -1821,7 +1819,6 @@
 			children = (
 				50C171402D0E142900C0C53A /* PlaylistAdd */,
 				505CA20B2B88E95400AA81CD /* TableViewHelper */,
-				5020D5192E3B6FF0000A6F85 /* WelcomePopupPresenter.swift */,
 				50C16C2721E8680A00F086F0 /* CommonScreenOperations.swift */,
 				632F51252C83A8400032860D /* LyricsVC.swift */,
 				50DE29EA2B8FCEB700ABA78E /* LibraryNavigatorConfigurator.swift */,
@@ -2561,7 +2558,6 @@
 				505CA20E2B88EB9A00AA81CD /* BasicFetchedResultsTableViewController.swift in Sources */,
 				508FDE5021F64ED6005A0724 /* TabBarVC.swift in Sources */,
 				50C16C2821E8680A00F086F0 /* CommonScreenOperations.swift in Sources */,
-				5020D51A2E3B6FF6000A6F85 /* WelcomePopupPresenter.swift in Sources */,
 				50AC4E5328D909730091FF33 /* EventLogSettingsView.swift in Sources */,
 				50AFA1492632E83100F198DD /* GenericDetailTableHeader.swift in Sources */,
 				5047B7082E3CB90C00D5090C /* PlayerUIHandler.swift in Sources */,

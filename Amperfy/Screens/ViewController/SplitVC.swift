@@ -38,7 +38,6 @@ class SplitVC: UISplitViewController {
   var miniPlayerTrailingConstraint: NSLayoutConstraint?
   var miniPlayerBottomConstraint: NSLayoutConstraint?
   var miniPlayerHeightConstraint: NSLayoutConstraint?
-  var welcomePopupPresenter = WelcomePopupPresenter()
   private let account: Account!
 
   init(style: UISplitViewController.Style, account: Account) {
@@ -126,7 +125,7 @@ class SplitVC: UISplitViewController {
     maximumPrimaryColumnWidth = Self.sidebarWidth
     minimumInspectorColumnWidth = Self.sidebarWidth
     maximumInspectorColumnWidth = Self.sidebarWidth
-    welcomePopupPresenter.displayInfoPopupsIfNeeded()
+    appDelegate.localNotificationManager.requestAuthorization()
     miniPlayer?.refreshPlayer()
   }
 
