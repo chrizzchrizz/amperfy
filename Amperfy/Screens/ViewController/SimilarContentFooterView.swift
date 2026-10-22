@@ -104,6 +104,10 @@ class SimilarContentFooterView: UIView {
   private let albumsRow = UIStackView()
   private let artistsSection: UIView
   private let albumsSection: UIView
+  private let backgroundView = UIView()
+  /// Padding between the top of the darker background and the first title,
+  /// also used as the gap between the content above and the background.
+  private static let topPadding: CGFloat = 32
 
   init(account: Account, owner: UIViewController) {
     self.account = account
@@ -117,12 +121,15 @@ class SimilarContentFooterView: UIView {
       row: albumsRow
     )
     super.init(frame: .zero)
+    // darkens whatever background the screen shows, also the artwork color of the detail screens
+    backgroundView.backgroundColor = .black.withAlphaComponent(0.15)
+    addSubview(backgroundView)
 
     stack.axis = .vertical
     stack.spacing = 32
     stack.translatesAutoresizingMaskIntoConstraints = false
     stack.isLayoutMarginsRelativeArrangement = true
-    stack.layoutMargins = UIEdgeInsets(top: 32, left: 0, bottom: 16, right: 0)
+    stack.layoutMargins = UIEdgeInsets(top: 2 * Self.topPadding, left: 0, bottom: 16, right: 0)
     stack.addArrangedSubview(artistsSection)
     stack.addArrangedSubview(albumsSection)
     addSubview(stack)
@@ -142,6 +149,19 @@ class SimilarContentFooterView: UIView {
 
   private var theme: ThemePreference {
     appDelegate.storage.settings.accounts.getSetting(account.info).read.themePreference
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    // the footer is the last content of the table, so its background continues below it to the
+    // end of the page: into the bottom inset behind the tab bar and the bounce area
+    let extensionHeight = max(superview?.bounds.height ?? 0, 1000)
+    backgroundView.frame = CGRect(
+      x: 0,
+      y: Self.topPadding,
+      width: bounds.width,
+      height: bounds.height - Self.topPadding + extensionHeight
+    )
   }
 
   var hasContent: Bool { !artistsSection.isHidden || !albumsSection.isHidden }
@@ -171,6 +191,7 @@ class SimilarContentFooterView: UIView {
   /// a changed footer height when the footer is assigned again.
   func layout(in tableView: UITableView) {
     guard tableView.tableFooterView === self, tableView.bounds.width > 0 else { return }
+    setNeedsLayout() // the background below the footer follows the height of the table view
     let height = systemLayoutSizeFitting(
       CGSize(width: tableView.bounds.width, height: UIView.layoutFittingCompressedSize.height),
       withHorizontalFittingPriority: .required,
