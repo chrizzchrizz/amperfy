@@ -36,7 +36,8 @@ public enum SearchSection: Int, CaseIterable {
 // MARK: - SearchDiffableDataSource
 
 class SearchDiffableDataSource: BasicUITableViewDiffableDataSource {
-  public var searchVC: SearchVC!
+  // weak: the screen owns its data source
+  public weak var searchVC: SearchVC?
 
   override func tableView(
     _ tableView: UITableView,
@@ -45,7 +46,7 @@ class SearchDiffableDataSource: BasicUITableViewDiffableDataSource {
     -> String? {
     switch SearchSection(rawValue: section) {
     case .History:
-      if searchVC.searchHistory.isEmpty {
+      if searchVC?.searchHistory.isEmpty ?? true {
         return ""
       } else {
         return "Recently Searched"
