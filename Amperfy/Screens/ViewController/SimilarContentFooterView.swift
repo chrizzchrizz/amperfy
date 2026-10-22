@@ -49,7 +49,7 @@ private class SimilarContentTile: UIControl {
     // circular image across the whole tile without a colored frame, as the footer itself
     // already sits on the artwork color of the detail screen
     if isImageCircular {
-      imageView.setCircularImage(frameColor: { _ in .clear }, inset: 0)
+      imageView.setCircularImage(frameColor: { _ in .clear }, inset: 0, isPlaceholderCircular: true)
     }
     imageView.isUserInteractionEnabled = false
 

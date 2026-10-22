@@ -39,6 +39,7 @@ open class EntityImageView: UIView {
   /// Inset of the circular image relative to the frame size.
   private var circularImageInset: CGFloat = 0.1
   private var circularFrameColor: ((UIImage) -> UIColor)?
+  private var isCircularPlaceholder = false
 
   private var quadImages: [LibraryEntityImage] {
     [
@@ -97,12 +98,18 @@ open class EntityImageView: UIView {
 
   /// Shows the single image as a circle inside the frame, the frame is filled with the color
   /// `frameColor` derives from the shown image. `inset` is the gap between circle and frame
-  /// relative to the frame size. The placeholder of an entity without artwork
-  /// and nil show the image across the whole frame.
-  public func setCircularImage(frameColor: ((UIImage) -> UIColor)?, inset: CGFloat = 0.1) {
+  /// relative to the frame size. The placeholder of an entity without artwork is only shown
+  /// as a circle if `isPlaceholderCircular` is set, otherwise it and nil show the image
+  /// across the whole frame.
+  public func setCircularImage(
+    frameColor: ((UIImage) -> UIColor)?,
+    inset: CGFloat = 0.1,
+    isPlaceholderCircular: Bool = false
+  ) {
     let wasCircular = circularFrameColor != nil
     circularFrameColor = frameColor
     circularImageInset = inset
+    isCircularPlaceholder = isPlaceholderCircular
     if frameColor != nil {
       singleImage.imageDidChange = { [weak self] _ in self?.updateCircularStyle() }
       updateCircularStyle()
@@ -113,7 +120,7 @@ open class EntityImageView: UIView {
   }
 
   private var showsCircularImage: Bool {
-    circularFrameColor != nil && !singleImage.isShowingPlaceholder
+    circularFrameColor != nil && (isCircularPlaceholder || !singleImage.isShowingPlaceholder)
   }
 
   private func updateCircularStyle() {
