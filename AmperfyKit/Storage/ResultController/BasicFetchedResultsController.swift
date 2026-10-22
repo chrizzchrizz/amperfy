@@ -472,7 +472,8 @@ public class CachedFetchedResultsController<ResultType>: BasicFetchedResultsCont
   private let searchFetchResulsController: CustomSectionIndexFetchedResultsController<ResultType>
   private var sectionIndexType: SectionIndexType
 
-  private var delegateInternal: NSFetchedResultsControllerDelegate?
+  /// weak like the delegate of NSFetchedResultsController, the delegate usually owns this controller
+  private weak var delegateInternal: NSFetchedResultsControllerDelegate?
   override public var delegate: NSFetchedResultsControllerDelegate? {
     set {
       delegateInternal = newValue
