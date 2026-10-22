@@ -37,7 +37,7 @@ open class EntityImageView: UIView {
   private var view: UIView!
 
   /// Inset of the circular image relative to the frame size.
-  private static let circularImageInset: CGFloat = 0.1
+  private var circularImageInset: CGFloat = 0.1
   private var circularFrameColor: ((UIImage) -> UIColor)?
 
   private var quadImages: [LibraryEntityImage] {
@@ -96,11 +96,13 @@ open class EntityImageView: UIView {
   }
 
   /// Shows the single image as a circle inside the frame, the frame is filled with the color
-  /// `frameColor` derives from the shown image. The placeholder of an entity without artwork
+  /// `frameColor` derives from the shown image. `inset` is the gap between circle and frame
+  /// relative to the frame size. The placeholder of an entity without artwork
   /// and nil show the image across the whole frame.
-  public func setCircularImage(frameColor: ((UIImage) -> UIColor)?) {
+  public func setCircularImage(frameColor: ((UIImage) -> UIColor)?, inset: CGFloat = 0.1) {
     let wasCircular = circularFrameColor != nil
     circularFrameColor = frameColor
+    circularImageInset = inset
     if frameColor != nil {
       singleImage.imageDidChange = { [weak self] _ in self?.updateCircularStyle() }
       updateCircularStyle()
@@ -134,7 +136,7 @@ open class EntityImageView: UIView {
   override open func layoutSubviews() {
     if showsCircularImage {
       let side = min(bounds.width, bounds.height)
-      let inset = (side * Self.circularImageInset).rounded()
+      let inset = (side * circularImageInset).rounded()
       view.layoutMargins = UIEdgeInsets(top: inset, left: inset, bottom: inset, right: inset)
       singleImage.layer.cornerRadius = (side - 2 * inset) / 2
     }

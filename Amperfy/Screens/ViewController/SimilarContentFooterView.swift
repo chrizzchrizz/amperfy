@@ -46,11 +46,10 @@ private class SimilarContentTile: UIControl {
       height: Self.imageSize
     ))
     imageView.display(theme: theme, container: container, cornerRadius: .medium)
-    // circular image on a frame filled with the main color of the image, like artists on Home
+    // circular image across the whole tile without a colored frame, as the footer itself
+    // already sits on the artwork color of the detail screen
     if isImageCircular {
-      imageView.setCircularImage { [weak self] image in
-        image.mainColor(forDarkBackground: self?.traitCollection.userInterfaceStyle == .dark)
-      }
+      imageView.setCircularImage(frameColor: { _ in .clear }, inset: 0)
     }
     imageView.isUserInteractionEnabled = false
 
@@ -58,11 +57,13 @@ private class SimilarContentTile: UIControl {
     titleLabel.font = .preferredFont(forTextStyle: .footnote)
     titleLabel.textColor = .label
     titleLabel.text = container.name
+    titleLabel.textAlignment = isImageCircular ? .center : .natural
     let subtitleLabel = UILabel()
     subtitleLabel.font = .preferredFont(forTextStyle: .caption1)
     subtitleLabel.textColor = .secondaryLabel
     subtitleLabel.text = container.subtitle
     subtitleLabel.isHidden = container.subtitle == nil
+    subtitleLabel.textAlignment = titleLabel.textAlignment
 
     let stack = UIStackView(arrangedSubviews: [imageView, titleLabel, subtitleLabel])
     stack.axis = .vertical
