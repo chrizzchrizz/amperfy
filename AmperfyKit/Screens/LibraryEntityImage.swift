@@ -20,6 +20,7 @@
 //
 
 import CoreData
+import ImageIO
 import UIKit
 
 extension LibraryEntityImage {
@@ -34,7 +35,10 @@ extension LibraryEntityImage {
     if let artworkImagePath = libraryEntity.imagePath(
       setting: artworkDisplayPreference
     ) {
-      if useCache, let cachedImg = Self.cache.object(forKey: artworkImagePath as NSString) {
+      if useCache, let cachedImg = Self.cachedImage(
+        imagePath: artworkImagePath,
+        minPixelSize: 0
+      )?.image {
         return cachedImg
       } else if let directlyLoadedImage = UIImage(named: artworkImagePath) {
         return directlyLoadedImage
@@ -51,7 +55,16 @@ extension LibraryEntityImage {
 
 @MainActor
 public class LibraryEntityImage: RoundedImage {
-  static private let cache: NSCache<NSString, UIImage> = NSCache()
+  /// Decoded artworks, keyed by image path and pixel size; a decoded bitmap takes 4 bytes per pixel.
+  static private let cache: NSCache<NSString, UIImage> = {
+    let cache = NSCache<NSString, UIImage>()
+    cache.totalCostLimit = 100 * 1024 * 1024
+    return cache
+  }()
+
+  /// Maximum pixel sizes an artwork is decoded with, so a small tile does not keep the
+  /// full resolution artwork in memory.
+  static private let pixelSizes = [256, 512, 1024, 2048]
 
   private let appDelegate: AmperKit
 
@@ -59,6 +72,10 @@ public class LibraryEntityImage: RoundedImage {
   private var standaloneArtwork: Artwork?
   private var backupArtworkType: ArtworkType?
   private var accountNotificationHandler: AccountNotificationHandler?
+  /// Pixel size of the shown artwork, 0 while the placeholder is shown
+  private var shownPixelSize = 0
+  /// Image path and pixel size of the artwork that is being loaded
+  private var loadingCacheKey: String?
 
   /// True if the generated placeholder is shown because there is no artwork
   /// (false while an existing artwork is still loading).
@@ -150,6 +167,7 @@ public class LibraryEntityImage: RoundedImage {
 
   internal func display(image: UIImage) {
     isShowingPlaceholder = false
+    shownPixelSize = 0
     self.image = image
     entity = nil
     standaloneArtwork = nil
@@ -186,38 +204,116 @@ public class LibraryEntityImage: RoundedImage {
     return standaloneArtwork?.imagePath
   }
 
-  private func refresh() {
-    let imagePathToDisplay = entityImagePathToDisplay
-
-    if let imagePathToDisplay,
-       let cachedImg = Self.cache.object(forKey: imagePathToDisplay as NSString) {
-      isShowingPlaceholder = false
-      image = cachedImg
-      return
-    }
-
-    isShowingPlaceholder = imagePathToDisplay == nil
-    image = placeholderImage
-    guard let imagePathToDisplay else { return }
-
-    Task.detached(priority: .high) { [weak self] in
-      await self?.loadImageAndCacheIt(imagePath: imagePathToDisplay)
+  override public func layoutSubviews() {
+    super.layoutSubviews()
+    // the view can get larger after the artwork was shown, e.g. when it is laid out the first time
+    if shownPixelSize > 0, loadingCacheKey == nil, requiredPixelSize > shownPixelSize {
+      refresh()
     }
   }
 
-  @concurrent
-  private func loadImageAndCacheIt(
-    imagePath: String
-  ) async {
-    guard !Task.isCancelled else { return }
-    let loadedImage = UIImage(contentsOfFile: imagePath)
-    let readyImage = await loadedImage?.byPreparingForDisplay()
-    guard !Task.isCancelled else { return }
-    Task { @MainActor [weak self] in
-      guard let self, let readyImage else { return }
-      Self.cache.setObject(readyImage, forKey: imagePath as NSString)
-      refresh()
+  /// Smallest pixel size that covers the view on the screen
+  private var requiredPixelSize: Int {
+    let pixels = max(bounds.width, bounds.height) * traitCollection.displayScale
+    return Self.pixelSizes.first { CGFloat($0) >= pixels } ?? Self.pixelSizes.last!
+  }
+
+  private static func cacheKey(imagePath: String, pixelSize: Int) -> String {
+    "\(imagePath)|\(pixelSize)"
+  }
+
+  /// The smallest cached artwork with at least `minPixelSize`
+  private static func cachedImage(
+    imagePath: String,
+    minPixelSize: Int
+  )
+    -> (image: UIImage, pixelSize: Int)? {
+    for pixelSize in pixelSizes where pixelSize >= minPixelSize {
+      if let image = cache.object(forKey: cacheKey(
+        imagePath: imagePath,
+        pixelSize: pixelSize
+      ) as NSString) {
+        return (image, pixelSize)
+      }
     }
+    return nil
+  }
+
+  private func refresh() {
+    let imagePathToDisplay = entityImagePathToDisplay
+    let pixelSize = requiredPixelSize
+
+    if let imagePathToDisplay,
+       let cached = Self.cachedImage(imagePath: imagePathToDisplay, minPixelSize: pixelSize) {
+      isShowingPlaceholder = false
+      shownPixelSize = cached.pixelSize
+      image = cached.image
+      return
+    }
+
+    // a smaller artwork is shown until the required size is loaded
+    if let imagePathToDisplay,
+       let smaller = Self.cachedImage(imagePath: imagePathToDisplay, minPixelSize: 0) {
+      isShowingPlaceholder = false
+      shownPixelSize = smaller.pixelSize
+      image = smaller.image
+    } else {
+      isShowingPlaceholder = imagePathToDisplay == nil
+      shownPixelSize = 0
+      image = placeholderImage
+    }
+    guard let imagePathToDisplay else { return }
+    loadImage(imagePath: imagePathToDisplay)
+  }
+
+  private func loadImage(imagePath: String, pixelSize: Int? = nil) {
+    let pixelSize = pixelSize ?? requiredPixelSize
+    let cacheKey = Self.cacheKey(imagePath: imagePath, pixelSize: pixelSize)
+    guard loadingCacheKey != cacheKey else { return }
+    loadingCacheKey = cacheKey
+    Task.detached(priority: .high) { [weak self] in
+      let readyImage = await Self.decodeImage(imagePath: imagePath, maxPixelSize: pixelSize)
+      guard !Task.isCancelled else { return }
+      Task { @MainActor [weak self] in
+        guard let self else { return }
+        if loadingCacheKey == cacheKey { loadingCacheKey = nil }
+        guard let readyImage else { return }
+        Self.cache.setObject(
+          readyImage,
+          forKey: cacheKey as NSString,
+          cost: Self.byteCount(of: readyImage)
+        )
+        refresh()
+      }
+    }
+  }
+
+  /// Decodes the artwork, scaled down to `maxPixelSize` if it is larger
+  @concurrent
+  private static func decodeImage(imagePath: String, maxPixelSize: Int) async -> UIImage? {
+    let url = URL(fileURLWithPath: imagePath) as CFURL
+    let options: [CFString: Any] = [
+      kCGImageSourceCreateThumbnailFromImageAlways: true,
+      kCGImageSourceCreateThumbnailWithTransform: true,
+      kCGImageSourceShouldCacheImmediately: true,
+      kCGImageSourceThumbnailMaxPixelSize: maxPixelSize,
+    ]
+    if let source = CGImageSourceCreateWithURL(
+      url,
+      [kCGImageSourceShouldCache: false] as CFDictionary
+    ),
+      let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) {
+      return UIImage(cgImage: cgImage)
+    }
+    // formats ImageIO can not scale
+    return await UIImage(contentsOfFile: imagePath)?.byPreparingForDisplay()
+  }
+
+  private static func byteCount(of image: UIImage) -> Int {
+    guard let cgImage = image.cgImage else {
+      return Int(image.size.width * image.scale * image.size.height * image.scale) * 4
+    }
+    return cgImage.bytesPerRow * cgImage.height
   }
 
   @objc
@@ -228,7 +324,7 @@ public class LibraryEntityImage: RoundedImage {
        artwork.uniqueID == downloadNotification.id {
       Task { @MainActor in
         guard let imagePath = artwork.imagePath else { return }
-        await self.loadImageAndCacheIt(imagePath: imagePath)
+        self.loadImage(imagePath: imagePath)
       }
       return
     }
@@ -240,9 +336,7 @@ public class LibraryEntityImage: RoundedImage {
           setting: appDelegate.storage.settings.accounts.getSetting(accountInfo).read
             .artworkDisplayPreference
         ) else { return }
-        await self.loadImageAndCacheIt(
-          imagePath: imagePath
-        )
+        self.loadImage(imagePath: imagePath)
       }
     }
     if let artwork = entity.artwork,
@@ -252,9 +346,7 @@ public class LibraryEntityImage: RoundedImage {
           setting: appDelegate.storage.settings.accounts.getSetting(accountInfo).read
             .artworkDisplayPreference
         ) else { return }
-        await self.loadImageAndCacheIt(
-          imagePath: imagePath
-        )
+        self.loadImage(imagePath: imagePath)
       }
     }
   }
