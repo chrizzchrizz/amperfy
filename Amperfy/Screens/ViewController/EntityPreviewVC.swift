@@ -674,6 +674,8 @@ class EntityPreviewActionBuilder {
   }
 
   private func showAlbum() {
+    // the screen of the menu is gone
+    guard rootView != nil else { return }
     let playable = entityContainer as? AbstractPlayable
     let album = playable?.asSong?.album
     guard let album = album, let account = album.account else { return }
@@ -704,6 +706,8 @@ class EntityPreviewActionBuilder {
   }
 
   private func showArtist() {
+    // the screen of the menu is gone
+    guard rootView != nil else { return }
     let playable = entityContainer as? AbstractPlayable
     let album = entityContainer as? Album
     if let artist = playable?.asSong?.artist ?? album?.artist, let account = artist.account {
