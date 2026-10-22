@@ -28,7 +28,8 @@ import UIKit
 /// The owning screen forwards its lifecycle events and passes `contentColor` to its cells.
 @MainActor
 final class ArtworkBackgroundController: NSObject {
-  private unowned let owner: BasicTableViewController
+  // weak: color loading and download notifications can outlive the screen
+  private weak var owner: BasicTableViewController?
   private let account: Account
   private let detailHeader: () -> GenericDetailTableHeader?
   private let imagePath: (ArtworkDisplayPreference) -> String?
@@ -75,15 +76,16 @@ final class ArtworkBackgroundController: NSObject {
 
   /// Title, back button and bar buttons follow the artwork background while the screen is visible.
   func applyNavigationBarStyle() {
-    owner.navigationController?.navigationBar.overrideUserInterfaceStyle = navigationBarStyle
+    owner?.navigationController?.navigationBar.overrideUserInterfaceStyle = navigationBarStyle
   }
 
   /// The navigation bar is shared with other screens.
   func resetNavigationBarStyle() {
-    owner.navigationController?.navigationBar.overrideUserInterfaceStyle = .unspecified
+    owner?.navigationController?.navigationBar.overrideUserInterfaceStyle = .unspecified
   }
 
   func update(animated: Bool? = nil) {
+    guard let owner else { return }
     let artworkDisplayPreference = owner.appDelegate.storage.settings.accounts
       .getSetting(account.info).read.artworkDisplayPreference
     guard let imagePath = imagePath(artworkDisplayPreference) else { return }
@@ -98,12 +100,14 @@ final class ArtworkBackgroundController: NSObject {
       let color = await Self.loadMainColor(imagePath: imagePath, forDarkBackground: isDarkMode)
       guard let color else { return }
       Self.mainColorCache.setObject(color, forKey: cacheKey)
+      guard let owner = self.owner else { return }
       // only fade in if the user already sees the screen
-      self.applyBackground(color: color, animated: animated ?? (self.owner.view.window != nil))
+      self.applyBackground(color: color, animated: animated ?? (owner.view.window != nil))
     }
   }
 
   private func applyBackground(color: UIColor, animated: Bool) {
+    guard let owner else { return }
     // the color is already chosen for the current interface style
     let backgroundColor = color
     // dark style renders labels, separators and cells white, light style black
@@ -139,7 +143,7 @@ final class ArtworkBackgroundController: NSObject {
 
   /// Search field text, placeholder, icon and fill follow the artwork background.
   private func applySearchBarColors(contentColor: UIColor, prefersDarkContent: Bool) {
-    let searchBar = owner.searchController.searchBar
+    guard let searchBar = owner?.searchController.searchBar else { return }
     searchBar.overrideUserInterfaceStyle = prefersDarkContent ? .light : .dark
     searchBar.tintColor = contentColor
     let textField = searchBar.searchTextField

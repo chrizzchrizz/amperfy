@@ -95,7 +95,7 @@ class PlayableTableCell: BasicTableCell {
   /// the file of the playable is downloading right now, the cache icon is animated meanwhile
   private var isDownloadRunning = false
   private var isCacheIconAnimating = false
-  private var rootView: UIViewController?
+  private weak var rootView: UIViewController?
   private var playIndicator: PlayIndicator?
   private var isDislayAlbumTrackNumberStyle: Bool = false
   private var isAlbumSubtitle: Bool = false
@@ -461,11 +461,17 @@ class PlayableTableCell: BasicTableCell {
     if isDisplayOptionButton {
       optionsButton.showsMenuAsPrimaryAction = true
       optionsButton.imageView?.tintColor = .label
-      if let rootView = rootView {
-        let playContext = playContextCb != nil ? { self.playContextCb?(self) } : nil
-        let playIndex = playerIndexCb != nil ? { self.playerIndexCb?(self) } : nil
-        optionsButton.menu = UIMenu.lazyMenu {
-          EntityPreviewActionBuilder(
+      if rootView != nil {
+        let playContext = playContextCb != nil ? { [weak self] in
+          self.flatMap { $0.playContextCb?($0) }
+        } : nil
+        let playIndex = playerIndexCb != nil ? { [weak self] in
+          self.flatMap { $0.playerIndexCb?($0) }
+        } : nil
+        // the menu belongs to the cell, which must not keep the screen alive
+        optionsButton.menu = UIMenu.lazyMenu { [weak self] in
+          guard let rootView = self?.rootView else { return [] }
+          return EntityPreviewActionBuilder(
             container: playable,
             on: rootView,
             playContextCb: playContext,

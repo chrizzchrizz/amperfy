@@ -35,7 +35,7 @@ class PlaylistTableCell: BasicTableCell {
   static let rowHeight: CGFloat = 70.0 + margin.bottom + margin.top
 
   private var playlist: Playlist?
-  private var rootView: UITableViewController?
+  private weak var rootView: UITableViewController?
 
   func display(playlist: Playlist, rootView: UITableViewController?) {
     self.playlist = playlist

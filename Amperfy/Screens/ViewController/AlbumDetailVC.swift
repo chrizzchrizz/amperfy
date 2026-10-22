@@ -59,15 +59,18 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
 
   override func createDiffableDataSource() -> BasicUITableViewDiffableDataSource {
     let source =
-      AlbumDetailDiffableDataSource(tableView: tableView) { tableView, indexPath, objectID -> UITableViewCell? in
-        guard let object = try? self.appDelegate.storage.main.context
+      AlbumDetailDiffableDataSource(tableView: tableView) { [
+        weak self
+      ] tableView, indexPath, objectID -> UITableViewCell? in
+        guard let self else { return nil }
+        guard let object = try? appDelegate.storage.main.context
           .existingObject(with: objectID),
           let songMO = object as? SongMO
         else {
           fatalError("Managed object should be available")
         }
         let song = Song(managedObject: songMO)
-        return self.createCell(tableView, forRowAt: indexPath, song: song)
+        return createCell(tableView, forRowAt: indexPath, song: song)
       }
     return source
   }
@@ -102,12 +105,16 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
     tableView.backgroundColor = .backgroundColor
     tableView.separatorStyle = .none // rows draw their own separators
 
+    let album = album
     let playShuffleInfoConfig = PlayShuffleInfoConfiguration(
-      infoCB: { "\(self.album.songCount) Song\(self.album.songCount == 1 ? "" : "s")" },
-      playContextCb: { () in PlayContext(
-        containable: self.album,
-        playables: self.fetchedResultsController
-          .getContextSongs(onlyCachedSongs: self.appDelegate.storage.settings.user.isOfflineMode) ??
+      infoCB: { "\(album.songCount) Song\(album.songCount == 1 ? "" : "s")" },
+      playContextCb: { [weak self] () in PlayContext(
+        containable: album,
+        playables: self?.fetchedResultsController
+          .getContextSongs(
+            onlyCachedSongs: self?.appDelegate.storage.settings.user
+              .isOfflineMode ?? false
+          ) ??
           []
       ) },
       player: appDelegate.player,
@@ -123,18 +130,22 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
       .createTableHeader(configuration: detailHeaderConfig)
 
     optionsButton = UIBarButtonItem.createOptionsBarButton()
-    optionsButton.menu = UIMenu.lazyMenu {
-      EntityPreviewActionBuilder(container: self.album, on: self).createMenuActions()
+    optionsButton.menu = UIMenu.lazyMenu { [weak self] in
+      guard let self else { return [] }
+      return EntityPreviewActionBuilder(container: album, on: self).createMenuActions()
     }
     navigationItem.rightBarButtonItem = optionsButton
 
-    containableAtIndexPathCallback = { indexPath in
-      self.fetchedResultsController.getWrappedEntity(at: indexPath)
+    containableAtIndexPathCallback = { [weak self] indexPath in
+      self?.fetchedResultsController.getWrappedEntity(at: indexPath)
     }
-    playContextAtIndexPathCallback = convertIndexPathToPlayContext
-    swipeCallback = { indexPath, completionHandler in
-      let song = self.fetchedResultsController.getWrappedEntity(at: indexPath)
-      let playContext = self.convertIndexPathToPlayContext(songIndexPath: indexPath)
+    playContextAtIndexPathCallback = { [weak self] indexPath in
+      self?.convertIndexPathToPlayContext(songIndexPath: indexPath)
+    }
+    swipeCallback = { [weak self] indexPath, completionHandler in
+      guard let self else { return }
+      let song = fetchedResultsController.getWrappedEntity(at: indexPath)
+      let playContext = convertIndexPathToPlayContext(songIndexPath: indexPath)
       completionHandler(SwipeActionContext(containable: song, playContext: playContext))
     }
 
@@ -240,7 +251,7 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
     cell.contentColorOverride = artworkBackground.contentColor
     cell.display(
       playable: song,
-      playContextCb: convertCellViewToPlayContext,
+      playContextCb: { [weak self] cell in self?.convertCellViewToPlayContext(cell: cell) },
       rootView: self,
       isDislayAlbumTrackNumberStyle: true
     )

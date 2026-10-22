@@ -51,7 +51,7 @@ class PodcastEpisodeTableCell: BasicTableCell {
   static let rowHeight: CGFloat = 143.0 + margin.bottom + margin.top
 
   private var episode: PodcastEpisode?
-  private var rootView: UIViewController?
+  private weak var rootView: UIViewController?
   private var playIndicator: PlayIndicator?
 
   func display(episode: PodcastEpisode, rootView: UIViewController) {
@@ -61,11 +61,14 @@ class PodcastEpisodeTableCell: BasicTableCell {
     self.episode = episode
     self.rootView = rootView
     optionsButton.showsMenuAsPrimaryAction = true
-    optionsButton.menu = UIMenu.lazyMenu { EntityPreviewActionBuilder(
-      container: episode,
-      on: rootView,
-      playContextCb: { () in PlayContext(containable: episode) }
-    ).createMenuActions() }
+    optionsButton.menu = UIMenu.lazyMenu { [weak rootView] in
+      guard let rootView else { return [] }
+      return EntityPreviewActionBuilder(
+        container: episode,
+        on: rootView,
+        playContextCb: { () in PlayContext(containable: episode) }
+      ).createMenuActions()
+    }
     refresh()
   }
 

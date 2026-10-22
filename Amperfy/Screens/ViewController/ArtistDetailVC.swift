@@ -152,16 +152,20 @@ class ArtistDetailVC: MultiSourceTableViewController {
     tableView.backgroundColor = .clear
 
     configureSearchController(placeholder: "Albums and Songs", scopeButtonTitles: ["All", "Cached"])
+    let artist = artist
     let playShuffleInfoConfig = PlayShuffleInfoConfiguration(
       infoCB: {
-        "\(self.artist.albumCount) Album\(self.artist.albumCount == 1 ? "" : "s") \(CommonString.oneMiddleDot) \(self.artist.songCount) Song\(self.artist.songCount == 1 ? "" : "s")"
+        "\(artist.albumCount) Album\(artist.albumCount == 1 ? "" : "s") \(CommonString.oneMiddleDot) \(artist.songCount) Song\(artist.songCount == 1 ? "" : "s")"
       },
-      playContextCb: { () in
-        let songs = self.songsFetchedResultsController
-          .getContextSongs(onlyCachedSongs: self.appDelegate.storage.settings.user.isOfflineMode) ??
+      playContextCb: { [weak self] () in
+        let songs = self?.songsFetchedResultsController
+          .getContextSongs(
+            onlyCachedSongs: self?.appDelegate.storage.settings.user
+              .isOfflineMode ?? false
+          ) ??
           []
         let sortedSongs = songs.filterSongs().sortByAlbum()
-        return PlayContext(containable: self.artist, playables: sortedSongs)
+        return PlayContext(containable: artist, playables: sortedSongs)
       },
       player: appDelegate.player,
       isInfoAlwaysHidden: true
@@ -176,8 +180,9 @@ class ArtistDetailVC: MultiSourceTableViewController {
       .createTableHeader(configuration: detailHeaderConfig)
 
     optionsButton = UIBarButtonItem.createOptionsBarButton()
-    optionsButton.menu = UIMenu.lazyMenu {
-      EntityPreviewActionBuilder(container: self.artist, on: self).createMenuActions()
+    optionsButton.menu = UIMenu.lazyMenu { [weak self] in
+      guard let self else { return [] }
+      return EntityPreviewActionBuilder(container: artist, on: self).createMenuActions()
     }
     navigationItem.rightBarButtonItem = optionsButton
 

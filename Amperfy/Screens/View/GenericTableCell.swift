@@ -43,7 +43,7 @@ class GenericTableCell: BasicTableCell {
   static let rowHeightWithoutImage: CGFloat = 28.0 + margin.bottom + margin.top
 
   private var container: PlayableContainable?
-  private var rootView: UITableViewController?
+  private weak var rootView: UITableViewController?
 
   func display(container: PlayableContainable, rootView: UITableViewController) {
     self.container = container

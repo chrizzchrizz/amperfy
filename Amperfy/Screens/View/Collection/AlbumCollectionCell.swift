@@ -35,8 +35,8 @@ class AlbumCollectionCell: BasicCollectionCell {
   static let maxWidth: CGFloat = 250.0
 
   private var container: PlayableContainable?
-  private var rootView: UICollectionViewController?
-  private var rootFlowLayout: UICollectionViewDelegateFlowLayout?
+  private weak var rootView: UICollectionViewController?
+  private weak var rootFlowLayout: UICollectionViewDelegateFlowLayout?
   private var itemWidth: CGFloat?
 
   func display(

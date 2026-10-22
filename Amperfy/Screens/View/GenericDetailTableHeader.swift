@@ -26,8 +26,9 @@ import UIKit
 
 struct DetailHeaderConfiguration {
   var entityContainer: PlayableContainable
-  var rootView: UIViewController
-  var tableView: UITableView
+  // weak: the header is part of the table of this screen
+  weak var rootView: UIViewController?
+  weak var tableView: UITableView?
   var playShuffleInfoConfig: PlayShuffleInfoConfiguration?
   var descriptionText: String?
 }
@@ -79,23 +80,24 @@ class GenericDetailTableHeader: UIView {
 
   public static func createTableHeader(configuration: DetailHeaderConfiguration)
     -> GenericDetailTableHeader? {
-    configuration.tableView.tableHeaderView = UIView(frame: CGRect(
+    guard let rootView = configuration.rootView else { return nil }
+    configuration.tableView?.tableHeaderView = UIView(frame: CGRect(
       x: 0,
       y: 0,
-      width: configuration.rootView.view.bounds.size.width,
+      width: rootView.view.bounds.size.width,
       height: GenericDetailTableHeader
-        .frameHeight(traitCollection: configuration.rootView.traitCollection)
+        .frameHeight(traitCollection: rootView.traitCollection)
     ))
     let genericDetailTableHeaderView = ViewCreator<GenericDetailTableHeader>
       .createFromNib(withinFixedFrame: CGRect(
         x: 0,
         y: 0,
-        width: configuration.rootView.view.bounds.size.width,
+        width: rootView.view.bounds.size.width,
         height: GenericDetailTableHeader
-          .frameHeight(traitCollection: configuration.rootView.traitCollection)
+          .frameHeight(traitCollection: rootView.traitCollection)
       ))!
     genericDetailTableHeaderView.prepare(configuration: configuration)
-    configuration.tableView.tableHeaderView?.addSubview(genericDetailTableHeaderView)
+    configuration.tableView?.tableHeaderView?.addSubview(genericDetailTableHeaderView)
     return genericDetailTableHeaderView
   }
 
@@ -235,8 +237,7 @@ class GenericDetailTableHeader: UIView {
   }
 
   func applyTraitCollectionChange() {
-    guard let config = config else { return }
-    let rootView = config.rootView
+    guard let config = config, let rootView = config.rootView else { return }
 
     let textAlignment: NSTextAlignment = (traitCollection.horizontalSizeClass == .compact) ?
       .center : .left
@@ -265,7 +266,7 @@ class GenericDetailTableHeader: UIView {
     if config.descriptionText != nil {
       height += GenericDetailTableHeader.frameHeightForDescription
     }
-    config.tableView.tableHeaderView?.frame = CGRect(
+    config.tableView?.tableHeaderView?.frame = CGRect(
       x: 0,
       y: 0,
       width: rootView.view.bounds.size.width,
@@ -301,7 +302,7 @@ class GenericDetailTableHeader: UIView {
     guard let album = config?.entityContainer as? Album,
           let artist = album.artist,
           let account = album.account,
-          let navController = config?.rootView.navigationController
+          let navController = config?.rootView?.navigationController
     else { return }
     appDelegate.userStatistics.usedAction(.alertGoToAlbum)
     navController.pushViewController(
