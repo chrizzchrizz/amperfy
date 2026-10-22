@@ -406,10 +406,12 @@ class AlbumsCommonVCInteractions {
       ),
       sliderMenuView.slider.maximumValue
     )
-    sliderMenuView.sliderValueChangedCB = {
+    // the slider view stores this callback
+    sliderMenuView.sliderValueChangedCB = { [weak self, weak sliderMenuView] in
+      guard let self, let sliderMenuView else { return }
       let newIntValue = Int(sliderMenuView.slider.value)
-      if newIntValue != self.appDelegate.storage.settings.user.albumsGridSizeSetting {
-        self.appDelegate.storage.settings.user.albumsGridSizeSetting = newIntValue
+      if newIntValue != appDelegate.storage.settings.user.albumsGridSizeSetting {
+        appDelegate.storage.settings.user.albumsGridSizeSetting = newIntValue
         if let collectionVC = rootVC as? AlbumsCollectionVC {
           collectionVC.invalidateItemSizeCache()
           collectionVC.collectionView.reloadData()

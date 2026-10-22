@@ -913,8 +913,10 @@ class MiniPlayerView: UIView {
     sliderMenuView.slider.maximumValue = 100
     sliderMenuView.slider.value = appDelegate.player.volume * 100
 
-    sliderMenuView.sliderValueChangedCB = {
-      self.appDelegate.player.volume = Float(sliderMenuView.slider.value) / 100.0
+    // the slider view stores this callback
+    sliderMenuView.sliderValueChangedCB = { [weak self, weak sliderMenuView] in
+      guard let self, let sliderMenuView else { return }
+      appDelegate.player.volume = Float(sliderMenuView.slider.value) / 100.0
     }
 
     popoverContentController.modalPresentationStyle = .popover
