@@ -68,6 +68,8 @@ private class SimilarContentTile: UIControl {
     let stack = UIStackView(arrangedSubviews: [imageView, titleLabel, subtitleLabel])
     stack.axis = .vertical
     stack.spacing = 2
+    // gap between the image and the title, like the tiles on Home
+    stack.setCustomSpacing(8, after: imageView)
     stack.isUserInteractionEnabled = false
     stack.translatesAutoresizingMaskIntoConstraints = false
     addSubview(stack)
