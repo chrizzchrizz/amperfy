@@ -64,7 +64,7 @@ public class LibraryEntityImage: RoundedImage {
 
   /// Maximum pixel sizes an artwork is decoded with, so a small tile does not keep the
   /// full resolution artwork in memory.
-  static private let pixelSizes = [256, 512, 1024, 2048]
+  static private let pixelSizes = [256, 512, 1024, 2048, 4096]
 
   private let appDelegate: AmperKit
 
@@ -76,6 +76,12 @@ public class LibraryEntityImage: RoundedImage {
   private var shownPixelSize = 0
   /// Image path and pixel size of the artwork that is being loaded
   private var loadingCacheKey: String?
+  /// Only the result of the latest load is shown
+  private var loadGeneration = 0
+  /// Image path and pixel size that could not be decoded, not tried again on layout changes
+  private var failedCacheKey: String?
+  /// The artwork is loaded once the view has a size
+  private var isWaitingForLayout = false
 
   /// True if the generated placeholder is shown because there is no artwork
   /// (false while an existing artwork is still loading).
@@ -168,6 +174,10 @@ public class LibraryEntityImage: RoundedImage {
   internal func display(image: UIImage) {
     isShowingPlaceholder = false
     shownPixelSize = 0
+    // a load still in progress must not replace this image
+    loadGeneration += 1
+    loadingCacheKey = nil
+    isWaitingForLayout = false
     self.image = image
     entity = nil
     standaloneArtwork = nil
@@ -206,10 +216,17 @@ public class LibraryEntityImage: RoundedImage {
 
   override public func layoutSubviews() {
     super.layoutSubviews()
-    // the view can get larger after the artwork was shown, e.g. when it is laid out the first time
-    if shownPixelSize > 0, loadingCacheKey == nil, requiredPixelSize > shownPixelSize {
+    guard !bounds.isEmpty else { return }
+    if isWaitingForLayout {
       refresh()
+      return
     }
+    // the view can get larger after the artwork was shown
+    guard shownPixelSize > 0, loadingCacheKey == nil, requiredPixelSize > shownPixelSize,
+          let imagePath = entityImagePathToDisplay,
+          Self.cacheKey(imagePath: imagePath, pixelSize: requiredPixelSize) != failedCacheKey
+    else { return }
+    refresh()
   }
 
   /// Smallest pixel size that covers the view on the screen
@@ -263,29 +280,57 @@ public class LibraryEntityImage: RoundedImage {
       image = placeholderImage
     }
     guard let imagePathToDisplay else { return }
+    // the required size is only known after layout
+    isWaitingForLayout = bounds.isEmpty
+    guard !isWaitingForLayout else { return }
     loadImage(imagePath: imagePathToDisplay)
   }
 
-  private func loadImage(imagePath: String, pixelSize: Int? = nil) {
-    let pixelSize = pixelSize ?? requiredPixelSize
+  /// `isForced` loads the file again, e.g. after it was downloaded
+  private func loadImage(imagePath: String, isForced: Bool = false) {
+    let pixelSize = requiredPixelSize
     let cacheKey = Self.cacheKey(imagePath: imagePath, pixelSize: pixelSize)
-    guard loadingCacheKey != cacheKey else { return }
+    guard isForced || (loadingCacheKey != cacheKey && failedCacheKey != cacheKey) else { return }
     loadingCacheKey = cacheKey
+    loadGeneration += 1
+    let generation = loadGeneration
     Task.detached(priority: .high) { [weak self] in
       let readyImage = await Self.decodeImage(imagePath: imagePath, maxPixelSize: pixelSize)
       guard !Task.isCancelled else { return }
       Task { @MainActor [weak self] in
         guard let self else { return }
-        if loadingCacheKey == cacheKey { loadingCacheKey = nil }
-        guard let readyImage else { return }
+        let isLatestLoad = generation == loadGeneration
+        if isLatestLoad { loadingCacheKey = nil }
+        guard let readyImage else {
+          if isLatestLoad { failedCacheKey = cacheKey }
+          return
+        }
         Self.cache.setObject(
           readyImage,
           forKey: cacheKey as NSString,
           cost: Self.byteCount(of: readyImage)
         )
+        guard isLatestLoad else { return }
+        if failedCacheKey == cacheKey { failedCacheKey = nil }
         refresh()
       }
     }
+  }
+
+  /// A downloaded file replaces all sizes of the artwork that were decoded before.
+  private func reloadDownloadedImage(imagePath: String) {
+    for pixelSize in Self.pixelSizes {
+      Self.cache.removeObject(forKey: Self.cacheKey(
+        imagePath: imagePath,
+        pixelSize: pixelSize
+      ) as NSString)
+    }
+    failedCacheKey = nil
+    guard !bounds.isEmpty else {
+      refresh()
+      return
+    }
+    loadImage(imagePath: imagePath, isForced: true)
   }
 
   /// Decodes the artwork, scaled down to `maxPixelSize` if it is larger
@@ -324,7 +369,7 @@ public class LibraryEntityImage: RoundedImage {
        artwork.uniqueID == downloadNotification.id {
       Task { @MainActor in
         guard let imagePath = artwork.imagePath else { return }
-        self.loadImage(imagePath: imagePath)
+        self.reloadDownloadedImage(imagePath: imagePath)
       }
       return
     }
@@ -336,7 +381,7 @@ public class LibraryEntityImage: RoundedImage {
           setting: appDelegate.storage.settings.accounts.getSetting(accountInfo).read
             .artworkDisplayPreference
         ) else { return }
-        self.loadImage(imagePath: imagePath)
+        self.reloadDownloadedImage(imagePath: imagePath)
       }
     }
     if let artwork = entity.artwork,
@@ -346,7 +391,7 @@ public class LibraryEntityImage: RoundedImage {
           setting: appDelegate.storage.settings.accounts.getSetting(accountInfo).read
             .artworkDisplayPreference
         ) else { return }
-        self.loadImage(imagePath: imagePath)
+        self.reloadDownloadedImage(imagePath: imagePath)
       }
     }
   }
