@@ -566,7 +566,7 @@ final class ArtistAlbumsGridVC: UICollectionViewController, UICollectionViewDele
   private let account: Account
   private let albumCount: () -> Int
   private let album: (Int) -> Album?
-  private unowned let owner: ArtistDetailVC
+  private weak var owner: ArtistDetailVC?
 
   init(
     account: Account,
@@ -672,7 +672,7 @@ final class ArtistAlbumsGridVC: UICollectionViewController, UICollectionViewDele
     didSelectItemAt indexPath: IndexPath
   ) {
     guard let album = album(indexPath.row) else { return }
-    owner.navigationController?.pushViewController(
+    owner?.navigationController?.pushViewController(
       AppStoryboard.Main.segueToAlbumDetail(account: account, album: album),
       animated: true
     )
@@ -684,8 +684,7 @@ final class ArtistAlbumsGridVC: UICollectionViewController, UICollectionViewDele
     point: CGPoint
   )
     -> UIContextMenuConfiguration? {
-    guard let album = album(indexPath.row) else { return nil }
-    let owner = owner
+    guard let album = album(indexPath.row), let owner else { return nil }
     return UIContextMenuConfiguration(identifier: nil, previewProvider: {
       let vc = EntityPreviewVC()
       vc.display(container: album, on: owner)
@@ -727,7 +726,7 @@ final class ArtistTopSongsGridVC: UICollectionViewController, UICollectionViewDe
   let song: (Int) -> Song?
   let playContext: (Int) -> PlayContext?
   let contentColor: () -> UIColor?
-  private(set) unowned var owner: ArtistDetailVC
+  private(set) weak var owner: ArtistDetailVC?
   private var lastLayoutWidth: CGFloat = 0
 
   init(
@@ -912,7 +911,7 @@ final class ArtistTopSongsColumnCell: UICollectionViewCell, UITableViewDataSourc
     self.rowCount = rowCount
     self.gridVC = gridVC
     // the same lines as the rows of the screen's table, which follow the artwork background
-    tableView.separatorColor = gridVC.owner.tableView.separatorColor
+    tableView.separatorColor = gridVC.owner?.tableView.separatorColor
     tableView.reloadData()
   }
 
@@ -933,7 +932,8 @@ final class ArtistTopSongsColumnCell: UICollectionViewCell, UITableViewDataSourc
   )
     -> UITableViewCell {
     let cell: PlayableTableCell = tableView.dequeueCell(for: tableView, at: indexPath)
-    guard let gridVC, let song = gridVC.song(firstIndex + indexPath.row) else { return cell }
+    guard let gridVC, let owner = gridVC.owner,
+          let song = gridVC.song(firstIndex + indexPath.row) else { return cell }
     cell.contentColorOverride = gridVC.contentColor()
     cell.display(
       playable: song,
@@ -941,9 +941,9 @@ final class ArtistTopSongsColumnCell: UICollectionViewCell, UITableViewDataSourc
         guard let index = self?.songIndex(of: cell) else { return nil }
         return gridVC?.playContext(index)
       },
-      rootView: gridVC.owner,
+      rootView: owner,
       // songs of other artists on a shared album keep their artist as subtitle
-      isAlbumSubtitle: song.artist == gridVC.owner.artist
+      isAlbumSubtitle: song.artist == owner.artist
     )
     return cell
   }
@@ -956,8 +956,7 @@ final class ArtistTopSongsColumnCell: UICollectionViewCell, UITableViewDataSourc
     -> UIContextMenuConfiguration? {
     guard let gridVC else { return nil }
     let index = firstIndex + indexPath.row
-    guard let song = gridVC.song(index) else { return nil }
-    let owner = gridVC.owner
+    guard let song = gridVC.song(index), let owner = gridVC.owner else { return nil }
     return UIContextMenuConfiguration(identifier: nil, previewProvider: {
       let vc = EntityPreviewVC()
       vc.display(container: song, on: owner)

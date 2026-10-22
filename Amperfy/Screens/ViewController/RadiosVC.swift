@@ -68,14 +68,15 @@ class RadiosVC: SingleFetchedResultsTableViewController<RadioMO> {
     tableView.backgroundColor = .backgroundColor
 
     let playShuffleConfig = PlayShuffleInfoConfiguration(
-      infoCB: {
-        "\(self.fetchedResultsController.fetchedObjects?.count ?? 0) Radio\((self.fetchedResultsController.fetchedObjects?.count ?? 0) == 1 ? "" : "s")"
+      infoCB: { [weak self] in
+        guard let self else { return "" }
+        return "\(fetchedResultsController.fetchedObjects?.count ?? 0) Radio\((fetchedResultsController.fetchedObjects?.count ?? 0) == 1 ? "" : "s")"
       },
-      playContextCb: handleHeaderPlay,
+      playContextCb: { [weak self] in self?.handleHeaderPlay() },
       player: appDelegate.player,
       isInfoAlwaysHidden: false,
       isShuffleOnContextNeccessary: false,
-      shuffleContextCb: handleHeaderShuffle
+      shuffleContextCb: { [weak self] in self?.handleHeaderShuffle() }
     )
     detailHeaderView = LibraryElementDetailTableHeaderView.createTableHeader(
       rootView: self,
@@ -87,17 +88,22 @@ class RadiosVC: SingleFetchedResultsTableViewController<RadioMO> {
       for: UIControl.Event.valueChanged
     )
 
-    containableAtIndexPathCallback = { indexPath in
-      self.fetchedResultsController.getWrappedEntity(at: indexPath)
+    containableAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      return fetchedResultsController.getWrappedEntity(at: indexPath)
     }
-    playContextAtIndexPathCallback = convertIndexPathToPlayContext
-    swipeCallback = { indexPath, completionHandler in
-      let radio = self.fetchedResultsController.getWrappedEntity(at: indexPath)
-      let playContext = self.convertIndexPathToPlayContext(radioIndexPath: indexPath)
+    playContextAtIndexPathCallback = { [weak self] indexPath in
+      self?.convertIndexPathToPlayContext(radioIndexPath: indexPath)
+    }
+    swipeCallback = { [weak self] indexPath, completionHandler in
+      guard let self else { return }
+      let radio = fetchedResultsController.getWrappedEntity(at: indexPath)
+      let playContext = convertIndexPathToPlayContext(radioIndexPath: indexPath)
       completionHandler(SwipeActionContext(containable: radio, playContext: playContext))
     }
-    resultUpdateHandler?.changesDidEnd = {
-      self.updateContentUnavailable()
+    resultUpdateHandler?.changesDidEnd = { [weak self] in
+      guard let self else { return }
+      updateContentUnavailable()
     }
     setNavBarTitle(title: sceneTitle ?? "")
   }
@@ -179,7 +185,11 @@ class RadiosVC: SingleFetchedResultsTableViewController<RadioMO> {
     -> UITableViewCell {
     let cell: PlayableTableCell = dequeueCell(for: tableView, at: indexPath)
     let radio = fetchedResultsController.getWrappedEntity(at: indexPath)
-    cell.display(playable: radio, playContextCb: convertCellViewToPlayContext, rootView: self)
+    cell.display(
+      playable: radio,
+      playContextCb: { [weak self] in self?.convertCellViewToPlayContext(cell: $0) },
+      rootView: self
+    )
     return cell
   }
 

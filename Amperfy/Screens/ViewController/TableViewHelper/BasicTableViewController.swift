@@ -385,9 +385,14 @@ class BasicTableViewController: KeyCommandTableViewController {
     let action = UIContextualAction(
       style: .normal,
       title: actionType.displayName
-    ) { action, view, completionHandler in
+    ) { [weak self] action, view, completionHandler in
+      // the table keeps its last swipe actions, which must not keep the screen alive
+      guard let self else {
+        completionHandler(false)
+        return
+      }
       Haptics.success
-        .vibrate(isHapticsEnabled: self.appDelegate.storage.settings.user.isHapticsEnabled)
+        .vibrate(isHapticsEnabled: appDelegate.storage.settings.user.isHapticsEnabled)
       actionCallback(indexPath) { actionContext in
         guard let actionContext = actionContext else { return }
         switch actionType {

@@ -62,7 +62,7 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
       AlbumDetailDiffableDataSource(tableView: tableView) { [
         weak self
       ] tableView, indexPath, objectID -> UITableViewCell? in
-        guard let self else { return nil }
+        guard let self else { return UITableViewCell() }
         guard let object = try? appDelegate.storage.main.context
           .existingObject(with: objectID),
           let songMO = object as? SongMO

@@ -72,13 +72,14 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
     tableView.clipsToBounds = false
 
     let playShuffleInfoConfig = PlayShuffleInfoConfiguration(
-      infoCB: {
-        "\(self.fetchedResultsController.fetchedObjects?.count ?? 0) Song\((self.fetchedResultsController.fetchedObjects?.count ?? 0) == 1 ? "" : "s")"
+      infoCB: { [weak self] in
+        guard let self else { return "" }
+        return "\(fetchedResultsController.fetchedObjects?.count ?? 0) Song\((fetchedResultsController.fetchedObjects?.count ?? 0) == 1 ? "" : "s")"
       },
-      playContextCb: handleHeaderPlay,
+      playContextCb: { [weak self] in self?.handleHeaderPlay() },
       player: appDelegate.player,
       isInfoAlwaysHidden: false,
-      shuffleContextCb: handleHeaderShuffle
+      shuffleContextCb: { [weak self] in self?.handleHeaderShuffle() }
     )
     detailHeaderView = LibraryElementDetailTableHeaderView.createTableHeader(
       rootView: self,
@@ -92,17 +93,22 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
       )
     #endif
 
-    containableAtIndexPathCallback = { indexPath in
-      self.fetchedResultsController.getWrappedEntity(at: indexPath)
+    containableAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      return fetchedResultsController.getWrappedEntity(at: indexPath)
     }
-    playContextAtIndexPathCallback = convertIndexPathToPlayContext
-    swipeCallback = { indexPath, completionHandler in
-      let song = self.fetchedResultsController.getWrappedEntity(at: indexPath)
-      let playContext = self.convertIndexPathToPlayContext(songIndexPath: indexPath)
+    playContextAtIndexPathCallback = { [weak self] indexPath in
+      self?.convertIndexPathToPlayContext(songIndexPath: indexPath)
+    }
+    swipeCallback = { [weak self] indexPath, completionHandler in
+      guard let self else { return }
+      let song = fetchedResultsController.getWrappedEntity(at: indexPath)
+      let playContext = convertIndexPathToPlayContext(songIndexPath: indexPath)
       completionHandler(SwipeActionContext(containable: song, playContext: playContext))
     }
-    resultUpdateHandler?.changesDidEnd = {
-      self.updateContentUnavailable()
+    resultUpdateHandler?.changesDidEnd = { [weak self] in
+      guard let self else { return }
+      updateContentUnavailable()
     }
   }
 
@@ -228,7 +234,11 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
     -> UITableViewCell {
     let cell: PlayableTableCell = dequeueCell(for: tableView, at: indexPath)
     let song = fetchedResultsController.getWrappedEntity(at: indexPath)
-    cell.display(playable: song, playContextCb: convertCellViewToPlayContext, rootView: self)
+    cell.display(
+      playable: song,
+      playContextCb: { [weak self] in self?.convertCellViewToPlayContext(cell: $0) },
+      rootView: self
+    )
     return cell
   }
 
@@ -371,11 +381,12 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
     let sortByName = UIAction(
       title: "Name",
       image: sortType == .name ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .name)
-        self.saveSortPreference(preference: .name)
-        self.updateSearchResults(for: self.searchController)
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .name)
+        saveSortPreference(preference: .name)
+        updateSearchResults(for: searchController)
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -385,11 +396,12 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
     let sortByRating = UIAction(
       title: "Rating",
       image: sortType == .rating ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .rating)
-        self.saveSortPreference(preference: .rating)
-        self.updateSearchResults(for: self.searchController)
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .rating)
+        saveSortPreference(preference: .rating)
+        updateSearchResults(for: searchController)
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -399,11 +411,12 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
     let sortByDuration = UIAction(
       title: "Duration",
       image: sortType == .duration ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .duration)
-        self.saveSortPreference(preference: .duration)
-        self.updateSearchResults(for: self.searchController)
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .duration)
+        saveSortPreference(preference: .duration)
+        updateSearchResults(for: searchController)
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -413,11 +426,12 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
     let sortByStarredDate = UIAction(
       title: "Starred date",
       image: sortType == .starredDate ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .starredDate)
-        self.saveSortPreference(preference: .starredDate)
-        self.updateSearchResults(for: self.searchController)
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .starredDate)
+        saveSortPreference(preference: .starredDate)
+        updateSearchResults(for: searchController)
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -427,11 +441,12 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
     let sortByAddedDate = UIAction(
       title: "Date Added",
       image: sortType == .addedDate ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .addedDate)
-        self.saveSortPreference(preference: .addedDate)
-        self.updateSearchResults(for: self.searchController)
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .addedDate)
+        saveSortPreference(preference: .addedDate)
+        updateSearchResults(for: searchController)
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -466,21 +481,22 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
     let action = UIAction(
       title: "Download \(filterTitle)",
       image: UIImage.startDownload,
-      handler: { _ in
+      handler: { [weak self] _ in
+        guard let self else { return }
         var songs = [Song]()
-        switch self.displayFilter {
+        switch displayFilter {
         case .all:
-          songs = self.appDelegate.storage.main.library.getSongs(for: self.account)
+          songs = appDelegate.storage.main.library.getSongs(for: account)
         case .compilations, .latestReleased, .newest, .recent:
           break
         case .favorites:
-          songs = self.appDelegate.storage.main.library
-            .getFavoriteSongs(for: self.account)
+          songs = appDelegate.storage.main.library
+            .getFavoriteSongs(for: account)
         }
         if songs.count > AppDelegate.maxPlayablesDownloadsToAddAtOnceWithoutWarning {
           let alert = UIAlertController(
             title: "Many Songs",
-            message: "Are you sure to add \(songs.count) songs from \"\(self.filterTitle)\" to download queue?",
+            message: "Are you sure to add \(songs.count) songs from \"\(filterTitle)\" to download queue?",
             preferredStyle: .alert
           )
           alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
@@ -488,9 +504,9 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
               .download(objects: songs)
           }))
           alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-          self.present(alert, animated: true, completion: nil)
+          present(alert, animated: true, completion: nil)
         } else {
-          self.appDelegate.getMeta(self.account.info).playableDownloadManager
+          appDelegate.getMeta(account.info).playableDownloadManager
             .download(objects: songs)
         }
       }

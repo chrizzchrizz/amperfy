@@ -69,22 +69,25 @@ class DownloadsVC: SingleFetchedResultsTableViewController<DownloadMO> {
     let clearFinishedDownloadsAction = UIAction(
       title: "Clear finished downloads",
       image: UIImage.clear,
-      handler: { _ in
-        self.downloadManager.clearFinishedDownloads()
+      handler: { [weak self] _ in
+        guard let self else { return }
+        downloadManager.clearFinishedDownloads()
       }
     )
     let retryFailedDownloadsAction = UIAction(
       title: "Retry failed downloads",
       image: UIImage.redo,
-      handler: { _ in
-        self.downloadManager.resetFailedDownloads()
+      handler: { [weak self] _ in
+        guard let self else { return }
+        downloadManager.resetFailedDownloads()
       }
     )
     let cancelAllDownloadsAction = UIAction(
       title: "Cancel all downloads",
       image: UIImage.cancleDownloads,
-      handler: { _ in
-        self.downloadManager.cancelDownloads()
+      handler: { [weak self] _ in
+        guard let self else { return }
+        downloadManager.cancelDownloads()
       }
     )
     return UIMenu(children: [
@@ -123,7 +126,7 @@ class DownloadsVC: SingleFetchedResultsTableViewController<DownloadMO> {
     if let playable = download.element as? AbstractPlayable {
       cell.display(
         playable: playable,
-        playContextCb: convertCellViewToPlayContext,
+        playContextCb: { [weak self] cell in self?.convertCellViewToPlayContext(cell: cell) },
         rootView: self,
         download: download
       )

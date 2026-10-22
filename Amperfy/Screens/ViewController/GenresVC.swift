@@ -71,15 +71,18 @@ class GenresVC: SingleFetchedResultsTableViewController<GenreMO> {
       for: UIControl.Event.valueChanged
     )
 
-    containableAtIndexPathCallback = { indexPath in
-      self.fetchedResultsController.getWrappedEntity(at: indexPath)
+    containableAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      return fetchedResultsController.getWrappedEntity(at: indexPath)
     }
-    playContextAtIndexPathCallback = { indexPath in
-      let entity = self.fetchedResultsController.getWrappedEntity(at: indexPath)
+    playContextAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      let entity = fetchedResultsController.getWrappedEntity(at: indexPath)
       return PlayContext(containable: entity)
     }
-    swipeCallback = { indexPath, completionHandler in
-      let genre = self.fetchedResultsController.getWrappedEntity(at: indexPath)
+    swipeCallback = { [weak self] indexPath, completionHandler in
+      guard let self else { return }
+      let genre = fetchedResultsController.getWrappedEntity(at: indexPath)
       Task { @MainActor in
         do {
           try await genre.fetch(
@@ -94,8 +97,9 @@ class GenresVC: SingleFetchedResultsTableViewController<GenreMO> {
         completionHandler(SwipeActionContext(containable: genre))
       }
     }
-    resultUpdateHandler?.changesDidEnd = {
-      self.updateContentUnavailable()
+    resultUpdateHandler?.changesDidEnd = { [weak self] in
+      guard let self else { return }
+      updateContentUnavailable()
     }
   }
 

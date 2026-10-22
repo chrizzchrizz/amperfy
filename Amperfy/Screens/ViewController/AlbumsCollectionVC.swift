@@ -26,7 +26,12 @@ import UIKit
 // MARK: - AlbumsCollectionDiffableDataSource
 
 class AlbumsCollectionDiffableDataSource: BasicUICollectionViewDiffableDataSource {
-  var vc: AlbumsCollectionVC
+  // weak: the screen owns its data source
+  weak var vc: AlbumsCollectionVC?
+
+  private var sortType: AlbumElementSortType {
+    vc?.common.sortType ?? .name
+  }
 
   init(
     vc: AlbumsCollectionVC,
@@ -76,8 +81,8 @@ class AlbumsCollectionDiffableDataSource: BasicUICollectionViewDiffableDataSourc
         for: indexPath
       ) as! CommonCollectionSectionHeader
 
-    sectionHeader.applyHorizontalInset(leading: vc.horizontalSectionInset.leading)
-    switch vc.common.sortType {
+    sectionHeader.applyHorizontalInset(leading: vc?.horizontalSectionInset.leading ?? 0)
+    switch sortType {
     case .artist, .name:
       sectionHeader
         .display(title: sectionTitleToIndexTitle(sectionName: sectionTitle(for: indexPath.section)))
@@ -87,15 +92,15 @@ class AlbumsCollectionDiffableDataSource: BasicUICollectionViewDiffableDataSourc
       sectionHeader.display(title: nil)
     }
 
-    if indexPath.section == 0 {
+    if indexPath.section == 0, let vc {
       sectionHeader.displayPlayHeader(configuration: vc.common.createPlayShuffleInfoConfig())
     }
     return sectionHeader
   }
 
   override func indexTitles(for collectionView: UICollectionView) -> [String]? {
-    guard !vc.common.isIndexTitelsHidden else { return nil }
-    switch vc.common.sortType {
+    guard let vc, !vc.common.isIndexTitelsHidden else { return nil }
+    switch sortType {
     case .artist, .duration, .name, .rating, .year:
       let sectionCount = numberOfSections(in: collectionView)
       var indexTitles = [String]()
@@ -111,7 +116,7 @@ class AlbumsCollectionDiffableDataSource: BasicUICollectionViewDiffableDataSourc
 
   func sectionTitleToIndexTitle(sectionName: String) -> String {
     var indexTitle = ""
-    switch vc.common.sortType {
+    switch sortType {
     case .name:
       indexTitle = sectionName.prefix(1).uppercased()
       if let _ = Int(indexTitle) {
@@ -135,7 +140,7 @@ class AlbumsCollectionDiffableDataSource: BasicUICollectionViewDiffableDataSourc
   }
 
   func sectionTitle(for section: Int) -> String {
-    switch vc.common.sortType {
+    switch sortType {
     case .name:
       guard let album = getFirstAlbum(in: section) else { return "" }
       return album.name
@@ -200,14 +205,18 @@ class AlbumsCollectionVC: SingleSnapshotFetchedResultsCollectionViewController<A
     let source = AlbumsCollectionDiffableDataSource(
       vc: self,
       collectionView: collectionView
-    ) { collectionView, indexPath, objectID -> UICollectionViewCell? in
-      guard let object = try? self.appDelegate.storage.main.context.existingObject(with: objectID),
+    ) { [weak self] collectionView, indexPath, objectID -> UICollectionViewCell? in
+      guard let self else { return collectionView.dequeueReusableCell(
+        withReuseIdentifier: AlbumCollectionCell.typeName,
+        for: indexPath
+      ) }
+      guard let object = try? appDelegate.storage.main.context.existingObject(with: objectID),
             let albumMO = object as? AlbumMO
       else {
         fatalError("Managed object should be available")
       }
       let album = Album(managedObject: albumMO)
-      return self.createCell(collectionView, forItemAt: indexPath, album: album)
+      return createCell(collectionView, forItemAt: indexPath, album: album)
     }
     return source
   }
@@ -220,20 +229,25 @@ class AlbumsCollectionVC: SingleSnapshotFetchedResultsCollectionViewController<A
     appDelegate.userStatistics.visited(.albums)
 
     common.rootVC = self
-    common.isIndexTitelsHiddenCB = {
-      self.isIndexTitelsHidden = self.common.isIndexTitelsHidden
+    common.isIndexTitelsHiddenCB = { [weak self] in
+      guard let self else { return }
+      isIndexTitelsHidden = common.isIndexTitelsHidden
     }
-    common.reloadListViewCB = {
-      self.collectionView.reloadData()
+    common.reloadListViewCB = { [weak self] in
+      guard let self else { return }
+      collectionView.reloadData()
     }
-    common.updateSearchResultsCB = {
-      self.updateSearchResults(for: self.searchController)
+    common.updateSearchResultsCB = { [weak self] in
+      guard let self else { return }
+      updateSearchResults(for: searchController)
     }
-    common.endRefreshCB = {
-      self.refreshControl?.endRefreshing()
+    common.endRefreshCB = { [weak self] in
+      guard let self else { return }
+      refreshControl?.endRefreshing()
     }
-    common.updateFetchDataSourceCB = {
-      self.common.fetchedResultsController.delegate = self
+    common.updateFetchDataSourceCB = { [weak self] in
+      guard let self else { return }
+      common.fetchedResultsController.delegate = self
     }
 
     common.applyFilter()
@@ -269,15 +283,18 @@ class AlbumsCollectionVC: SingleSnapshotFetchedResultsCollectionViewController<A
     )
     collectionView.refreshControl = refreshControl
 
-    containableAtIndexPathCallback = { indexPath in
-      self.albumsDataSource?.getAlbum(at: indexPath)
+    containableAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      return albumsDataSource?.getAlbum(at: indexPath)
     }
-    playContextAtIndexPathCallback = { indexPath in
-      guard let album = self.albumsDataSource?.getAlbum(at: indexPath) else { return nil }
+    playContextAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      guard let album = albumsDataSource?.getAlbum(at: indexPath) else { return nil }
       return PlayContext(containable: album)
     }
-    snapshotDidChange = {
-      self.common.updateContentUnavailable()
+    snapshotDidChange = { [weak self] in
+      guard let self else { return }
+      common.updateContentUnavailable()
     }
   }
 

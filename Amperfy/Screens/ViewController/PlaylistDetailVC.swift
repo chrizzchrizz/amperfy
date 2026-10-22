@@ -105,18 +105,21 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
 
   override func createDiffableDataSource() -> BasicUITableViewDiffableDataSource {
     let source =
-      PlaylistDetailDiffableDataSource(tableView: tableView) { tableView, indexPath, objectID -> UITableViewCell? in
-        guard let object = try? self.appDelegate.storage.main.context
+      PlaylistDetailDiffableDataSource(tableView: tableView) { [
+        weak self
+      ] tableView, indexPath, objectID -> UITableViewCell? in
+        guard let self else { return UITableViewCell() }
+        guard let object = try? appDelegate.storage.main.context
           .existingObject(with: objectID),
           let playlistItemMO = object as? PlaylistItemMO
         else {
           return UITableViewCell()
         }
         let playlistItem = PlaylistItem(
-          library: self.appDelegate.storage.main.library,
+          library: appDelegate.storage.main.library,
           managedObject: playlistItemMO
         )
-        return self.createCell(tableView, forRowAt: indexPath, playlistItem: playlistItem)
+        return createCell(tableView, forRowAt: indexPath, playlistItem: playlistItem)
       }
     source.playlist = playlist
     return source
@@ -158,18 +161,25 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
       action: #selector(openEditView)
     )
     optionsButton = UIBarButtonItem.createOptionsBarButton()
-    optionsButton.menu = UIMenu.lazyMenu {
-      EntityPreviewActionBuilder(container: self.playlist, on: self).createMenuActions()
+    optionsButton.menu = UIMenu.lazyMenu { [weak self] in
+      guard let self else { return [] }
+      return EntityPreviewActionBuilder(container: playlist, on: self).createMenuActions()
     }
 
     let playShuffleInfoConfig = PlayShuffleInfoConfiguration(
-      infoCB: { "\(self.playlist.songCount) Song\(self.playlist.songCount == 1 ? "" : "s")" },
-      playContextCb: { () in PlayContext(
-        containable: self.playlist,
-        playables: self.fetchedResultsController
-          .getContextSongs(onlyCachedSongs: self.appDelegate.storage.settings.user.isOfflineMode) ??
-          []
-      ) },
+      infoCB: { [weak self] in
+        guard let self else { return "" }
+        return "\(playlist.songCount) Song\(playlist.songCount == 1 ? "" : "s")"
+      },
+      playContextCb: { [weak self] () in
+        guard let self else { return nil }
+        return PlayContext(
+          containable: playlist,
+          playables: fetchedResultsController
+            .getContextSongs(onlyCachedSongs: appDelegate.storage.settings.user.isOfflineMode) ??
+            []
+        )
+      },
       player: appDelegate.player,
       isInfoAlwaysHidden: true
     )
@@ -189,15 +199,18 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
 
     snapshotDidChange = detailOperationsView?.refresh
 
-    containableAtIndexPathCallback = { indexPath in
-      self.fetchedResultsController.getWrappedEntity(at: indexPath).playable
+    containableAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      return fetchedResultsController.getWrappedEntity(at: indexPath).playable
     }
-    playContextAtIndexPathCallback = { indexPath in
-      self.convertIndexPathToPlayContext(songIndexPath: indexPath)
+    playContextAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      return convertIndexPathToPlayContext(songIndexPath: indexPath)
     }
-    swipeCallback = { indexPath, completionHandler in
-      let playlistItem = self.fetchedResultsController.getWrappedEntity(at: indexPath)
-      let playContext = self.convertIndexPathToPlayContext(songIndexPath: indexPath)
+    swipeCallback = { [weak self] indexPath, completionHandler in
+      guard let self else { return }
+      let playlistItem = fetchedResultsController.getWrappedEntity(at: indexPath)
+      let playContext = convertIndexPathToPlayContext(songIndexPath: indexPath)
       completionHandler(SwipeActionContext(
         containable: playlistItem.playable,
         playContext: playContext
@@ -302,7 +315,11 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
     let cell: PlayableTableCell = dequeueCell(for: tableView, at: indexPath)
     cell.contentColorOverride = artworkBackground.contentColor
     if let song = playlistItem.playable.asSong {
-      cell.display(playable: song, playContextCb: convertCellViewToPlayContext, rootView: self)
+      cell.display(
+        playable: song,
+        playContextCb: { [weak self] in self?.convertCellViewToPlayContext(cell: $0) },
+        rootView: self
+      )
     }
     return cell
   }

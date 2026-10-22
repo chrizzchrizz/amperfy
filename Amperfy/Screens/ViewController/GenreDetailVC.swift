@@ -85,15 +85,19 @@ class GenreDetailVC: MultiSourceTableViewController {
     setNavBarTitle(title: genre.name)
 
     let playShuffleInfoConfig = PlayShuffleInfoConfiguration(
-      infoCB: {
-        "\(self.genre.artistCount) Artist\(self.genre.artistCount == 1 ? "" : "s") \(CommonString.oneMiddleDot) \(self.genre.albumCount) Album\(self.genre.albumCount == 1 ? "" : "s") \(CommonString.oneMiddleDot) \(self.genre.songCount) Song\(self.genre.songCount == 1 ? "" : "s")"
+      infoCB: { [weak self] in
+        guard let self else { return "" }
+        return "\(genre.artistCount) Artist\(genre.artistCount == 1 ? "" : "s") \(CommonString.oneMiddleDot) \(genre.albumCount) Album\(genre.albumCount == 1 ? "" : "s") \(CommonString.oneMiddleDot) \(genre.songCount) Song\(genre.songCount == 1 ? "" : "s")"
       },
-      playContextCb: { () in PlayContext(
-        containable: self.genre,
-        playables: self.songsFetchedResultsController
-          .getContextSongs(onlyCachedSongs: self.appDelegate.storage.settings.user.isOfflineMode) ??
-          []
-      ) },
+      playContextCb: { [weak self] () in
+        guard let self else { return nil }
+        return PlayContext(
+          containable: genre,
+          playables: songsFetchedResultsController
+            .getContextSongs(onlyCachedSongs: appDelegate.storage.settings.user.isOfflineMode) ??
+            []
+        )
+      },
       player: appDelegate.player,
       isInfoAlwaysHidden: true
     )
@@ -107,25 +111,27 @@ class GenreDetailVC: MultiSourceTableViewController {
       .createTableHeader(configuration: detailHeaderConfig)
 
     optionsButton = UIBarButtonItem.createOptionsBarButton()
-    optionsButton.menu = UIMenu.lazyMenu {
-      EntityPreviewActionBuilder(container: self.genre, on: self).createMenuActions()
+    optionsButton.menu = UIMenu.lazyMenu { [weak self] in
+      guard let self else { return [] }
+      return EntityPreviewActionBuilder(container: genre, on: self).createMenuActions()
     }
     navigationItem.rightBarButtonItem = optionsButton
 
-    containableAtIndexPathCallback = { indexPath in
+    containableAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
       switch indexPath.section + 0 {
       case LibraryElement.Artist.rawValue:
-        return self.artistsFetchedResultsController.getWrappedEntity(at: IndexPath(
+        return artistsFetchedResultsController.getWrappedEntity(at: IndexPath(
           row: indexPath.row,
           section: 0
         ))
       case LibraryElement.Album.rawValue:
-        return self.albumsFetchedResultsController.getWrappedEntity(at: IndexPath(
+        return albumsFetchedResultsController.getWrappedEntity(at: IndexPath(
           row: indexPath.row,
           section: 0
         ))
       case LibraryElement.Song.rawValue:
-        return self.songsFetchedResultsController.getWrappedEntity(at: IndexPath(
+        return songsFetchedResultsController.getWrappedEntity(at: IndexPath(
           row: indexPath.row,
           section: 0
         ))
@@ -133,22 +139,23 @@ class GenreDetailVC: MultiSourceTableViewController {
         return nil
       }
     }
-    playContextAtIndexPathCallback = { indexPath in
+    playContextAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
       switch indexPath.section + 0 {
       case LibraryElement.Artist.rawValue:
-        let entity = self.artistsFetchedResultsController.getWrappedEntity(at: IndexPath(
+        let entity = artistsFetchedResultsController.getWrappedEntity(at: IndexPath(
           row: indexPath.row,
           section: 0
         ))
         return PlayContext(containable: entity)
       case LibraryElement.Album.rawValue:
-        let entity = self.albumsFetchedResultsController.getWrappedEntity(at: IndexPath(
+        let entity = albumsFetchedResultsController.getWrappedEntity(at: IndexPath(
           row: indexPath.row,
           section: 0
         ))
         return PlayContext(containable: entity)
       case LibraryElement.Song.rawValue:
-        let entity = self.songsFetchedResultsController.getWrappedEntity(at: IndexPath(
+        let entity = songsFetchedResultsController.getWrappedEntity(at: IndexPath(
           row: indexPath.row,
           section: 0
         ))
@@ -157,10 +164,11 @@ class GenreDetailVC: MultiSourceTableViewController {
         return nil
       }
     }
-    swipeCallback = { indexPath, completionHandler in
+    swipeCallback = { [weak self] indexPath, completionHandler in
+      guard let self else { return }
       switch indexPath.section + 0 {
       case LibraryElement.Artist.rawValue:
-        let artist = self.artistsFetchedResultsController.getWrappedEntity(at: IndexPath(
+        let artist = artistsFetchedResultsController.getWrappedEntity(at: IndexPath(
           row: indexPath.row,
           section: 0
         ))
@@ -178,7 +186,7 @@ class GenreDetailVC: MultiSourceTableViewController {
           completionHandler(SwipeActionContext(containable: artist))
         }
       case LibraryElement.Album.rawValue:
-        let album = self.albumsFetchedResultsController.getWrappedEntity(at: IndexPath(
+        let album = albumsFetchedResultsController.getWrappedEntity(at: IndexPath(
           row: indexPath.row,
           section: 0
         ))
@@ -197,8 +205,8 @@ class GenreDetailVC: MultiSourceTableViewController {
         }
       case LibraryElement.Song.rawValue:
         let songIndexPath = IndexPath(row: indexPath.row, section: 0)
-        let song = self.songsFetchedResultsController.getWrappedEntity(at: songIndexPath)
-        let playContext = self.convertIndexPathToPlayContext(songIndexPath: songIndexPath)
+        let song = songsFetchedResultsController.getWrappedEntity(at: songIndexPath)
+        let playContext = convertIndexPathToPlayContext(songIndexPath: songIndexPath)
         completionHandler(SwipeActionContext(containable: song, playContext: playContext))
       default:
         completionHandler(nil)
@@ -321,7 +329,11 @@ class GenreDetailVC: MultiSourceTableViewController {
         row: indexPath.row,
         section: 0
       ))
-      cell.display(playable: song, playContextCb: convertCellViewToPlayContext, rootView: self)
+      cell.display(
+        playable: song,
+        playContextCb: { [weak self] in self?.convertCellViewToPlayContext(cell: $0) },
+        rootView: self
+      )
       return cell
     default:
       return UITableViewCell()

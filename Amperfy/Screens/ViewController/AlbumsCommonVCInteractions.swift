@@ -109,7 +109,7 @@ class AlbumsCommonVCInteractions {
   private var appDelegate: AppDelegate = (UIApplication.shared.delegate as! AppDelegate)
   private var isSetNavbarButton = true
 
-  public var rootVC: UIViewController?
+  public weak var rootVC: UIViewController?
   public var fetchedResultsController: AlbumFetchedResultsController!
   public var optionsButton: UIBarButtonItem = .createOptionsBarButton()
   public var displayFilter: DisplayCategoryFilter = .all
@@ -302,11 +302,12 @@ class AlbumsCommonVCInteractions {
     let sortByName = UIAction(
       title: "Name",
       image: sortType == .name ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .name)
-        self.appDelegate.storage.settings.user.albumsSortSetting = .name
-        self.updateSearchResultsCB?()
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .name)
+        appDelegate.storage.settings.user.albumsSortSetting = .name
+        updateSearchResultsCB?()
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -316,11 +317,12 @@ class AlbumsCommonVCInteractions {
     let sortByRating = UIAction(
       title: "Rating",
       image: sortType == .rating ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .rating)
-        self.appDelegate.storage.settings.user.albumsSortSetting = .rating
-        self.updateSearchResultsCB?()
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .rating)
+        appDelegate.storage.settings.user.albumsSortSetting = .rating
+        updateSearchResultsCB?()
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -330,11 +332,12 @@ class AlbumsCommonVCInteractions {
     let sortByArtist = UIAction(
       title: "Artist",
       image: sortType == .artist ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .artist)
-        self.appDelegate.storage.settings.user.albumsSortSetting = .artist
-        self.updateSearchResultsCB?()
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .artist)
+        appDelegate.storage.settings.user.albumsSortSetting = .artist
+        updateSearchResultsCB?()
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -344,11 +347,12 @@ class AlbumsCommonVCInteractions {
     let sortByDuration = UIAction(
       title: "Duration",
       image: sortType == .duration ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .duration)
-        self.appDelegate.storage.settings.user.albumsSortSetting = .duration
-        self.updateSearchResultsCB?()
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .duration)
+        appDelegate.storage.settings.user.albumsSortSetting = .duration
+        updateSearchResultsCB?()
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -358,11 +362,12 @@ class AlbumsCommonVCInteractions {
     let sortByYear = UIAction(
       title: "Year",
       image: sortType == .year ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .year)
-        self.appDelegate.storage.settings.user.albumsSortSetting = .year
-        self.updateSearchResultsCB?()
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .year)
+        appDelegate.storage.settings.user.albumsSortSetting = .year
+        updateSearchResultsCB?()
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -427,14 +432,15 @@ class AlbumsCommonVCInteractions {
     let tableStyle = UIAction(
       title: "Table",
       image: appDelegate.storage.settings.user.albumsStyleSetting == .table ? .check : nil,
-      handler: { _ in
-        self.appDelegate.storage.settings.user.albumsStyleSetting = .table
-        self.rootVC?.navigationController?.replaceCurrentlyActiveVC(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        appDelegate.storage.settings.user.albumsStyleSetting = .table
+        rootVC?.navigationController?.replaceCurrentlyActiveVC(
           with: AppStoryboard.Main
             .createAlbumsVC(
-              account: self.account,
-              style: self.appDelegate.storage.settings.user.albumsStyleSetting,
-              category: self.displayFilter
+              account: account,
+              style: appDelegate.storage.settings.user.albumsStyleSetting,
+              category: displayFilter
             ),
           animated: false
         )
@@ -443,22 +449,28 @@ class AlbumsCommonVCInteractions {
     let gridStyle = UIAction(
       title: "Grid",
       image: appDelegate.storage.settings.user.albumsStyleSetting == .grid ? .check : nil,
-      handler: { _ in
-        self.appDelegate.storage.settings.user.albumsStyleSetting = .grid
-        self.rootVC?.navigationController?.replaceCurrentlyActiveVC(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        appDelegate.storage.settings.user.albumsStyleSetting = .grid
+        rootVC?.navigationController?.replaceCurrentlyActiveVC(
           with: AppStoryboard.Main
             .createAlbumsVC(
-              account: self.account,
-              style: self.appDelegate.storage.settings.user.albumsStyleSetting,
-              category: self.displayFilter
+              account: account,
+              style: appDelegate.storage.settings.user.albumsStyleSetting,
+              category: displayFilter
             ),
           animated: false
         )
       }
     )
-    let changeGridSize = UIAction(title: "Change Grid Size", image: .resize, handler: { _ in
-      self.showSliderMenu()
-    })
+    let changeGridSize = UIAction(
+      title: "Change Grid Size",
+      image: .resize,
+      handler: { [weak self] _ in
+        guard let self else { return }
+        showSliderMenu()
+      }
+    )
     changeGridSize
       .attributes = (appDelegate.storage.settings.user.albumsStyleSetting != .grid) ? .disabled : []
 
@@ -474,32 +486,33 @@ class AlbumsCommonVCInteractions {
     let action = UIAction(
       title: "Download \(filterTitle)",
       image: UIImage.startDownload,
-      handler: { _ in
+      handler: { [weak self] _ in
+        guard let self else { return }
         var albums = [Album]()
-        switch self.displayFilter {
+        switch displayFilter {
         case .all:
-          albums = self.appDelegate.storage.main.library.getAlbums(for: self.account)
+          albums = appDelegate.storage.main.library.getAlbums(for: account)
         case .newest:
-          albums = self.appDelegate.storage.main.library
-            .getNewestAlbums(for: self.account)
+          albums = appDelegate.storage.main.library
+            .getNewestAlbums(for: account)
         case .recent:
-          albums = self.appDelegate.storage.main.library
-            .getRecentAlbums(for: self.account)
+          albums = appDelegate.storage.main.library
+            .getRecentAlbums(for: account)
         case .latestReleased:
-          albums = self.appDelegate.storage.main.library
-            .getLatestReleasedAlbums(for: self.account)
+          albums = appDelegate.storage.main.library
+            .getLatestReleasedAlbums(for: account)
         case .favorites:
-          albums = self.appDelegate.storage.main.library
-            .getFavoriteAlbums(for: self.account)
+          albums = appDelegate.storage.main.library
+            .getFavoriteAlbums(for: account)
         case .compilations:
-          albums = self.appDelegate.storage.main.library
-            .getCompilationAlbums(for: self.account)
+          albums = appDelegate.storage.main.library
+            .getCompilationAlbums(for: account)
         }
         let albumSongs = Array(albums.compactMap { $0.playables }.joined())
         if albumSongs.count > AppDelegate.maxPlayablesDownloadsToAddAtOnceWithoutWarning {
           let alert = UIAlertController(
             title: "Many Songs",
-            message: "Are you sure to add \(albumSongs.count) songs from \"\(self.filterTitle)\" to download queue?",
+            message: "Are you sure to add \(albumSongs.count) songs from \"\(filterTitle)\" to download queue?",
             preferredStyle: .alert
           )
           alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
@@ -507,9 +520,9 @@ class AlbumsCommonVCInteractions {
               .download(objects: albumSongs)
           }))
           alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-          self.rootVC?.present(alert, animated: true, completion: nil)
+          rootVC?.present(alert, animated: true, completion: nil)
         } else {
-          self.appDelegate.getMeta(self.account.info).playableDownloadManager
+          appDelegate.getMeta(account.info).playableDownloadManager
             .download(objects: albumSongs)
         }
       }
@@ -573,14 +586,15 @@ class AlbumsCommonVCInteractions {
 
   func createPlayShuffleInfoConfig() -> PlayShuffleInfoConfiguration {
     PlayShuffleInfoConfiguration(
-      infoCB: {
-        "\(self.fetchedResultsController.fetchedObjects?.count ?? 0) Album\((self.fetchedResultsController.fetchedObjects?.count ?? 0) == 1 ? "" : "s")"
+      infoCB: { [weak self] in
+        guard let self else { return "" }
+        return "\(fetchedResultsController.fetchedObjects?.count ?? 0) Album\((fetchedResultsController.fetchedObjects?.count ?? 0) == 1 ? "" : "s")"
       },
-      playContextCb: handleHeaderPlay,
+      playContextCb: { [weak self] in self?.handleHeaderPlay() },
       player: appDelegate.player,
       isInfoAlwaysHidden: false,
       isShuffleOnContextNeccessary: false,
-      shuffleContextCb: handleHeaderShuffle
+      shuffleContextCb: { [weak self] in self?.handleHeaderShuffle() }
     )
   }
 

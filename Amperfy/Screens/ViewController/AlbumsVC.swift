@@ -147,15 +147,18 @@ class AlbumsVC: SingleSnapshotFetchedResultsTableViewController<AlbumMO> {
 
   override func createDiffableDataSource() -> BasicUITableViewDiffableDataSource {
     let source =
-      AlbumsDiffableDataSource(tableView: tableView) { tableView, indexPath, objectID -> UITableViewCell? in
-        guard let object = try? self.appDelegate.storage.main.context
+      AlbumsDiffableDataSource(tableView: tableView) { [
+        weak self
+      ] tableView, indexPath, objectID -> UITableViewCell? in
+        guard let self else { return UITableViewCell() }
+        guard let object = try? appDelegate.storage.main.context
           .existingObject(with: objectID),
           let albumMO = object as? AlbumMO
         else {
           fatalError("Managed object should be available")
         }
         let album = Album(managedObject: albumMO)
-        return self.createCell(tableView, forRowAt: indexPath, album: album)
+        return createCell(tableView, forRowAt: indexPath, album: album)
       }
     return source
   }
@@ -171,24 +174,29 @@ class AlbumsVC: SingleSnapshotFetchedResultsTableViewController<AlbumMO> {
     appDelegate.userStatistics.visited(.albums)
 
     common.rootVC = self
-    common.isIndexTitelsHiddenCB = {
-      self.isIndexTitelsHidden = self.common.isIndexTitelsHidden
-      self.albumsDataSource?.isIndexTitelsHidden = self.common.isIndexTitelsHidden
-      self.tableView.reloadSectionIndexTitles()
+    common.isIndexTitelsHiddenCB = { [weak self] in
+      guard let self else { return }
+      isIndexTitelsHidden = common.isIndexTitelsHidden
+      albumsDataSource?.isIndexTitelsHidden = common.isIndexTitelsHidden
+      tableView.reloadSectionIndexTitles()
     }
-    common.reloadListViewCB = {
-      self.tableView.reloadData()
+    common.reloadListViewCB = { [weak self] in
+      guard let self else { return }
+      tableView.reloadData()
     }
-    common.updateSearchResultsCB = {
-      self.updateSearchResults(for: self.searchController)
+    common.updateSearchResultsCB = { [weak self] in
+      guard let self else { return }
+      updateSearchResults(for: searchController)
     }
-    common.endRefreshCB = {
-      self.refreshControl?.endRefreshing()
+    common.endRefreshCB = { [weak self] in
+      guard let self else { return }
+      refreshControl?.endRefreshing()
     }
-    common.updateFetchDataSourceCB = {
-      (self.diffableDataSource as? AlbumsDiffableDataSource)?.sortType = self.common.sortType
-      self.singleFetchedResultsController = self.common.fetchedResultsController
-      self.singleFetchedResultsController?.delegate = self
+    common.updateFetchDataSourceCB = { [weak self] in
+      guard let self else { return }
+      (diffableDataSource as? AlbumsDiffableDataSource)?.sortType = common.sortType
+      singleFetchedResultsController = common.fetchedResultsController
+      singleFetchedResultsController?.delegate = self
     }
 
     common.applyFilter()
@@ -215,15 +223,18 @@ class AlbumsVC: SingleSnapshotFetchedResultsTableViewController<AlbumMO> {
       for: UIControl.Event.valueChanged
     )
 
-    containableAtIndexPathCallback = { indexPath in
-      self.albumsDataSource?.getAlbum(at: indexPath)
+    containableAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      return albumsDataSource?.getAlbum(at: indexPath)
     }
-    playContextAtIndexPathCallback = { indexPath in
-      guard let album = self.albumsDataSource?.getAlbum(at: indexPath) else { return nil }
+    playContextAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      guard let album = albumsDataSource?.getAlbum(at: indexPath) else { return nil }
       return PlayContext(containable: album)
     }
-    swipeCallback = { indexPath, completionHandler in
-      guard let album = self.albumsDataSource?.getAlbum(at: indexPath) else {
+    swipeCallback = { [weak self] indexPath, completionHandler in
+      guard let self else { return }
+      guard let album = albumsDataSource?.getAlbum(at: indexPath) else {
         completionHandler(nil)
         return
       }
@@ -241,9 +252,10 @@ class AlbumsVC: SingleSnapshotFetchedResultsTableViewController<AlbumMO> {
         completionHandler(SwipeActionContext(containable: album))
       }
     }
-    snapshotDidChange = {
-      self.common.updateContentUnavailable()
-      self.updateHeaderViewVisibility()
+    snapshotDidChange = { [weak self] in
+      guard let self else { return }
+      common.updateContentUnavailable()
+      updateHeaderViewVisibility()
     }
   }
 

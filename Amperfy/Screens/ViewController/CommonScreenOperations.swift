@@ -75,8 +75,9 @@ extension UIViewController {
         )),
         attributes: isActiveAccount ? [UIMenuElement.Attributes.disabled] : [],
         state: isActiveAccount ? .on : .off,
-        handler: { _ in
-          self.appDelegate.switchAccount(accountInfo: accountInfo)
+        handler: { [weak self] _ in
+          guard let self else { return }
+          appDelegate.switchAccount(accountInfo: accountInfo)
         }
       )
       accountActions.append(action)
@@ -90,22 +91,24 @@ extension UIViewController {
     let openAddAccount = UIAction(
       title: "Add Account",
       image: addAccountImage,
-      handler: { _ in
+      handler: { [weak self] _ in
+        guard let self else { return }
         let loginVC = AppStoryboard.Main.segueToLogin()
         loginVC.modalPresentationStyle = .formSheet
-        self.present(loginVC, animated: true)
+        present(loginVC, animated: true)
       }
     )
     let openSettings = UIAction(
       title: "Settings",
       image: .settings,
-      handler: { _ in
+      handler: { [weak self] _ in
+        guard let self else { return }
         #if targetEnvironment(macCatalyst)
-          self.appDelegate.showSettings(sender: "")
+          appDelegate.showSettings(sender: "")
         #else
           let nav = AppStoryboard.Main.segueToSettings()
           nav.modalPresentationStyle = .formSheet
-          self.present(nav, animated: true)
+          present(nav, animated: true)
         #endif
       }
     )

@@ -132,8 +132,11 @@ class ArtistsVC: SingleSnapshotFetchedResultsTableViewController<ArtistMO> {
 
   override func createDiffableDataSource() -> BasicUITableViewDiffableDataSource {
     let source =
-      ArtistDiffableDataSource(tableView: tableView) { tableView, indexPath, objectID -> UITableViewCell? in
-        guard let object = try? self.appDelegate.storage.main.context
+      ArtistDiffableDataSource(tableView: tableView) { [
+        weak self
+      ] tableView, indexPath, objectID -> UITableViewCell? in
+        guard let self else { return UITableViewCell() }
+        guard let object = try? appDelegate.storage.main.context
           .existingObject(with: objectID),
           let artistMO = object as? ArtistMO
         else {
@@ -142,7 +145,7 @@ class ArtistsVC: SingleSnapshotFetchedResultsTableViewController<ArtistMO> {
         let artist = Artist(
           managedObject: artistMO
         )
-        return self.createCell(tableView, forRowAt: indexPath, artist: artist)
+        return createCell(tableView, forRowAt: indexPath, artist: artist)
       }
     source.sortType = sortType
     return source
@@ -184,16 +187,19 @@ class ArtistsVC: SingleSnapshotFetchedResultsTableViewController<ArtistMO> {
       for: UIControl.Event.valueChanged
     )
 
-    containableAtIndexPathCallback = { indexPath in
-      self.artistAt(indexPath: indexPath)
+    containableAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      return artistAt(indexPath: indexPath)
     }
-    playContextAtIndexPathCallback = { indexPath in
-      let entity = self.artistAt(indexPath: indexPath)
+    playContextAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      let entity = artistAt(indexPath: indexPath)
       guard let entity else { return nil }
       return PlayContext(containable: entity)
     }
-    swipeCallback = { indexPath, completionHandler in
-      let artist = self.artistAt(indexPath: indexPath)
+    swipeCallback = { [weak self] indexPath, completionHandler in
+      guard let self else { return }
+      let artist = artistAt(indexPath: indexPath)
       guard let artist else { return }
       Task { @MainActor in
         do {
@@ -209,8 +215,9 @@ class ArtistsVC: SingleSnapshotFetchedResultsTableViewController<ArtistMO> {
         completionHandler(SwipeActionContext(containable: artist))
       }
     }
-    snapshotDidChange = {
-      self.updateContentUnavailable()
+    snapshotDidChange = { [weak self] in
+      guard let self else { return }
+      updateContentUnavailable()
     }
   }
 
@@ -400,10 +407,11 @@ class ArtistsVC: SingleSnapshotFetchedResultsTableViewController<ArtistMO> {
     let sortByName = UIAction(
       title: "Name",
       image: sortType == .name ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .name)
-        self.updateSearchResults(for: self.searchController)
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .name)
+        updateSearchResults(for: searchController)
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -413,10 +421,11 @@ class ArtistsVC: SingleSnapshotFetchedResultsTableViewController<ArtistMO> {
     let sortByRating = UIAction(
       title: "Rating",
       image: sortType == .rating ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .rating)
-        self.updateSearchResults(for: self.searchController)
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .rating)
+        updateSearchResults(for: searchController)
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -426,10 +435,11 @@ class ArtistsVC: SingleSnapshotFetchedResultsTableViewController<ArtistMO> {
     let sortByDuration = UIAction(
       title: "Duration",
       image: sortType == .duration ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .duration)
-        self.updateSearchResults(for: self.searchController)
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .duration)
+        updateSearchResults(for: searchController)
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -448,15 +458,17 @@ class ArtistsVC: SingleSnapshotFetchedResultsTableViewController<ArtistMO> {
     let filterAll = UIAction(
       title: "All",
       image: displayFilter == .all ? .check : nil,
-      handler: { _ in
-        self.change(filterType: .all)
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(filterType: .all)
       }
     )
     let filterAlbumArtists = UIAction(
       title: "Album Artists",
       image: displayFilter == .albumArtists ? .check : nil,
-      handler: { _ in
-        self.change(filterType: .albumArtists)
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(filterType: .albumArtists)
       }
     )
     return UIMenu(
@@ -471,23 +483,24 @@ class ArtistsVC: SingleSnapshotFetchedResultsTableViewController<ArtistMO> {
     let action = UIAction(
       title: "Download \(filterTitle)",
       image: UIImage.startDownload,
-      handler: { _ in
+      handler: { [weak self] _ in
+        guard let self else { return }
         var artists = [Artist]()
-        switch self.displayFilter {
+        switch displayFilter {
         case .all:
-          artists = self.appDelegate.storage.main.library.getArtists(for: self.account)
+          artists = appDelegate.storage.main.library.getArtists(for: account)
         case .albumArtists:
-          artists = self.appDelegate.storage.main.library
-            .getAlbumArtists(for: self.account)
+          artists = appDelegate.storage.main.library
+            .getAlbumArtists(for: account)
         case .favorites:
-          artists = self.appDelegate.storage.main.library
-            .getFavoriteArtists(for: self.account)
+          artists = appDelegate.storage.main.library
+            .getFavoriteArtists(for: account)
         }
         let artistSongs = Array(artists.compactMap { $0.playables }.joined())
         if artistSongs.count > AppDelegate.maxPlayablesDownloadsToAddAtOnceWithoutWarning {
           let alert = UIAlertController(
             title: "Many Songs",
-            message: "Are you sure to add \(artistSongs.count) songs from \"\(self.filterTitle)\" to download queue?",
+            message: "Are you sure to add \(artistSongs.count) songs from \"\(filterTitle)\" to download queue?",
             preferredStyle: .alert
           )
           alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
@@ -495,9 +508,9 @@ class ArtistsVC: SingleSnapshotFetchedResultsTableViewController<ArtistMO> {
               .download(objects: artistSongs)
           }))
           alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-          self.present(alert, animated: true, completion: nil)
+          present(alert, animated: true, completion: nil)
         } else {
-          self.appDelegate.getMeta(self.account.info).playableDownloadManager
+          appDelegate.getMeta(account.info).playableDownloadManager
             .download(objects: artistSongs)
         }
       }

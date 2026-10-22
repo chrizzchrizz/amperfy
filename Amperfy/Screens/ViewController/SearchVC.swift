@@ -95,7 +95,10 @@ class SearchVC: BasicTableViewController {
 
   func createDiffableDataSource() -> SearchDiffableDataSource {
     let source =
-      SearchDiffableDataSource(tableView: tableView) { tableView, indexPath, objectID -> UITableViewCell? in
+      SearchDiffableDataSource(tableView: tableView) { [
+        weak self
+      ] tableView, indexPath, objectID -> UITableViewCell? in
+        guard let self else { return UITableViewCell() }
         return self.tableView(self.tableView, cellForRowAt: indexPath)
       }
     source.searchVC = self
@@ -159,46 +162,49 @@ class SearchVC: BasicTableViewController {
     tableView.estimatedSectionFooterHeight = 0.0
     tableView.backgroundColor = .backgroundColor
 
-    containableAtIndexPathCallback = { indexPath in
+    containableAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
       switch SearchSection(rawValue: indexPath.section) {
       case .History:
-        return self.searchHistory[indexPath.row].searchedPlayableContainable
+        return searchHistory[indexPath.row].searchedPlayableContainable
       case .Playlist:
-        return self.playlists[indexPath.row]
+        return playlists[indexPath.row]
       case .Artist:
-        return self.artists[indexPath.row]
+        return artists[indexPath.row]
       case .Album:
-        return self.albums[indexPath.row]
+        return albums[indexPath.row]
       case .Song:
-        return self.songs[indexPath.row]
+        return songs[indexPath.row]
       case .none:
         return nil
       }
     }
-    playContextAtIndexPathCallback = { indexPath in
+    playContextAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
       switch SearchSection(rawValue: indexPath.section) {
       case .History:
-        let history = self.searchHistory[indexPath.row]
+        let history = searchHistory[indexPath.row]
         guard let container = history.searchedPlayableContainable else { return nil }
         return PlayContext(containable: container)
       case .Playlist:
-        let entity = self.playlists[indexPath.row]
+        let entity = playlists[indexPath.row]
         return PlayContext(containable: entity)
       case .Artist:
-        let entity = self.artists[indexPath.row]
+        let entity = artists[indexPath.row]
         return PlayContext(containable: entity)
       case .Album:
-        let entity = self.albums[indexPath.row]
+        let entity = albums[indexPath.row]
         return PlayContext(containable: entity)
       case .Song:
-        let entity = self.songs[indexPath.row]
+        let entity = songs[indexPath.row]
         return PlayContext(containable: entity)
       case .none:
         return nil
       }
     }
-    swipeCallback = { indexPath, completionHandler in
-      self.determSwipeActionContext(at: indexPath) { actionContext in
+    swipeCallback = { [weak self] indexPath, completionHandler in
+      guard let self else { return }
+      determSwipeActionContext(at: indexPath) { actionContext in
         completionHandler(actionContext)
       }
     }
@@ -247,12 +253,13 @@ class SearchVC: BasicTableViewController {
     // Install the options button
     optionsButton = UIBarButtonItem.createOptionsBarButton()
     optionsButton.menu = UIMenu(children: [
-      UIAction(title: "Clear Search History", image: .clear, handler: { _ in
-        self.appDelegate.storage.main.library.deleteSearchHistory()
-        self.appDelegate.storage.main.library.saveContext()
-        self.searchHistory = []
-        self.updateDataSource(animated: true)
-        self.updateContentUnavailable()
+      UIAction(title: "Clear Search History", image: .clear, handler: { [weak self] _ in
+        guard let self else { return }
+        appDelegate.storage.main.library.deleteSearchHistory()
+        appDelegate.storage.main.library.saveContext()
+        searchHistory = []
+        updateDataSource(animated: true)
+        updateContentUnavailable()
       }),
     ])
 
@@ -364,7 +371,11 @@ class SearchVC: BasicTableViewController {
         return cell
       } else if let song = container as? Song {
         let cell: PlayableTableCell = dequeueCell(for: tableView, at: indexPath)
-        cell.display(playable: song, playContextCb: convertCellViewToPlayContext, rootView: self)
+        cell.display(
+          playable: song,
+          playContextCb: { [weak self] in self?.convertCellViewToPlayContext(cell: $0) },
+          rootView: self
+        )
         return cell
       } else {
         let cell: GenericTableCell = dequeueCell(for: tableView, at: indexPath)
@@ -389,7 +400,11 @@ class SearchVC: BasicTableViewController {
     case .Song:
       let cell: PlayableTableCell = dequeueCell(for: tableView, at: indexPath)
       let song = songs[indexPath.row]
-      cell.display(playable: song, playContextCb: convertCellViewToPlayContext, rootView: self)
+      cell.display(
+        playable: song,
+        playContextCb: { [weak self] in self?.convertCellViewToPlayContext(cell: $0) },
+        rootView: self
+      )
       return cell
     case .none:
       return UITableViewCell()

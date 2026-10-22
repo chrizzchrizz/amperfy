@@ -72,17 +72,20 @@ class PodcastDetailVC: SingleFetchedResultsTableViewController<PodcastEpisodeMO>
     tableView.backgroundColor = .backgroundColor
 
     let playShuffleInfoConfig = PlayShuffleInfoConfiguration(
-      infoCB: { "\(self.podcast.episodeCount) Episode\(self.podcast.episodeCount == 1 ? "" : "s")"
+      infoCB: { [weak self] in
+        guard let self else { return "" }
+        return "\(podcast.episodeCount) Episode\(podcast.episodeCount == 1 ? "" : "s")"
       },
-      playContextCb: { () in
-        let context = self.fetchedResultsController
+      playContextCb: { [weak self] () in
+        guard let self else { return nil }
+        let context = fetchedResultsController
           .getContextPodcastEpisodes(
-            onlyCachedSongs: self.appDelegate.storage.settings.user
+            onlyCachedSongs: appDelegate.storage.settings.user
               .isOfflineMode
           )
         let newestEpisode = context?.first
         let playables = newestEpisode != nil ? [newestEpisode!] : [AbstractPlayable]()
-        return PlayContext(containable: self.podcast, playables: playables)
+        return PlayContext(containable: podcast, playables: playables)
       },
       player: appDelegate.player,
       isInfoAlwaysHidden: false,
@@ -104,21 +107,25 @@ class PodcastDetailVC: SingleFetchedResultsTableViewController<PodcastEpisodeMO>
       for: UIControl.Event.valueChanged
     )
     optionsButton = UIBarButtonItem.createOptionsBarButton()
-    optionsButton.menu = UIMenu.lazyMenu {
-      EntityPreviewActionBuilder(container: self.podcast, on: self).createMenuActions()
+    optionsButton.menu = UIMenu.lazyMenu { [weak self] in
+      guard let self else { return [] }
+      return EntityPreviewActionBuilder(container: podcast, on: self).createMenuActions()
     }
     navigationItem.rightBarButtonItem = optionsButton
 
     swipeDisplaySettings.playContextTypeOfElements = .podcast
-    containableAtIndexPathCallback = { indexPath in
-      self.fetchedResultsController.getWrappedEntity(at: indexPath)
+    containableAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      return fetchedResultsController.getWrappedEntity(at: indexPath)
     }
-    playContextAtIndexPathCallback = { indexPath in
-      let entity = self.fetchedResultsController.getWrappedEntity(at: indexPath)
+    playContextAtIndexPathCallback = { [weak self] indexPath in
+      guard let self else { return nil }
+      let entity = fetchedResultsController.getWrappedEntity(at: indexPath)
       return PlayContext(containable: entity)
     }
-    swipeCallback = { indexPath, completionHandler in
-      let episode = self.fetchedResultsController.getWrappedEntity(at: indexPath)
+    swipeCallback = { [weak self] indexPath, completionHandler in
+      guard let self else { return }
+      let episode = fetchedResultsController.getWrappedEntity(at: indexPath)
       completionHandler(SwipeActionContext(containable: episode))
     }
   }

@@ -64,18 +64,21 @@ class PlaylistSelectorVC: SingleSnapshotFetchedResultsTableViewController<Playli
 
   override func createDiffableDataSource() -> BasicUITableViewDiffableDataSource {
     let source =
-      PlaylistsSelectorDiffableDataSource(tableView: tableView) { tableView, indexPath, objectID -> UITableViewCell? in
-        guard let object = try? self.appDelegate.storage.main.context
+      PlaylistsSelectorDiffableDataSource(tableView: tableView) { [
+        weak self
+      ] tableView, indexPath, objectID -> UITableViewCell? in
+        guard let self else { return UITableViewCell() }
+        guard let object = try? appDelegate.storage.main.context
           .existingObject(with: objectID),
           let playlistMO = object as? PlaylistMO
         else {
           return UITableViewCell()
         }
         let playlist = Playlist(
-          library: self.appDelegate.storage.main.library,
+          library: appDelegate.storage.main.library,
           managedObject: playlistMO
         )
-        return self.createCell(tableView, forRowAt: indexPath, playlist: playlist)
+        return createCell(tableView, forRowAt: indexPath, playlist: playlist)
       }
     return source
   }
@@ -228,10 +231,11 @@ class PlaylistSelectorVC: SingleSnapshotFetchedResultsTableViewController<Playli
     let sortByName = UIAction(
       title: "Name",
       image: sortType == .name ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .name)
-        self.updateSearchResults(for: self.searchController)
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .name)
+        updateSearchResults(for: searchController)
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -241,10 +245,11 @@ class PlaylistSelectorVC: SingleSnapshotFetchedResultsTableViewController<Playli
     let sortByLastTimePlayed = UIAction(
       title: "Last time played",
       image: sortType == .lastPlayed ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .lastPlayed)
-        self.updateSearchResults(for: self.searchController)
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .lastPlayed)
+        updateSearchResults(for: searchController)
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -254,10 +259,11 @@ class PlaylistSelectorVC: SingleSnapshotFetchedResultsTableViewController<Playli
     let sortByChangeDate = UIAction(
       title: "Change date",
       image: sortType == .lastChanged ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .lastChanged)
-        self.updateSearchResults(for: self.searchController)
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .lastChanged)
+        updateSearchResults(for: searchController)
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
@@ -267,10 +273,11 @@ class PlaylistSelectorVC: SingleSnapshotFetchedResultsTableViewController<Playli
     let sortByDuration = UIAction(
       title: "Duration",
       image: sortType == .duration ? .check : nil,
-      handler: { _ in
-        self.change(sortType: .duration)
-        self.updateSearchResults(for: self.searchController)
-        self.appDelegate.notificationHandler.post(
+      handler: { [weak self] _ in
+        guard let self else { return }
+        change(sortType: .duration)
+        updateSearchResults(for: searchController)
+        appDelegate.notificationHandler.post(
           name: .fetchControllerSortChanged,
           object: nil,
           userInfo: nil
