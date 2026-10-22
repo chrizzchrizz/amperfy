@@ -175,7 +175,7 @@ public struct AmperfyImage: Sendable {
   public static let folder = Self("folder")
   public static let forwardFill = Self("forward.fill")
   public static let forwardMenu = Self("forward")
-  public static let genre = Self("guitars.fill")
+  public static let genre = Self("guitars")
   public static let goBackward15 = Self("gobackward.15")
   public static let goForward30 = Self("goforward.30")
   public static let grid = Self("square.grid.2x2")
