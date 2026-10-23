@@ -1069,7 +1069,7 @@ final class ArtistTopSongsColumnCell: UICollectionViewCell, UITableViewDataSourc
 // MARK: - ArtistSectionHeaderView
 
 /// Section title in the style of the home screen sections.
-private final class ArtistSectionHeaderView: UIView {
+final class ArtistSectionHeaderView: UIView {
   private static let topPadding: CGFloat = 16.0
 
   private static var font: UIFont {
@@ -1079,12 +1079,21 @@ private final class ArtistSectionHeaderView: UIView {
     )
   }
 
+  /// Same size as the song titles in `PlayableTableCell` (16 pt, 14 pt on Mac).
+  static var songTitleFont: UIFont {
+    UIFont.systemFont(ofSize: Self.isMac ? 14.0 : 16.0, weight: .semibold)
+  }
+
+  private static var isMac: Bool {
+    UIDevice.current.userInterfaceIdiom == .mac
+  }
+
   /// Space between the title and the content below, like on the home screen.
   /// The album grid adds it as its own top inset, the song rows get it from the header.
   static let contentSpacing: CGFloat = 8.0
 
   /// Like on the home screen the header only is as high as its title.
-  static func height(bottomPadding: CGFloat) -> CGFloat {
+  static func height(bottomPadding: CGFloat, font: UIFont = font) -> CGFloat {
     topPadding + ceil(font.lineHeight) + bottomPadding
   }
 
@@ -1093,11 +1102,11 @@ private final class ArtistSectionHeaderView: UIView {
   private let titleLabel = UILabel()
   private var isPinnedToTable = false
 
-  init(title: String, bottomPadding: CGFloat) {
+  init(title: String, bottomPadding: CGFloat, font: UIFont = font) {
     super.init(frame: .zero)
     titleLabel.translatesAutoresizingMaskIntoConstraints = false
     titleLabel.text = title
-    titleLabel.font = Self.font
+    titleLabel.font = font
     titleLabel.adjustsFontForContentSizeCategory = true
     titleLabel.textColor = .label
     addSubview(titleLabel)
