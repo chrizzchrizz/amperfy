@@ -222,6 +222,8 @@ class GenericDetailTableHeader: UIView {
 
   /// Size of the link chevron relative to the title font size.
   private static let linkChevronRelativeSize: CGFloat = 0.7
+  /// Moves the chevron down from the centered position.
+  private static let linkChevronYOffset: CGFloat = 4
 
   /// Title followed by a chevron like the home section headers, centered on the capital letters.
   private func titleWithLinkChevron(_ title: String) -> NSAttributedString {
@@ -236,7 +238,7 @@ class GenericDetailTableHeader: UIView {
     let attachment = NSTextAttachment(image: chevron)
     attachment.bounds = CGRect(
       x: 0,
-      y: ((font.capHeight - chevron.size.height) / 2).rounded(),
+      y: ((font.capHeight - chevron.size.height) / 2).rounded() - Self.linkChevronYOffset,
       width: chevron.size.width,
       height: chevron.size.height
     )
