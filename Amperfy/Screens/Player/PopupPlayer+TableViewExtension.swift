@@ -370,6 +370,7 @@ extension PopupPlayerVC: UITableViewDragDelegate {
   )
     -> UIDragPreviewParameters? {
     let parameter = UIDragPreviewParameters()
+    parameter.backgroundColor = .clear
     return parameter
   }
 }
@@ -412,6 +413,7 @@ extension PopupPlayerVC: UITableViewDropDelegate {
     -> UIDragPreviewParameters? {
     refreshCellMasks()
     let parameter = UIDragPreviewParameters()
+    parameter.backgroundColor = .clear
     return parameter
   }
 }
