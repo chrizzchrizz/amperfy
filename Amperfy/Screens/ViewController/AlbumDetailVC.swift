@@ -84,11 +84,13 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
     fetchedResultsController = AlbumSongsFetchedResultsController(
       forAlbum: album,
       coreDataCompanion: appDelegate.storage.main,
-      isGroupedInAlphabeticSections: false
+      isGroupedInAlphabeticSections: true // sections are the album's discs
     )
     singleFetchedResultsController = fetchedResultsController
     singleFetchedResultsController?.delegate = self
     singleFetchedResultsController?.fetch()
+    updateDiscHeaderVisibility()
+    snapshotDidChange = { [weak self] in self?.updateDiscHeaderVisibility() }
 
     configureSearchController(
       placeholder: "Search in \"Album\"",
@@ -256,6 +258,55 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
       isDislayAlbumTrackNumberStyle: true
     )
     return cell
+  }
+
+  /// Only albums with two or more discs show a "CD n" header above each disc's songs.
+  /// Not derived from the (possibly filtered) sections, so a search keeps the headers.
+  private var isDiscHeaderVisible = false
+
+  private func updateDiscHeaderVisibility() {
+    // keep the last value while searching, the results only contain a part of the album
+    guard !fetchedResultsController.isSearchActive else { return }
+    let discNumbers = Set(
+      (fetchedResultsController.fetchedObjects ?? [])
+        .compactMap { Song(managedObject: $0).discNumber }
+    )
+    let isVisible = discNumbers.count > 1
+    guard isVisible != isDiscHeaderVisible else { return }
+    isDiscHeaderVisible = isVisible
+    tableView.reloadData()
+  }
+
+  private func discTitle(inSection section: Int) -> String? {
+    guard let songMO = fetchedResultsController.sections?[section].objects?.first as? SongMO,
+          let discNumber = Song(managedObject: songMO).discNumber
+    else { return nil }
+    return "CD \(discNumber)"
+  }
+
+  override func tableView(
+    _ tableView: UITableView,
+    viewForHeaderInSection section: Int
+  )
+    -> UIView? {
+    guard isDiscHeaderVisible, let title = discTitle(inSection: section) else { return nil }
+    return ArtistSectionHeaderView(
+      title: title,
+      bottomPadding: ArtistSectionHeaderView.contentSpacing,
+      font: ArtistSectionHeaderView.songTitleFont
+    )
+  }
+
+  override func tableView(
+    _ tableView: UITableView,
+    heightForHeaderInSection section: Int
+  )
+    -> CGFloat {
+    guard isDiscHeaderVisible, discTitle(inSection: section) != nil else { return 0.0 }
+    return ArtistSectionHeaderView.height(
+      bottomPadding: ArtistSectionHeaderView.contentSpacing,
+      font: ArtistSectionHeaderView.songTitleFont
+    )
   }
 
   override func updateSearchResults(for searchController: UISearchController) {

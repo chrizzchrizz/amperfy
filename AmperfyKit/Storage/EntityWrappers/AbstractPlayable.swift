@@ -270,6 +270,12 @@ public class AbstractPlayable: AbstractLibraryEntity, Downloadable {
     }
   }
 
+  /// Disc number without server specific formatting ("1", "01" and "1/2" are all disc 1).
+  public var discNumber: Int? {
+    guard let disk, let disc = disk.split(separator: "/").first else { return nil }
+    return Int(disc.trimmingCharacters(in: .whitespaces))
+  }
+
   public var url: String? {
     get { playableManagedObject.url }
     set {
