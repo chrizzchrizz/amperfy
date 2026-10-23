@@ -277,11 +277,18 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
     tableView.reloadData()
   }
 
+  /// The sections follow the raw disk strings ("1", "01" and "1/2" are different sections),
+  /// so only the first section of a disc gets the header.
   private func discTitle(inSection section: Int) -> String? {
-    guard let songMO = fetchedResultsController.sections?[section].objects?.first as? SongMO,
-          let discNumber = Song(managedObject: songMO).discNumber
+    guard let discNumber = discNumber(inSection: section) else { return nil }
+    let isFirstSectionOfDisc = !(0 ..< section).contains { discNumber == self.discNumber(inSection: $0) }
+    return isFirstSectionOfDisc ? "CD \(discNumber)" : nil
+  }
+
+  private func discNumber(inSection section: Int) -> Int? {
+    guard let songMO = fetchedResultsController.sections?[section].objects?.first as? SongMO
     else { return nil }
-    return "CD \(discNumber)"
+    return Song(managedObject: songMO).discNumber
   }
 
   override func tableView(
