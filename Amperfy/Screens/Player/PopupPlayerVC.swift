@@ -168,6 +168,7 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     refreshCellMasks()
+    refreshBottomFadeMask()
     controlView?.refreshView()
   }
 
@@ -371,6 +372,29 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
 
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
     refreshCellMasks()
+    refreshBottomFadeMask()
+  }
+
+  /// Fades out the rows at the bottom edge of the list. The mask lives in the bounds of the
+  /// scroll view, so its frame follows the content offset.
+  func refreshBottomFadeMask() {
+    let fadeHeight: CGFloat = 70.0
+    let bounds = tableView.bounds
+    guard bounds.height > fadeHeight else {
+      tableView.layer.mask = nil
+      return
+    }
+    let mask = (tableView.layer.mask as? CAGradientLayer) ?? CAGradientLayer()
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    mask.frame = bounds
+    mask.colors = [UIColor.white.cgColor, UIColor.white.cgColor, UIColor.clear.cgColor]
+    let fadeStart = NSNumber(value: Double((bounds.height - fadeHeight) / bounds.height))
+    mask.locations = [0.0, fadeStart, 1.0]
+    mask.startPoint = CGPoint(x: 0.5, y: 0.0)
+    mask.endPoint = CGPoint(x: 0.5, y: 1.0)
+    tableView.layer.mask = mask
+    CATransaction.commit()
   }
 
   func refreshCellMasks() {
