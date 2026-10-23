@@ -253,10 +253,12 @@ class ArtistDetailVC: MultiSourceTableViewController {
       do {
         let url = try await appDelegate.getMeta(account.info).librarySyncer
           .requestArtistURL(artist: artist)
-        guard let titleLabel = detailOperationsView?.titleLabel else { return }
+        guard let detailOperationsView else { return }
+        let titleLabel = detailOperationsView.titleLabel!
         didLoadArtistURL = true
         guard let url else { return }
         artistURL = url
+        detailOperationsView.hasTitleLink = true
         titleLabel.isUserInteractionEnabled = true
         titleLabel.addGestureRecognizer(UITapGestureRecognizer(
           target: self,

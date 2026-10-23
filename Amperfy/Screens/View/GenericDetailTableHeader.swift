@@ -171,6 +171,8 @@ class GenericDetailTableHeader: UIView {
     )
     if let album = entityContainer as? Album, album.isFavorite {
       titleLabel.attributedText = titleWithFavoriteHeart(album.name)
+    } else if hasTitleLink {
+      titleLabel.attributedText = titleWithLinkChevron(entityContainer.name)
     } else {
       titleLabel.text = entityContainer.name
     }
@@ -201,6 +203,33 @@ class GenericDetailTableHeader: UIView {
     }
 
     playShuffleInfoView?.refresh()
+  }
+
+  /// Marks the title as tappable with a trailing chevron, the owner attaches the tap gesture.
+  var hasTitleLink = false {
+    didSet { if hasTitleLink != oldValue { refresh() } }
+  }
+
+  /// Title followed by a chevron like the home section headers, centered on the capital letters.
+  private func titleWithLinkChevron(_ title: String) -> NSAttributedString {
+    let font = titleLabel.font ?? .preferredFont(forTextStyle: .title2)
+    let config = UIImage.SymbolConfiguration(
+      pointSize: UIFont.preferredFont(forTextStyle: .subheadline).pointSize + 2,
+      weight: .semibold,
+      scale: .small
+    )
+    let chevron = UIImage(systemName: "chevron.right", withConfiguration: config)?
+      .withTintColor(.secondaryLabel, renderingMode: .alwaysOriginal) ?? UIImage()
+    let attachment = NSTextAttachment(image: chevron)
+    attachment.bounds = CGRect(
+      x: 0,
+      y: ((font.capHeight - chevron.size.height) / 2).rounded(),
+      width: chevron.size.width,
+      height: chevron.size.height
+    )
+    let text = NSMutableAttributedString(string: title + "\u{00A0}")
+    text.append(NSAttributedString(attachment: attachment))
+    return text
   }
 
   /// Size of the favorite heart relative to the title font size.
