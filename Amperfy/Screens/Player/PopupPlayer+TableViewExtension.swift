@@ -41,6 +41,8 @@ extension PopupPlayerVC: UITableViewDataSource, UITableViewDelegate {
     tableView.estimatedRowHeight = PlayableTableCell.rowHeight
     tableView.backgroundColor = UIColor.clear
     tableView.sectionHeaderTopPadding = 0.0
+    // .none would make the rows draw their own separators, so hide the system ones instead
+    tableView.separatorColor = .clear
     // rows share the horizontal margin of the headers and the progress bar
     tableView.layoutMargins = UIEdgeInsets(
       top: 0,
