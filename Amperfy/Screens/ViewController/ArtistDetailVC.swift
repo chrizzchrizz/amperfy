@@ -29,9 +29,9 @@ class ArtistDetailVC: MultiSourceTableViewController {
   /// The top section is needed due to display bugs
   private enum Section: Int, CaseIterable {
     case top
+    case topSongs
     case albums
     case compilations
-    case topSongs
   }
 
   private static let topSongsLimit = 25
