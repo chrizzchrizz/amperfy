@@ -220,11 +220,14 @@ class GenericDetailTableHeader: UIView {
     didSet { if hasTitleLink != oldValue { refresh() } }
   }
 
+  /// Size of the link chevron relative to the title font size.
+  private static let linkChevronRelativeSize: CGFloat = 0.7
+
   /// Title followed by a chevron like the home section headers, centered on the capital letters.
   private func titleWithLinkChevron(_ title: String) -> NSAttributedString {
     let font = titleLabel.font ?? .preferredFont(forTextStyle: .title2)
     let config = UIImage.SymbolConfiguration(
-      pointSize: UIFont.preferredFont(forTextStyle: .subheadline).pointSize + 2,
+      pointSize: (font.pointSize * Self.linkChevronRelativeSize).rounded(),
       weight: .semibold,
       scale: .small
     )

@@ -35,6 +35,7 @@ class ArtistDetailVC: MultiSourceTableViewController {
   }
 
   private static let topSongsLimit = 25
+  private static let titleFontSizeIncrease: CGFloat = 10
 
   fileprivate let artist: Artist
   var albumToScrollTo: Album?
@@ -191,6 +192,9 @@ class ArtistDetailVC: MultiSourceTableViewController {
     )
     detailOperationsView = GenericDetailTableHeader
       .createTableHeader(configuration: detailHeaderConfig)
+    if let titleLabel = detailOperationsView?.titleLabel {
+      titleLabel.font = titleLabel.font.withSize(titleLabel.font.pointSize + Self.titleFontSizeIncrease)
+    }
 
     optionsButton = UIBarButtonItem.createOptionsBarButton()
     optionsButton.menu = UIMenu.lazyMenu { [weak self] in
