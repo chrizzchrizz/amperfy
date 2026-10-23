@@ -192,6 +192,9 @@ public protocol LibrarySyncer: Sendable {
   /// Songs the server ranks as the most popular of the artist; empty if the backend has no such API.
   @MainActor
   func requestTopSongs(artist: Artist, count: Int) async throws -> [Song]
+  /// Page of the artist at an external service the server knows, e.g. Apple Music.
+  @MainActor
+  func requestArtistURL(artist: Artist) async throws -> URL?
   @MainActor
   func requestSimilarAlbums(album: Album, count: Int) async throws -> [Album]
   @MainActor

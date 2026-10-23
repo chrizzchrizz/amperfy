@@ -44,3 +44,30 @@ class SsSimilarArtistParserDelegate: SsXmlParser {
     artistIDs.append(id)
   }
 }
+
+/// Reads the `lastFmUrl` element of a `getArtistInfo2` response.
+/// Navidrome fills it with the artist URL of its first agent that provides one, e.g. the
+/// Apple Music plugin (`GetArtistURL`).
+class SsArtistUrlParserDelegate: SsXmlParser {
+  public private(set) var artistURL: URL?
+
+  override func parser(
+    _ parser: XMLParser,
+    didEndElement elementName: String,
+    namespaceURI: String?,
+    qualifiedName qName: String?
+  ) {
+    if elementName == "lastFmUrl" {
+      let text = buffer.trimmingCharacters(in: .whitespacesAndNewlines)
+      if let url = URL(string: text), ["http", "https"].contains(url.scheme?.lowercased()) {
+        artistURL = url
+      }
+    }
+    super.parser(
+      parser,
+      didEndElement: elementName,
+      namespaceURI: namespaceURI,
+      qualifiedName: qName
+    )
+  }
+}

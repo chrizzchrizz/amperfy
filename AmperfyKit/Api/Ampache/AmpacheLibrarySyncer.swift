@@ -1014,6 +1014,9 @@ class AmpacheLibrarySyncer: CommonLibrarySyncer, LibrarySyncer {
   func requestSimilarArtists(artist: Artist, count: Int) async throws -> [Artist] { [] }
 
   @MainActor
+  func requestArtistURL(artist: Artist) async throws -> URL? { nil }
+
+  @MainActor
   func requestTopSongs(artist: Artist, count: Int) async throws -> [Song] { [] }
 
   @MainActor

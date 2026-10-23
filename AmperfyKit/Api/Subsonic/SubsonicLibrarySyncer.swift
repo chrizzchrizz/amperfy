@@ -969,6 +969,15 @@ class SubsonicLibrarySyncer: CommonLibrarySyncer, LibrarySyncer {
   }
 
   @MainActor
+  func requestArtistURL(artist: Artist) async throws -> URL? {
+    guard isSyncAllowed else { return nil }
+    let response = try await subsonicServerApi.requestArtistInfo(id: artist.id, count: 1)
+    let parserDelegate = SsArtistUrlParserDelegate(performanceMonitor: performanceMonitor)
+    try parse(response: response, delegate: parserDelegate, isThrowingErrorsAllowed: false)
+    return parserDelegate.artistURL
+  }
+
+  @MainActor
   func requestSimilarArtists(artist: Artist, count: Int) async throws -> [Artist] {
     guard isSyncAllowed, let account = artist.account else { return [] }
     let response = try await subsonicServerApi.requestArtistInfo(id: artist.id, count: count)

@@ -55,6 +55,9 @@ class ArtistDetailVC: MultiSourceTableViewController {
   private var serverTopSongs = [Song]()
   private var isLoadingServerTopSongs = false
   private var didLoadServerTopSongs = false
+  private var isLoadingArtistURL = false
+  private var didLoadArtistURL = false
+  private var artistURL: URL?
   /// The search filters the local songs only, so the server's list is not shown while searching.
   private var isSearchingTopSongs = false
   /// Offline, the server's songs are mostly not playable, so the local list is shown.
@@ -235,8 +238,40 @@ class ArtistDetailVC: MultiSourceTableViewController {
       self.detailOperationsView?.refresh()
       self.artworkBackground.update()
     }
+    loadArtistURL()
     loadServerTopSongs()
     loadSimilarContent()
+  }
+
+  /// If the server knows a page of the artist (e.g. Apple Music), the name opens it.
+  private func loadArtistURL() {
+    guard !didLoadArtistURL, !isLoadingArtistURL else { return }
+    isLoadingArtistURL = true
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      defer { isLoadingArtistURL = false }
+      do {
+        let url = try await appDelegate.getMeta(account.info).librarySyncer
+          .requestArtistURL(artist: artist)
+        guard let titleLabel = detailOperationsView?.titleLabel else { return }
+        didLoadArtistURL = true
+        guard let url else { return }
+        artistURL = url
+        titleLabel.isUserInteractionEnabled = true
+        titleLabel.addGestureRecognizer(UITapGestureRecognizer(
+          target: self,
+          action: #selector(openArtistURL)
+        ))
+      } catch {
+        appDelegate.eventLogger.report(topic: "Artist URL", error: error, displayPopup: false)
+      }
+    }
+  }
+
+  @objc
+  private func openArtistURL() {
+    guard let artistURL else { return }
+    UIApplication.shared.open(artistURL)
   }
 
   override func viewDidLayoutSubviews() {
