@@ -1480,17 +1480,6 @@ public class LibraryStorage: PlayableFileCachable {
     return fetchRequest
   }
 
-  /// Returns the start year (e.g. 1990) of all decades with at least `minAlbumCount` albums, ascending.
-  public func getDecades(for account: Account, minAlbumCount: Int, onlyCached: Bool) -> [Int] {
-    let fetchRequest = getAlbumsWithYearFetchRequest(for: account, onlyCached: onlyCached)
-    guard let foundAlbums = try? context.fetch(fetchRequest) else { return [] }
-    var countPerDecade = [Int: Int]()
-    for album in foundAlbums {
-      countPerDecade[Int(album.year) / 10 * 10, default: 0] += 1
-    }
-    return countPerDecade.filter { $0.value >= minAlbumCount }.keys.sorted()
-  }
-
   /// All albums with a genre that belongs to a genre group, keyed by group name.
   private func getAlbumMOsByGenreGroup(
     for account: Account,
@@ -1521,17 +1510,6 @@ public class LibraryStorage: PlayableFileCachable {
       }
     }
     return albumsByGroup
-  }
-
-  /// Genre groups (in the order of `GenreGroups.all`) with at least `minAlbumCount` albums.
-  public func getGenreGroups(
-    for account: Account,
-    minAlbumCount: Int,
-    onlyCached: Bool
-  )
-    -> [GenreGroup] {
-    let albumsByGroup = getAlbumMOsByGenreGroup(for: account, onlyCached: onlyCached)
-    return GenreGroups.all.filter { (albumsByGroup[$0.name]?.count ?? 0) >= minAlbumCount }
   }
 
   public func getRandomAlbums(

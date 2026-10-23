@@ -30,8 +30,6 @@ final class HomeVC: UICollectionViewController {
   // MARK: - Properties
 
   private var dataSource: UICollectionViewDiffableDataSource<HomeSection, HomeItem>!
-  private var lastAppliedDecadeTitle: String?
-  private var lastAppliedGenreTitle: String?
   private let log = OSLog(subsystem: "Amperfy", category: "HomeVC")
 
   private static let itemWidth: CGFloat = 160.0
@@ -123,8 +121,6 @@ final class HomeVC: UICollectionViewController {
     super.viewIsAppearing(animated)
     extendSafeAreaToAccountForMiniPlayer()
     sharedHome.updateFromRemote()
-    sharedHome.updateDecadeAlbumsIfIntervalElapsed()
-    sharedHome.updateGenreAlbumsIfIntervalElapsed()
   }
 
   // MARK: - Layout
@@ -233,11 +229,7 @@ final class HomeVC: UICollectionViewController {
         return nil
       }
       header.setRefreshMenu(nil)
-      switch section {
-      case .decadeAlbums: header.title = sharedHome.decadeSectionTitle
-      case .genreAlbums: header.title = sharedHome.genreSectionTitle
-      default: header.title = section.title
-      }
+      header.title = section.headerTitle
       if let displayType = section.libraryDisplayType {
         header.setTapHandler { [weak self] in self?.showLibraryList(displayType) }
       } else {
@@ -265,18 +257,18 @@ final class HomeVC: UICollectionViewController {
       } else if section == .randomSongs {
         header.showsRefreshButton = true
         header.setRefreshHandler { [weak self] in self?.refreshRandomSongsSection() }
-      } else if section == .genreAlbums {
+      } else if section.isFixedDecadeOrGenre {
         header.showsRefreshButton = true
-        header.setRefreshHandler { [weak self] in self?.refreshGenreAlbumsSection() }
-        #if DEBUG
-          header.setRefreshMenu(createGenreDebugMenu())
-        #endif
-      } else if section == .decadeAlbums {
-        header.showsRefreshButton = true
-        header.setRefreshHandler { [weak self] in self?.refreshDecadeAlbumsSection() }
-        #if DEBUG
-          header.setRefreshMenu(createDecadeDebugMenu())
-        #endif
+        header.setRefreshHandler { [weak self] in
+          guard let self else { return }
+          Task { @MainActor in
+            await self.sharedHome.updateFixedDecadeOrGenreAlbums(
+              section,
+              isOfflineMode: self.sharedHome.isOfflineMode
+            )
+            self.scrollSectionToStart(section)
+          }
+        }
       } else {
         header.showsRefreshButton = false
         header.setRefreshHandler(nil)
@@ -287,13 +279,9 @@ final class HomeVC: UICollectionViewController {
 
   private func applySnapshot(animated: Bool = true) {
     var snapshot = NSDiffableDataSourceSnapshot<HomeSection, HomeItem>()
-    // decade and genre sections are hidden as long as nothing qualifies (not enough albums)
+    // decade and genre sections are hidden as long as they have no albums
     let sections = sharedHome.orderedVisibleSections.filter {
-      switch $0 {
-      case .decadeAlbums: return sharedHome.currentDecade != nil
-      case .genreAlbums: return sharedHome.currentGenreGroup != nil
-      default: return true
-      }
+      !$0.isFixedDecadeOrGenre || !(sharedHome.data[$0] ?? []).isEmpty
     }
     snapshot.appendSections(sections)
     for section in sections {
@@ -311,17 +299,6 @@ final class HomeVC: UICollectionViewController {
       return old != $0.artworkFingerprint
     }
     snapshot.reconfigureItems(changedItems)
-    // headers are only configured when dequeued -> reload the section if the decade title changed
-    let decadeTitle = sharedHome.decadeSectionTitle
-    if decadeTitle != lastAppliedDecadeTitle, sections.contains(.decadeAlbums) {
-      snapshot.reloadSections([.decadeAlbums])
-    }
-    lastAppliedDecadeTitle = decadeTitle
-    let genreTitle = sharedHome.genreSectionTitle
-    if genreTitle != lastAppliedGenreTitle, sections.contains(.genreAlbums) {
-      snapshot.reloadSections([.genreAlbums])
-    }
-    lastAppliedGenreTitle = genreTitle
     dataSource.apply(snapshot, animatingDifferences: animated)
   }
 
@@ -409,76 +386,6 @@ final class HomeVC: UICollectionViewController {
     Task { @MainActor in
       await sharedHome.updateRandomGenres()
       scrollSectionToStart(.randomGenres)
-    }
-  }
-
-  #if DEBUG
-    /// Debug only: long press on the decade refresh button lets you pick the decade.
-    private func createDecadeDebugMenu() -> UIMenu {
-      let deferred = UIDeferredMenuElement.uncached { [weak self] completion in
-        MainActor.assumeIsolated {
-          guard let self else { completion([]); return }
-          let decades = self.sharedHome.availableDecades()
-          completion(decades.map { decade in
-            UIAction(
-              title: "\(decade)s",
-              state: decade == self.sharedHome.currentDecade ? .on : .off
-            ) { [weak self] _ in
-              guard let self else { return }
-              Task { @MainActor in
-                await self.sharedHome.updateDecadeAlbums(
-                  isOfflineMode: self.sharedHome.isOfflineMode,
-                  forcedDecade: decade
-                )
-              }
-            }
-          })
-        }
-      }
-      return UIMenu(title: "Debug: Select Decade", children: [deferred])
-    }
-  #endif
-
-  #if DEBUG
-    /// Debug only: long press on the genre refresh button lets you pick the genre group.
-    private func createGenreDebugMenu() -> UIMenu {
-      let deferred = UIDeferredMenuElement.uncached { [weak self] completion in
-        MainActor.assumeIsolated {
-          guard let self else { completion([]); return }
-          let groups = self.sharedHome.availableGenreGroups()
-          completion(groups.map { group in
-            UIAction(
-              title: group.name,
-              state: group == self.sharedHome.currentGenreGroup ? .on : .off
-            ) { [weak self] _ in
-              guard let self else { return }
-              Task { @MainActor in
-                await self.sharedHome.updateGenreAlbums(
-                  isOfflineMode: self.sharedHome.isOfflineMode,
-                  forcedGenreGroup: group
-                )
-              }
-            }
-          })
-        }
-      }
-      return UIMenu(title: "Debug: Select Genre", children: [deferred])
-    }
-  #endif
-
-  @objc
-  func refreshGenreAlbumsSection() {
-    Task { @MainActor in
-      await sharedHome.updateGenreAlbums(isOfflineMode: sharedHome.isOfflineMode)
-      scrollSectionToStart(.genreAlbums)
-    }
-  }
-
-  @objc
-  func refreshDecadeAlbumsSection() {
-    Task { @MainActor in
-      await sharedHome.updateDecadeAlbums(isOfflineMode: sharedHome.isOfflineMode)
-      scrollSectionToStart(.decadeAlbums)
     }
   }
 
@@ -778,8 +685,10 @@ extension HomeSection {
     case .lastTimePlayedPlaylists: return .playlists
     case .podcasts: return .podcasts
     case .radios: return .radios
-    case .decadeAlbums, .genreAlbums, .newestPodcastEpisodes, .randomAlbums, .randomArtists,
+    case .newestPodcastEpisodes, .randomAlbums, .randomArtists,
          .randomGenres, .randomSongs:
+      return nil
+    default:
       return nil
     }
   }

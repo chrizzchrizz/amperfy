@@ -43,7 +43,7 @@ extension CarPlaySceneDelegate {
     var imageRows = [CPListImageRowItem]()
     // decade and genre sections are app home only for now
     for section in sharedHome.orderedVisibleSections
-      where section != .decadeAlbums && section != .genreAlbums {
+      where !section.isFixedDecadeOrGenre {
       if let row = homeImageRows[section] {
         let alreadyCreatedData = homeRowData[section]
         let requestedData = sharedHome.data[section]
@@ -116,10 +116,13 @@ extension CarPlaySceneDelegate {
             await sharedHome.updateRandomGenres()
           case .randomSongs:
             await sharedHome.updateRandomSongs(isOfflineMode: isOfflineMode)
-          case .decadeAlbums, .genreAlbums, .lastTimePlayedPlaylists, .latestReleasedAlbums,
+          case .lastTimePlayedPlaylists, .latestReleasedAlbums,
                .newestAlbums, .newestPodcastEpisodes, .podcasts,
                .radios, .recentlyPlayedAlbums:
             // do nothing
+            break
+          default:
+            // fixed decade and genre sections are app home only
             break
           }
           if section.isRandomSection {

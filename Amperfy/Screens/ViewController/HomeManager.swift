@@ -67,17 +67,6 @@ class HomeManager: NSObject {
   public var orderedVisibleSections: [HomeSection]
   public var data: [HomeSection: [HomeItem]] = [:]
   public var applySnapshotCB: VoidFunctionCallback?
-  /// Start year of the decade shown in the decade section (e.g. 1990). Nil if no decade qualifies.
-  public private(set) var currentDecade: Int?
-  public static let decadeMinAlbumCount = 10
-  /// Decade and genre sections are re-picked every `sectionRotationInterval`.
-  public static let sectionRotationInterval: TimeInterval = 3 * 60 * 60
-  private var decadePickedInSlot: Date?
-  /// The genre group shown in the genre section. Nil if no group qualifies.
-  public private(set) var currentGenreGroup: GenreGroup?
-  public static let genreMinAlbumCount = 10
-  private var genrePickedInSlot: Date?
-
   private let account: Account
   private let storage: PersistentStorage
   private let getMeta: (_ accountInfo: AccountInfo) -> MetaManager
@@ -173,16 +162,6 @@ class HomeManager: NSObject {
         await updateRandomAlbums(isOfflineMode: isOfflineMode)
       }
     }
-    if orderedVisibleSections.contains(where: { $0 == .decadeAlbums }) {
-      Task { @MainActor in
-        await updateDecadeAlbums(isOfflineMode: isOfflineMode, reselectDecade: true)
-      }
-    }
-    if orderedVisibleSections.contains(where: { $0 == .genreAlbums }) {
-      Task { @MainActor in
-        await updateGenreAlbums(isOfflineMode: isOfflineMode, reselectGenre: true)
-      }
-    }
     if orderedVisibleSections.contains(where: { $0 == .compilations }) {
       Task { @MainActor in
         await updateCompilations(isOfflineMode: isOfflineMode)
@@ -211,6 +190,14 @@ class HomeManager: NSObject {
     if orderedVisibleSections.contains(where: { $0 == .randomSongs }) {
       Task { @MainActor in
         await updateRandomSongs(isOfflineMode: isOfflineMode)
+      }
+    }
+    let fixedSections = orderedVisibleSections.filter(\.isFixedDecadeOrGenre)
+    if !fixedSections.isEmpty {
+      Task { @MainActor in
+        for section in fixedSections {
+          await updateFixedDecadeOrGenreAlbums(section, isOfflineMode: isOfflineMode)
+        }
       }
     }
 
@@ -380,6 +367,28 @@ class HomeManager: NSObject {
     applySnapshotCB?()
   }
 
+  /// Random albums of the decade or genre group a fixed section stands for.
+  func updateFixedDecadeOrGenreAlbums(_ section: HomeSection, isOfflineMode: Bool) async {
+    var albums = [Album]()
+    if let decade = section.fixedDecade {
+      albums = storage.main.library.getRandomAlbums(
+        for: account,
+        inDecade: decade,
+        count: Self.sectionMaxItemCount,
+        onlyCached: isOfflineMode
+      )
+    } else if let group = section.fixedGenreGroup {
+      albums = storage.main.library.getRandomAlbums(
+        for: account,
+        inGenreGroup: group,
+        count: Self.sectionMaxItemCount,
+        onlyCached: isOfflineMode
+      )
+    }
+    data[section] = albums.compactMap { HomeItem(section: section, playableContainable: $0) }
+    applySnapshotCB?()
+  }
+
   func updateFavoriteAlbums(isOfflineMode: Bool) async {
     let favoriteAlbums = storage.main.library.getRandomAlbums(
       for: account,
@@ -389,156 +398,6 @@ class HomeManager: NSObject {
     )
     data[.favoriteAlbums] = favoriteAlbums.compactMap {
       HomeItem(section: .favoriteAlbums, playableContainable: $0)
-    }
-    applySnapshotCB?()
-  }
-
-  /// Title for the decade section header, e.g. "Albums from the 90s".
-  var decadeSectionTitle: String {
-    guard let currentDecade else { return HomeSection.decadeAlbums.title }
-    let label = currentDecade < 2000 ? "\(currentDecade % 100)s" : "\(currentDecade)s"
-    return "Albums from the \(label)"
-  }
-
-  /// Start of the current rotation slot: the local day is split into slots of
-  /// `sectionRotationInterval`, so a pick is stable within the interval.
-  private func currentRotationSlotStart() -> Date {
-    let now = Date()
-    let startOfDay = Calendar.current.startOfDay(for: now)
-    let elapsed = now.timeIntervalSince(startOfDay)
-    let slotIndex = (elapsed / Self.sectionRotationInterval).rounded(.down)
-    return startOfDay.addingTimeInterval(slotIndex * Self.sectionRotationInterval)
-  }
-
-  private func pickOfTheSlot<T>(from candidates: [T]) -> T? {
-    guard !candidates.isEmpty else { return nil }
-    let slotNumber = UInt64(max(
-      0,
-      (currentRotationSlotStart().timeIntervalSinceReferenceDate / Self.sectionRotationInterval)
-        .rounded()
-    ))
-    // SplitMix64 scramble, so consecutive slots don't walk through the candidates in order
-    var z = slotNumber &+ 0x9E37_79B9_7F4A_7C15
-    z = (z ^ (z >> 30)) &* 0xBF58_476D_1CE4_E5B9
-    z = (z ^ (z >> 27)) &* 0x94D0_49BB_1331_11EB
-    z ^= z >> 31
-    return candidates[Int(z % UInt64(candidates.count))]
-  }
-
-  /// Picks a new decade if the rotation interval elapsed since the last pick.
-  func updateDecadeAlbumsIfIntervalElapsed() {
-    guard orderedVisibleSections.contains(.decadeAlbums),
-          decadePickedInSlot != currentRotationSlotStart()
-    else { return }
-    Task { @MainActor in
-      await updateDecadeAlbums(isOfflineMode: isOfflineMode)
-    }
-  }
-
-  #if DEBUG
-    func availableDecades() -> [Int] {
-      storage.main.library.getDecades(
-        for: account,
-        minAlbumCount: Self.decadeMinAlbumCount,
-        onlyCached: isOfflineMode
-      )
-    }
-  #endif
-
-  func updateDecadeAlbums(
-    isOfflineMode: Bool,
-    reselectDecade: Bool = false,
-    forcedDecade: Int? = nil
-  ) async {
-    let slot = currentRotationSlotStart()
-    if let forcedDecade {
-      // debug override, stays until the interval elapses or the home is rebuilt
-      currentDecade = forcedDecade
-      decadePickedInSlot = slot
-    } else if reselectDecade || currentDecade == nil || decadePickedInSlot != slot {
-      decadePickedInSlot = slot
-      let decades = storage.main.library.getDecades(
-        for: account,
-        minAlbumCount: Self.decadeMinAlbumCount,
-        onlyCached: isOfflineMode
-      )
-      currentDecade = pickOfTheSlot(from: decades)
-    }
-    if let currentDecade {
-      let albums = storage.main.library.getRandomAlbums(
-        for: account,
-        inDecade: currentDecade,
-        count: Self.sectionMaxItemCount,
-        onlyCached: isOfflineMode
-      )
-      data[.decadeAlbums] = albums.compactMap { HomeItem(
-        section: .decadeAlbums,
-        playableContainable: $0
-      ) }
-    } else {
-      data[.decadeAlbums] = []
-    }
-    applySnapshotCB?()
-  }
-
-  /// Title for the genre section header, e.g. "Hip Hop".
-  var genreSectionTitle: String {
-    guard let currentGenreGroup else { return HomeSection.genreAlbums.title }
-    return currentGenreGroup.name
-  }
-
-  /// Picks a new genre group if the rotation interval elapsed since the last pick.
-  func updateGenreAlbumsIfIntervalElapsed() {
-    guard orderedVisibleSections.contains(.genreAlbums),
-          genrePickedInSlot != currentRotationSlotStart()
-    else { return }
-    Task { @MainActor in
-      await updateGenreAlbums(isOfflineMode: isOfflineMode)
-    }
-  }
-
-  #if DEBUG
-    func availableGenreGroups() -> [GenreGroup] {
-      storage.main.library.getGenreGroups(
-        for: account,
-        minAlbumCount: Self.genreMinAlbumCount,
-        onlyCached: isOfflineMode
-      )
-    }
-  #endif
-
-  func updateGenreAlbums(
-    isOfflineMode: Bool,
-    reselectGenre: Bool = false,
-    forcedGenreGroup: GenreGroup? = nil
-  ) async {
-    let slot = currentRotationSlotStart()
-    if let forcedGenreGroup {
-      // debug override, stays until the interval elapses or the home is rebuilt
-      currentGenreGroup = forcedGenreGroup
-      genrePickedInSlot = slot
-    } else if reselectGenre || currentGenreGroup == nil || genrePickedInSlot != slot {
-      genrePickedInSlot = slot
-      let groups = storage.main.library.getGenreGroups(
-        for: account,
-        minAlbumCount: Self.genreMinAlbumCount,
-        onlyCached: isOfflineMode
-      )
-      currentGenreGroup = pickOfTheSlot(from: groups)
-    }
-    if let currentGenreGroup {
-      let albums = storage.main.library.getRandomAlbums(
-        for: account,
-        inGenreGroup: currentGenreGroup,
-        count: Self.sectionMaxItemCount,
-        onlyCached: isOfflineMode
-      )
-      data[.genreAlbums] = albums.compactMap { HomeItem(
-        section: .genreAlbums,
-        playableContainable: $0
-      ) }
-    } else {
-      data[.genreAlbums] = []
     }
     applySnapshotCB?()
   }
