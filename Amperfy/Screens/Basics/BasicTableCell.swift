@@ -57,6 +57,10 @@ class BasicTableCell: UITableViewCell {
   /// View whose leading edge the row separator starts at, defaults to the content margin.
   var separatorLeadingView: UIView? { nil }
 
+  /// Hides the line above the first and below the last row, e.g. if the surrounding sections
+  /// bring their own spacing.
+  var hidesEdgeSeparators = false
+
   private enum SeparatorStyle {
     case row // below a row, ends slightly inside the margins
     case edge // above the first and below the last row, reaches slightly beyond the margins
@@ -121,8 +125,8 @@ class BasicTableCell: UITableViewCell {
     let height = 1.0 / max(traitCollection.displayScale, 1.0)
     topSeparatorHeight?.constant = height
     bottomSeparatorHeight?.constant = height
-    topSeparator.isHidden = !isFirst
-    bottomSeparator.isHidden = false
+    topSeparator.isHidden = !isFirst || hidesEdgeSeparators
+    bottomSeparator.isHidden = isLast && hidesEdgeSeparators
 
     let style: SeparatorStyle = isLast ? .edge : .row
     guard style != appliedBottomStyle || separatorLeadingView !== appliedLeadingView else { return }

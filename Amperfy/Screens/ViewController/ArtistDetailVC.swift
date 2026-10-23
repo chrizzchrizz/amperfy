@@ -685,7 +685,7 @@ final class ArtistAlbumsGridVC: UICollectionViewController, UICollectionViewDele
   private static let spacing: CGFloat = 12.0
   private static let sideInset: CGFloat = 16.0
   private static let topInset = ArtistSectionHeaderView.contentSpacing
-  private static let bottomInset: CGFloat = 24.0
+  private static let bottomInset: CGFloat = 0.0
   private static let labelsHeight: CGFloat = 50.0
 
   private let account: Account
@@ -1060,6 +1060,7 @@ final class ArtistTopSongsColumnCell: UICollectionViewCell, UITableViewDataSourc
     guard let gridVC, let owner = gridVC.owner,
           let song = gridVC.song(firstIndex + indexPath.row) else { return cell }
     cell.contentColorOverride = gridVC.contentColor()
+    cell.hidesEdgeSeparators = true
     cell.display(
       playable: song,
       playContextCb: { [weak self, weak gridVC] cell in
