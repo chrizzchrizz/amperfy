@@ -193,7 +193,12 @@ class ArtistDetailVC: MultiSourceTableViewController {
     detailOperationsView = GenericDetailTableHeader
       .createTableHeader(configuration: detailHeaderConfig)
     if let titleLabel = detailOperationsView?.titleLabel {
-      titleLabel.font = titleLabel.font.withSize(titleLabel.font.pointSize + Self.titleFontSizeIncrease)
+      let baseFont = UIFont.systemFont(
+        ofSize: titleLabel.font.pointSize + Self.titleFontSizeIncrease,
+        weight: .bold
+      )
+      titleLabel.font = UIFontMetrics(forTextStyle: .title1).scaledFont(for: baseFont)
+      titleLabel.adjustsFontForContentSizeCategory = true
     }
 
     optionsButton = UIBarButtonItem.createOptionsBarButton()
