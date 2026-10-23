@@ -968,10 +968,26 @@ class SubsonicLibrarySyncer: CommonLibrarySyncer, LibrarySyncer {
     return songs.compactMap { $0.album }.filter { seenIds.insert($0.id).inserted }
   }
 
+  /// The artist's page and the similar artists come from the same request,
+  /// so concurrent callers share one round trip.
+  private var artistInfoTasks = [String: Task<APIDataResponse, Error>]()
+  private static let artistInfoCount = 15
+
+  @MainActor
+  private func requestArtistInfo(artist: Artist) async throws -> APIDataResponse {
+    if let runningTask = artistInfoTasks[artist.id] { return try await runningTask.value }
+    let api = subsonicServerApi
+    let artistID = artist.id
+    let task = Task { try await api.requestArtistInfo(id: artistID, count: Self.artistInfoCount) }
+    artistInfoTasks[artistID] = task
+    defer { artistInfoTasks[artistID] = nil }
+    return try await task.value
+  }
+
   @MainActor
   func requestArtistURL(artist: Artist) async throws -> URL? {
     guard isSyncAllowed else { return nil }
-    let response = try await subsonicServerApi.requestArtistInfo(id: artist.id, count: 1)
+    let response = try await requestArtistInfo(artist: artist)
     let parserDelegate = SsArtistUrlParserDelegate(performanceMonitor: performanceMonitor)
     try parse(response: response, delegate: parserDelegate, isThrowingErrorsAllowed: false)
     return parserDelegate.artistURL
@@ -980,10 +996,10 @@ class SubsonicLibrarySyncer: CommonLibrarySyncer, LibrarySyncer {
   @MainActor
   func requestSimilarArtists(artist: Artist, count: Int) async throws -> [Artist] {
     guard isSyncAllowed, let account = artist.account else { return [] }
-    let response = try await subsonicServerApi.requestArtistInfo(id: artist.id, count: count)
+    let response = try await requestArtistInfo(artist: artist)
     let parserDelegate = SsSimilarArtistParserDelegate(performanceMonitor: performanceMonitor)
     try parse(response: response, delegate: parserDelegate, isThrowingErrorsAllowed: false)
-    return parserDelegate.artistIDs.compactMap {
+    return parserDelegate.artistIDs.prefix(count).compactMap {
       storage.main.library.getArtist(for: account, id: $0)
     }.filter { $0.albumCount > 0 }
   }
