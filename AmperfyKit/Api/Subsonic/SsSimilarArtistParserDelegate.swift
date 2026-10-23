@@ -20,6 +20,8 @@
 
 import Foundation
 
+// MARK: - SsSimilarArtistParserDelegate
+
 /// Collects the ids of the `similarArtist` elements of a `getArtistInfo2` response.
 /// Entries without a real id (`-1`) are not part of the server's library and are skipped.
 class SsSimilarArtistParserDelegate: SsXmlParser {
@@ -44,6 +46,8 @@ class SsSimilarArtistParserDelegate: SsXmlParser {
     artistIDs.append(id)
   }
 }
+
+// MARK: - SsArtistUrlParserDelegate
 
 /// Reads the `lastFmUrl` element of a `getArtistInfo2` response.
 /// Navidrome fills it with the artist URL of its first agent that provides one, e.g. the
