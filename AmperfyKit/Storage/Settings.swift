@@ -340,6 +340,18 @@ public struct AccountSetting: Sendable, Codable {
     set { _homeSections = newValue }
   }
 
+  // all Home Sections (visible and hidden) in the order arranged by the user
+  // optional: settings stored before this property existed must still decode
+  private var _homeSectionOrder: [HomeSection]?
+  public var homeSectionOrder: [HomeSection] {
+    get {
+      (_homeSectionOrder ?? _homeSections)
+        .completingOrder(with: HomeSection.displayOrder)
+        .completingOrder(with: HomeSection.allCases)
+    }
+    set { _homeSectionOrder = newValue }
+  }
+
   private var _initialSyncCompletionStatus: SyncCompletionStatus = .defaultValue
   public var initialSyncCompletionStatus: SyncCompletionStatus {
     get { _initialSyncCompletionStatus }

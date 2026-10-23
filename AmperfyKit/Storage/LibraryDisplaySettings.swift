@@ -130,39 +130,46 @@ public enum LibraryDisplayType: Int, CaseIterable, Sendable {
 // MARK: - LibraryDisplaySettings
 
 public struct LibraryDisplaySettings: Sendable, Codable {
-  public var combined: [[LibraryDisplayType]]
+  /// all library types (in use and not used) in the order arranged by the user
+  public private(set) var order: [LibraryDisplayType]
+  private var inUseTypes: Set<LibraryDisplayType>
 
   public var inUse: [LibraryDisplayType] {
-    combined[0]
+    order.filter { inUseTypes.contains($0) }
   }
 
   public var notUsed: [LibraryDisplayType] {
-    combined[1]
+    order.filter { !inUseTypes.contains($0) }
   }
 
   private enum CodingKeys: String, CodingKey {
     case combined
+    case order
   }
 
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
-    let encodedCombined = combined.map { $0.map { $0.rawValue } }
+    // combined: [inUse, notUsed], the stored format before the order was persisted
+    let encodedCombined = [inUse, notUsed].map { $0.map { $0.rawValue } }
     try container.encode(encodedCombined, forKey: .combined)
+    try container.encode(order.map { $0.rawValue }, forKey: .order)
   }
 
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     let decodedCombined = try container.decode([[Int]].self, forKey: .combined)
+    // not present in settings stored before the order was persisted
+    let decodedOrder = try container.decodeIfPresent([Int].self, forKey: .order)
 
     let mapped: [[LibraryDisplayType]] = decodedCombined.map { group in
       group.compactMap { LibraryDisplayType(rawValue: $0) }
     }
 
     if mapped.count == 2 {
-      // types added in later versions are not part of stored settings -> offer them as not used
-      let known = Set(mapped.flatMap { $0 })
-      let missing = LibraryDisplayType.allCases.filter { !known.contains($0) }
-      self.combined = [mapped[0], mapped[1] + missing]
+      // types added in later versions are not part of stored settings -> appended as not used
+      let order = decodedOrder?.compactMap { LibraryDisplayType(rawValue: $0) } ?? mapped[0] +
+        mapped[1]
+      self = LibraryDisplaySettings(order: order, inUse: Set(mapped[0]))
     } else if let first = mapped.first {
       // If only one group present, treat it as inUse and compute notUsed
       self = LibraryDisplaySettings(inUse: first)
@@ -173,12 +180,20 @@ public struct LibraryDisplaySettings: Sendable, Codable {
   }
 
   public func isVisible(libraryType: LibraryDisplayType) -> Bool {
-    inUse.contains(where: { $0 == libraryType })
+    inUseTypes.contains(libraryType)
   }
 
+  /// The types not in use follow the ones in use, in `displayOrder`.
   public init(inUse: [LibraryDisplayType]) {
-    let notUsedSet = Set(LibraryDisplayType.allCases).subtracting(Set(inUse))
-    self.combined = [inUse, Self.displayOrder.filter { notUsedSet.contains($0) }]
+    self.init(order: inUse, inUse: Set(inUse))
+  }
+
+  /// Keeps the order arranged by the user; types missing in `order` (e.g. new ones) are appended
+  /// in `displayOrder`.
+  public init(order: [LibraryDisplayType], inUse: Set<LibraryDisplayType>) {
+    self.order = order.completingOrder(with: Self.displayOrder)
+      .completingOrder(with: LibraryDisplayType.allCases)
+    self.inUseTypes = inUse
   }
 
   // order used for not used types
