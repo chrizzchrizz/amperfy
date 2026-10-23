@@ -913,8 +913,23 @@ class SubsonicLibrarySyncer: CommonLibrarySyncer, LibrarySyncer {
   private func requestSimilarSongs(id: String, count: Int) async throws -> [Song] {
     guard isSyncAllowed else { return [] }
     let response = try await subsonicServerApi.requestSimilarSongs(id: id, count: count)
+    return try await parseSongs(response: response)
+  }
 
-    let similarSongObjectIds: [NSManagedObjectID] = try await storage.async.performAndGet {
+  /// Top songs of the artist as ranked by the server, e.g. by its Last.fm or Deezer agent.
+  @MainActor
+  func requestTopSongs(artist: Artist, count: Int) async throws -> [Song] {
+    guard isSyncAllowed else { return [] }
+    let response = try await subsonicServerApi.requestTopSongs(
+      artistName: artist.name,
+      count: count
+    )
+    return try await parseSongs(response: response)
+  }
+
+  @MainActor
+  private func parseSongs(response: APIDataResponse) async throws -> [Song] {
+    let songObjectIds: [NSManagedObjectID] = try await storage.async.performAndGet {
       asyncCompanion in
       let accountAsync = asyncCompanion.library.getAccount(managedObjectId: self.accountObjectId)
       let idParserDelegate = SsIDsParserDelegate(performanceMonitor: self.performanceMonitor)
@@ -941,7 +956,7 @@ class SubsonicLibrarySyncer: CommonLibrarySyncer, LibrarySyncer {
       return songMOs.map { $0.objectID }
     }
 
-    return try similarSongObjectIds.map {
+    return try songObjectIds.map {
       Song(managedObject: try storage.main.context.existingObject(with: $0) as! SongMO)
     }
   }

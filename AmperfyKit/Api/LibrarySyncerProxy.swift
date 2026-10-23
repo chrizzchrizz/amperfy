@@ -185,6 +185,11 @@ extension LibrarySyncerProxy: LibrarySyncer {
   }
 
   @MainActor
+  func requestTopSongs(artist: Artist, count: Int) async throws -> [Song] {
+    try await activeSyncer.requestTopSongs(artist: artist, count: count)
+  }
+
+  @MainActor
   func requestSimilarArtists(artist: Artist, count: Int) async throws -> [Artist] {
     try await activeSyncer.requestSimilarArtists(artist: artist, count: count)
   }

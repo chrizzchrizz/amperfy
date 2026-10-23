@@ -965,6 +965,16 @@ final class SubsonicServerApi: URLCleanser, Sendable {
     }
   }
 
+  public func requestTopSongs(artistName: String, count: Int = 25) async throws
+    -> APIDataResponse {
+    try await request { version in
+      var urlComp = try self.createAuthApiUrlComponent(version: version, forAction: "getTopSongs")
+      urlComp.addQueryItem(name: "artist", value: artistName)
+      urlComp.addQueryItem(name: "count", value: count)
+      return try self.createUrl(from: urlComp)
+    }
+  }
+
   public func requestArtistInfo(id: String, count: Int = 20) async throws -> APIDataResponse {
     try await request { version in
       var urlComp = try self.createAuthApiUrlComponent(

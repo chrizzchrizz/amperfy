@@ -51,6 +51,17 @@ class ArtistDetailVC: MultiSourceTableViewController {
   private var topSongsGridVC: ArtistTopSongsGridVC!
   private var similarContentFooter: SimilarContentFooterView?
   private var isLoadingSimilarContent = false
+  /// Top songs ranked by the server; replace the locally computed ones as soon as they arrive.
+  private var serverTopSongs = [Song]()
+  private var isLoadingServerTopSongs = false
+  private var didLoadServerTopSongs = false
+  /// The search filters the local songs only, so the server's list is not shown while searching.
+  private var isSearchingTopSongs = false
+  /// Offline, the server's songs are mostly not playable, so the local list is shown.
+  private var isShowingServerTopSongs: Bool {
+    !serverTopSongs.isEmpty && !isSearchingTopSongs
+      && !appDelegate.storage.settings.user.isOfflineMode
+  }
 
   init(account: Account, artist: Artist) {
     self.artist = artist
@@ -131,10 +142,8 @@ class ArtistDetailVC: MultiSourceTableViewController {
     topSongsGridVC = ArtistTopSongsGridVC(
       songCount: { [weak self] in self?.topSongCount ?? 0 },
       song: { [weak self] index in
-        self?.topSongsFetchedResultsController.getWrappedEntity(at: IndexPath(
-          row: index,
-          section: 0
-        ))
+        guard let songs = self?.topSongs, songs.indices.contains(index) else { return nil }
+        return songs[index]
       },
       playContext: { [weak self] index in
         self?.topSongsPlayContext(index: index)
@@ -226,12 +235,34 @@ class ArtistDetailVC: MultiSourceTableViewController {
       self.detailOperationsView?.refresh()
       self.artworkBackground.update()
     }
+    loadServerTopSongs()
     loadSimilarContent()
   }
 
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     similarContentFooter?.layout(in: tableView)
+  }
+
+  /// The server knows the popular songs of an artist (e.g. from Last.fm), the play counts of the
+  /// local library only reflect what has been played. A failing or empty answer keeps the local list.
+  private func loadServerTopSongs() {
+    guard !didLoadServerTopSongs, !isLoadingServerTopSongs else { return }
+    isLoadingServerTopSongs = true
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      defer { isLoadingServerTopSongs = false }
+      do {
+        let songs = try await appDelegate.getMeta(account.info).librarySyncer
+          .requestTopSongs(artist: artist, count: Self.topSongsLimit)
+        didLoadServerTopSongs = true
+        guard !songs.isEmpty else { return }
+        serverTopSongs = songs
+        tableView.reloadSections([Section.topSongs.rawValue], with: .none)
+      } catch {
+        appDelegate.eventLogger.report(topic: "Top Songs", error: error, displayPopup: false)
+      }
+    }
   }
 
   private func loadSimilarContent() {
@@ -282,22 +313,34 @@ class ArtistDetailVC: MultiSourceTableViewController {
     }
   }
 
+  /// The top songs of the server, otherwise the most played songs of the local library.
   /// The fetched results controller ignores a fetch limit, so the songs are limited here.
+  private var topSongs: [Song] {
+    if isShowingServerTopSongs {
+      return Array(serverTopSongs.prefix(Self.topSongsLimit))
+    }
+    return (topSongsFetchedResultsController.fetchedObjects ?? [])
+      .prefix(Self.topSongsLimit)
+      .map { Song(managedObject: $0) }
+  }
+
   private var topSongCount: Int {
-    min(topSongsFetchedResultsController.sections?[0].numberOfObjects ?? 0, Self.topSongsLimit)
+    if isShowingServerTopSongs {
+      return min(serverTopSongs.count, Self.topSongsLimit)
+    }
+    return min(
+      topSongsFetchedResultsController.sections?[0].numberOfObjects ?? 0,
+      Self.topSongsLimit
+    )
   }
 
   /// Plays the displayed top songs, starting with the selected one.
   private func topSongsPlayContext(index: Int) -> PlayContext? {
     let isOfflineMode = appDelegate.storage.settings.user.isOfflineMode
-    let songs: [AbstractPlayable] = (topSongsFetchedResultsController.fetchedObjects ?? [])
-      .prefix(Self.topSongsLimit)
-      .map { Song(managedObject: $0) }
-      .filter { !isOfflineMode || $0.isCached }
-    let selectedSong = topSongsFetchedResultsController.getWrappedEntity(at: IndexPath(
-      row: index,
-      section: 0
-    ))
+    let displayedSongs = topSongs
+    guard displayedSongs.indices.contains(index) else { return nil }
+    let selectedSong = displayedSongs[index]
+    let songs: [AbstractPlayable] = displayedSongs.filter { !isOfflineMode || $0.isCached }
     guard let playContextIndex = songs.firstIndex(of: selectedSong) else { return nil }
     return PlayContext(containable: artist, index: playContextIndex, playables: songs)
   }
@@ -435,6 +478,8 @@ class ArtistDetailVC: MultiSourceTableViewController {
 
   override func updateSearchResults(for searchController: UISearchController) {
     guard let searchText = searchController.searchBar.text else { return }
+    isSearchingTopSongs = !searchText.isEmpty || searchController.searchBar
+      .selectedScopeButtonIndex == 1
     if !searchText.isEmpty, searchController.searchBar.selectedScopeButtonIndex == 0 {
       albumsFetchedResultsController.search(searchText: searchText, onlyCached: false)
       compilationsFetchedResultsController.search(searchText: searchText, onlyCached: false)
@@ -494,7 +539,9 @@ class ArtistDetailVC: MultiSourceTableViewController {
     in section: Section,
     fetchedResultsController: BasicFetchedResultsController<ResultType>
   ) {
-    let hasItems = (fetchedResultsController.sections?[0].numberOfObjects ?? 0) > 0
+    let hasItems = section == .topSongs
+      ? topSongCount > 0
+      : (fetchedResultsController.sections?[0].numberOfObjects ?? 0) > 0
     if hasItems != (tableView.numberOfRows(inSection: section.rawValue) > 0) {
       tableView.reloadSections([section.rawValue], with: .none)
     } else {

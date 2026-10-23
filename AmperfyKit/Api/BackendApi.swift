@@ -189,6 +189,9 @@ public protocol LibrarySyncer: Sendable {
   func requestRandomSongs(playlist: Playlist, count: Int) async throws
   @MainActor
   func requestSimilarSongs(song: Song, count: Int) async throws -> [Song]
+  /// Songs the server ranks as the most popular of the artist; empty if the backend has no such API.
+  @MainActor
+  func requestTopSongs(artist: Artist, count: Int) async throws -> [Song]
   @MainActor
   func requestSimilarAlbums(album: Album, count: Int) async throws -> [Album]
   @MainActor
