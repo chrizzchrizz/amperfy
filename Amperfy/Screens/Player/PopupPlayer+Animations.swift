@@ -37,14 +37,12 @@ extension PopupPlayerVC {
     var viewToDisapper: UIView?
     var artworkToDisapper: UIView?
     var containerToDisapper: UIView?
-    var detailsContainerToDisapper: UIView?
     var favoriteToDisapper: UIView?
     var optionsToDisapper: UIView?
 
     var viewToApper: UIView?
     var artworkToApper: UIView?
     var containerToApper: UIView?
-    var detailsContainerToApper: UIView?
     var favoriteToApper: UIView?
     var optionsToApper: UIView?
 
@@ -53,13 +51,11 @@ extension PopupPlayerVC {
       viewToDisapper = largePlayerPlaceholderView
       artworkToDisapper = largeCurrentlyPlayingView?.artworkImage
       containerToDisapper = largeCurrentlyPlayingView
-      detailsContainerToDisapper = largeCurrentlyPlayingView?.detailsContainer
       favoriteToDisapper = largeCurrentlyPlayingView?.favoriteButton
       optionsToDisapper = largeCurrentlyPlayingView?.optionsButton
       viewToApper = tableView
       artworkToApper = currentlyPlayingTableCell?.artworkImage
       containerToApper = currentlyPlayingTableCell
-      detailsContainerToApper = currentlyPlayingTableCell
       favoriteToApper = currentlyPlayingTableCell?.favoriteButton
       optionsToApper = currentlyPlayingTableCell?.optionsButton
       scrollToCurrentlyPlayingRow()
@@ -68,13 +64,11 @@ extension PopupPlayerVC {
       viewToDisapper = tableView
       artworkToDisapper = currentlyPlayingTableCell?.artworkImage
       containerToDisapper = currentlyPlayingTableCell
-      detailsContainerToDisapper = currentlyPlayingTableCell
       favoriteToDisapper = currentlyPlayingTableCell?.favoriteButton
       optionsToDisapper = currentlyPlayingTableCell?.optionsButton
       viewToApper = largePlayerPlaceholderView
       artworkToApper = largeCurrentlyPlayingView?.artworkImage
       containerToApper = largeCurrentlyPlayingView
-      detailsContainerToApper = largeCurrentlyPlayingView?.detailsContainer
       favoriteToApper = largeCurrentlyPlayingView?.favoriteButton
       optionsToApper = largeCurrentlyPlayingView?.optionsButton
       largeCurrentlyPlayingView?.refresh()
@@ -87,8 +81,6 @@ extension PopupPlayerVC {
     if animated {
       guard let artworkToDisapper = artworkToDisapper,
             let artworkToApper = artworkToApper,
-            let detailsContainerToDisapper = detailsContainerToDisapper,
-            let detailsContainerToApper = detailsContainerToApper,
             let favoriteToDisapper = favoriteToDisapper,
             let favoriteToApper = favoriteToApper,
             let optionsToDisapper = optionsToDisapper,
@@ -96,18 +88,13 @@ extension PopupPlayerVC {
       else { return }
 
       // 1. Force autolayout to layout
+      // the containers, not only the artwork: their margins decide where the artwork ends up
+      containerToDisapper?.layoutIfNeeded()
+      containerToApper?.layoutIfNeeded()
       artworkToApper.layoutIfNeeded()
       // 2. Calculate source and target frames
-      var artworkSourceFrame = view.convert(artworkToDisapper.frame, from: containerToDisapper)
-      artworkSourceFrame = limitSizeToInsideThePlaceholder(
-        targetFrame: artworkSourceFrame,
-        placeholderFrame: largePlayerPlaceholderView.frame
-      )
-      var artworkTargetFrame = view.convert(artworkToApper.frame, from: containerToApper)
-      artworkTargetFrame = limitSizeToInsideThePlaceholder(
-        targetFrame: artworkTargetFrame,
-        placeholderFrame: largePlayerPlaceholderView.frame
-      )
+      let artworkSourceFrame = frameInsideThePlaceholder(of: artworkToDisapper)
+      let artworkTargetFrame = frameInsideThePlaceholder(of: artworkToApper)
       // 3. Create fake image and animate it
       animateArtwork(
         image: largeCurrentlyPlayingView?.artworkImage.image,
@@ -118,19 +105,8 @@ extension PopupPlayerVC {
       )
 
       favoriteToApper.layoutIfNeeded()
-      var favoriteSourceFrame = view.convert(
-        favoriteToDisapper.frame,
-        from: detailsContainerToDisapper
-      )
-      favoriteSourceFrame = limitSizeToInsideThePlaceholder(
-        targetFrame: favoriteSourceFrame,
-        placeholderFrame: largePlayerPlaceholderView.frame
-      )
-      var favoriteTargetFrame = view.convert(favoriteToApper.frame, from: detailsContainerToApper)
-      favoriteTargetFrame = limitSizeToInsideThePlaceholder(
-        targetFrame: favoriteTargetFrame,
-        placeholderFrame: largePlayerPlaceholderView.frame
-      )
+      let favoriteSourceFrame = frameInsideThePlaceholder(of: favoriteToDisapper)
+      let favoriteTargetFrame = frameInsideThePlaceholder(of: favoriteToApper)
       animateFavorite(
         sourceView: favoriteToDisapper,
         targetView: favoriteToApper,
@@ -139,19 +115,8 @@ extension PopupPlayerVC {
       )
 
       optionsToApper.layoutIfNeeded()
-      var optionsSourceFrame = view.convert(
-        optionsToDisapper.frame,
-        from: detailsContainerToDisapper
-      )
-      optionsSourceFrame = limitSizeToInsideThePlaceholder(
-        targetFrame: optionsSourceFrame,
-        placeholderFrame: largePlayerPlaceholderView.frame
-      )
-      var optionsTargetFrame = view.convert(optionsToApper.frame, from: detailsContainerToApper)
-      optionsTargetFrame = limitSizeToInsideThePlaceholder(
-        targetFrame: optionsTargetFrame,
-        placeholderFrame: largePlayerPlaceholderView.frame
-      )
+      let optionsSourceFrame = frameInsideThePlaceholder(of: optionsToDisapper)
+      let optionsTargetFrame = frameInsideThePlaceholder(of: optionsToApper)
       animateOptions(
         sourceView: optionsToDisapper,
         targetView: optionsToApper,
@@ -184,6 +149,14 @@ extension PopupPlayerVC {
       viewToDisapper.isHidden = true
       viewToApper.isHidden = false
     }
+  }
+
+  /// Frame of the view in the coordinate space of the player, limited to the placeholder.
+  private func frameInsideThePlaceholder(of view: UIView) -> CGRect {
+    limitSizeToInsideThePlaceholder(
+      targetFrame: self.view.convert(view.bounds, from: view),
+      placeholderFrame: largePlayerPlaceholderView.frame
+    )
   }
 
   private func limitSizeToInsideThePlaceholder(
