@@ -46,6 +46,7 @@ class ArtistDetailVC: MultiSourceTableViewController {
   private var optionsButton: UIBarButtonItem!
   private var detailOperationsView: GenericDetailTableHeader?
   private var artworkBackground: ArtworkBackgroundController!
+  private let backdropView = ArtistBackdropView()
   private var albumsGridVC: ArtistAlbumsGridVC!
   private var compilationsGridVC: ArtistAlbumsGridVC!
   private var topSongsGridVC: ArtistTopSongsGridVC!
@@ -205,7 +206,11 @@ class ArtistDetailVC: MultiSourceTableViewController {
       detailHeader: { [weak self] in self?.detailOperationsView },
       imagePath: { [weak self] setting in self?.artist.imagePath(setting: setting) }
     )
-    artworkBackground.didApplyBackground = { [weak self] in self?.topSongsGridVC.reload() }
+    artworkBackground.didApplyBackground = { [weak self] in
+      self?.topSongsGridVC.reload()
+      self?.updateBackdrop()
+    }
+    tableView.insertSubview(backdropView, at: 0)
     artworkBackground.update()
     registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, _) in
       self.artworkBackground.update(animated: true)
@@ -279,6 +284,31 @@ class ArtistDetailVC: MultiSourceTableViewController {
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     similarContentFooter?.layout(in: tableView)
+    layoutBackdrop()
+  }
+
+  /// The band photo lies behind the header, shown only if there is room for it (compact width).
+  private func updateBackdrop() {
+    let artworkDisplayPreference = appDelegate.storage.settings.accounts
+      .getSetting(account.info).read.artworkDisplayPreference
+    backdropView.load(imagePath: artist.imagePath(setting: artworkDisplayPreference)) { [weak self] in
+      self?.layoutBackdrop()
+    }
+  }
+
+  private func layoutBackdrop() {
+    let isShown = backdropView.hasImage && traitCollection.horizontalSizeClass == .compact
+    detailOperationsView?.isCoverHidden = isShown
+    backdropView.isHidden = !isShown
+    guard isShown, let headerHeight = tableView.tableHeaderView?.frame.height else { return }
+    // reaches behind the navigation bar, up to the start of the first section
+    let top = tableView.adjustedContentInset.top
+    backdropView.frame = CGRect(
+      x: 0,
+      y: -top,
+      width: tableView.bounds.width,
+      height: top + headerHeight
+    )
   }
 
   /// The server knows the popular songs of an artist (e.g. from Last.fm), the play counts of the
@@ -1154,5 +1184,73 @@ final class ArtistSectionHeaderView: UIView {
 
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+}
+
+// MARK: - ArtistBackdropView
+
+/// Photo of the artist that fades out towards its bottom edge.
+private final class ArtistBackdropView: UIView {
+  private let imageView = UIImageView()
+  private let fadeMask = CAGradientLayer()
+  private var loadedPath: String?
+
+  var hasImage: Bool { imageView.image != nil }
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    isUserInteractionEnabled = false
+    imageView.contentMode = .scaleAspectFill
+    imageView.clipsToBounds = true
+    addSubview(imageView)
+    fadeMask.colors = [UIColor.black.cgColor, UIColor.black.cgColor, UIColor.clear.cgColor]
+    fadeMask.locations = [0, 0.45, 1]
+    layer.mask = fadeMask
+  }
+
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    imageView.frame = bounds
+    fadeMask.frame = bounds
+  }
+
+  /// Path of the image that is currently shown, so a failed load is tried again.
+  func load(imagePath: String?, completion: @escaping @MainActor () -> ()) {
+    guard imagePath != loadedPath else { return }
+    guard let imagePath else {
+      loadedPath = nil
+      imageView.image = nil
+      completion()
+      return
+    }
+    Task { @MainActor [weak self] in
+      let image = await Self.loadImage(imagePath: imagePath)
+      guard let self, let image else { return }
+      loadedPath = imagePath
+      imageView.image = image
+      completion()
+    }
+  }
+
+  /// The photo is only shown screen wide, so it is decoded in a reduced size.
+  private nonisolated static let maxPixelSize = 1600
+
+  @concurrent
+  private static func loadImage(imagePath: String) async -> UIImage? {
+    let url = URL(fileURLWithPath: imagePath) as CFURL
+    guard let source = CGImageSourceCreateWithURL(url, nil) else { return nil }
+    let options: [CFString: Any] = [
+      kCGImageSourceCreateThumbnailFromImageAlways: true,
+      kCGImageSourceCreateThumbnailWithTransform: true,
+      kCGImageSourceShouldCacheImmediately: true,
+      kCGImageSourceThumbnailMaxPixelSize: maxPixelSize,
+    ]
+    guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
+    else { return nil }
+    return UIImage(cgImage: cgImage)
   }
 }

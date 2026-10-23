@@ -153,6 +153,16 @@ class GenericDetailTableHeader: UIView {
     coverShadowView.fadeInShadow()
   }
 
+  /// Hides the cover but keeps its space, e.g. if a photo is shown behind the header instead.
+  var isCoverHidden = false {
+    didSet {
+      guard isCoverHidden != oldValue, let cover = entityImage.superview else { return }
+      cover.alpha = isCoverHidden ? 0 : 1
+      cover.isUserInteractionEnabled = !isCoverHidden
+      cover.accessibilityElementsHidden = isCoverHidden
+    }
+  }
+
   /// Black or white color for the info texts on custom backgrounds.
   func applyContentColor(_ color: UIColor) {
     let secondaryColor = color.withAlphaComponent(0.8)
