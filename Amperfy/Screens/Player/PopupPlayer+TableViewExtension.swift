@@ -41,6 +41,13 @@ extension PopupPlayerVC: UITableViewDataSource, UITableViewDelegate {
     tableView.estimatedRowHeight = PlayableTableCell.rowHeight
     tableView.backgroundColor = UIColor.clear
     tableView.sectionHeaderTopPadding = 0.0
+    // rows share the horizontal margin of the headers and the progress bar
+    tableView.layoutMargins = UIEdgeInsets(
+      top: 0,
+      left: UIView.defaultMarginX,
+      bottom: 0,
+      right: UIView.defaultMarginX
+    )
   }
 
   func clearUserQueue() {

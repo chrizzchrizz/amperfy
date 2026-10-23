@@ -39,6 +39,20 @@ class CurrentlyPlayingTableCell: BasicTableCell {
   @IBOutlet
   weak var optionsButton: UIButton!
 
+  /// Fixed margins instead of the ones the table view hands out late in its layout pass. The
+  /// display style animation reads the artwork frame before that, and would aim at a stale position.
+  override var layoutMargins: UIEdgeInsets {
+    get {
+      UIEdgeInsets(
+        top: BasicTableCell.margin.top,
+        left: UIView.defaultMarginX,
+        bottom: BasicTableCell.margin.bottom,
+        right: UIView.defaultMarginX
+      )
+    }
+    set {}
+  }
+
   required init?(coder aDecoder: NSCoder) {
     super.init(coder: aDecoder)
   }
