@@ -329,8 +329,10 @@ class ArtistDetailVC: MultiSourceTableViewController {
       guard let self else { return }
       defer { isLoadingServerTopSongs = false }
       do {
+        // the server only knows the name, so songs of namesakes are dropped
         let songs = try await appDelegate.getMeta(account.info).librarySyncer
           .requestTopSongs(artist: artist, count: Self.topSongsLimit)
+          .filter { $0.artist == artist }
         didLoadServerTopSongs = true
         guard !songs.isEmpty else { return }
         serverTopSongs = songs
