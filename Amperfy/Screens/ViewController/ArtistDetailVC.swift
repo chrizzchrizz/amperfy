@@ -300,9 +300,10 @@ class ArtistDetailVC: MultiSourceTableViewController {
   private func updateBackdrop() {
     let artworkDisplayPreference = appDelegate.storage.settings.accounts
       .getSetting(account.info).read.artworkDisplayPreference
-    backdropView.load(imagePath: artist.imagePath(setting: artworkDisplayPreference)) { [weak self] in
-      self?.layoutBackdrop()
-    }
+    backdropView
+      .load(imagePath: artist.imagePath(setting: artworkDisplayPreference)) { [weak self] in
+        self?.layoutBackdrop()
+      }
   }
 
   private func layoutBackdrop() {

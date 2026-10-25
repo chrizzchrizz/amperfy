@@ -281,7 +281,8 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
   /// so only the first section of a disc gets the header.
   private func discTitle(inSection section: Int) -> String? {
     guard let discNumber = discNumber(inSection: section) else { return nil }
-    let isFirstSectionOfDisc = !(0 ..< section).contains { discNumber == self.discNumber(inSection: $0) }
+    let isFirstSectionOfDisc = !(0 ..< section)
+      .contains { discNumber == self.discNumber(inSection: $0) }
     return isFirstSectionOfDisc ? "CD \(discNumber)" : nil
   }
 

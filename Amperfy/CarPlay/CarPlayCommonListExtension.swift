@@ -325,7 +325,8 @@ extension CarPlaySceneDelegate {
           library: appDelegate.storage.main.library,
           managedObject: fetchObject
         )
-        let collection = playlist.getArtworkCollection(theme: getPreference(activeAccountInfo).theme)
+        let collection = playlist
+          .getArtworkCollection(theme: getPreference(activeAccountInfo).theme)
         let item = CPListItem(
           text: playlist.name,
           detailText: playlist.subtitle,
