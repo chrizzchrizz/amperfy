@@ -20,7 +20,6 @@
 //
 
 import AmperfyKit
-import DominantColors
 import Foundation
 import MarqueeLabel
 import os.log
@@ -425,8 +424,8 @@ extension UIViewController {
 extension UIImage {
   /// Most frequent color of the image; falls back to the average color.
   ///
-  /// Uses a cheap histogram on a tiny thumbnail. The DominantColors package merges similar colors
-  /// pairwise, which can take very long for noisy artwork and blocked the main thread.
+  /// Uses a cheap histogram on a tiny thumbnail; merging similar colors pairwise (as e.g. the
+  /// DominantColors package does) can take very long for noisy artwork and blocked the main thread.
   ///
   /// With `forDarkBackground` the same main color is returned, but its HSL lightness is lowered so
   /// it works behind white content. Hue always stays the artwork's; see `adjustedForBackground`.
