@@ -40,4 +40,45 @@ public class ArtworkCollection {
     self.singleImageEntity = singleImageEntity
     self.quadImageEntity = quadImageEntity
   }
+
+  /// What is shown for this collection; shared by the app screens and CarPlay.
+  public enum Display {
+    case quad([AbstractLibraryEntity])
+    case single(AbstractLibraryEntity)
+    case standalone(Artwork)
+    case placeholder
+  }
+
+  public var display: Display {
+    if let quadEntities = quadImageEntity {
+      if quadEntities.count > 1 {
+        // all images are the same
+        if Set(quadEntities.compactMap { $0.artwork?.id }).count == 1 {
+          return .single(quadEntities[0])
+        }
+        return .quad(quadEntities)
+      } else if let firstEntity = quadEntities.first {
+        return .single(firstEntity)
+      }
+      return .placeholder
+    } else if let singleImageEntity {
+      return .single(singleImageEntity)
+    } else if let fallbackArtwork {
+      return .standalone(fallbackArtwork)
+    }
+    return .placeholder
+  }
+
+  /// Artworks that have to be downloaded to show this collection.
+  public var artworks: [Artwork] {
+    let all: [Artwork?]
+    switch display {
+    case let .quad(entities): all = entities.map { $0.artwork }
+    case let .single(entity): all = [entity.artwork]
+    case let .standalone(artwork): all = [artwork]
+    case .placeholder: all = []
+    }
+    var seenIDs = Set<String>()
+    return all.compactMap { $0 }.filter { seenIDs.insert($0.uniqueID).inserted }
+  }
 }

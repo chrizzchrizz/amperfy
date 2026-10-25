@@ -237,16 +237,17 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     return homeTab
   }()
 
-  struct EntityImageRowContainer {
-    let entity: AbstractLibraryEntity
+  /// A home row element whose image has to be refreshed after an artwork download.
+  struct HomeArtworkTarget {
+    let section: HomeSection
     let item: HomeItem
-    var homeRow: [CPListImageRowItemRowElement]
-    var detailRow: [CPListImageRowItemRowElement]
+    let isDetail: Bool
+    var element: CPListImageRowItemRowElement
   }
 
   var homeImageRows: [HomeSection: CPListImageRowItem] = [:]
   var homeRowData: [HomeSection: [HomeItem]] = [:]
-  var homeArtworkUpdate: [String: EntityImageRowContainer] = [:] // String is Artwork.uniqueID
+  var homeArtworkUpdate: [String: [HomeArtworkTarget]] = [:] // String is Artwork.uniqueID
 
   lazy var cachedTab = {
     let cachedTab = CPListTemplate(title: "Cached", sections: createCachedSections())
@@ -478,17 +479,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     guard let templates = interfaceController?.templates else { return }
 
     // refresh Home image rows
-    if let container = homeArtworkUpdate[downloadNotification.id] {
-      var imageRowImages = container.homeRow
-      imageRowImages.append(contentsOf: container.detailRow)
-      let image = LibraryEntityImage.getImageToDisplayImmediately(
-        libraryEntity: container.entity,
-        themePreference: getPreference(activeAccountInfo).theme,
-        artworkDisplayPreference: getPreference(activeAccountInfo).artworkDisplayPreference,
-        useCache: false
-      )
-      for rowImage in imageRowImages {
-        rowImage.image = image.carPlayImage(carTraitCollection: traits)
+    if let targets = homeArtworkUpdate[downloadNotification.id] {
+      for target in targets where !target.isDetail {
+        target.element.image = getImage(for: target.item.playableContainable)
       }
     }
 
@@ -499,26 +492,28 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
        let listTemplate = templates.last as? CPListTemplate,
        listTemplate.sections.count == 1,
        let detailRow = listTemplate.sections.first?.items.first as? CPListImageRowItem,
-       var container = homeArtworkUpdate[downloadNotification.id] {
-      var newCreatedRowImages = [CPListImageRowItemRowElement]()
-      for detailRowImage in container.detailRow {
-        if let elementIndex = detailRow.elements.firstIndex(where: { $0 == detailRowImage }) {
-          let image = LibraryEntityImage.getImageToDisplayImmediately(
-            libraryEntity: container.entity,
-            themePreference: getPreference(activeAccountInfo).theme,
-            artworkDisplayPreference: getPreference(activeAccountInfo).artworkDisplayPreference,
-            useCache: false
-          )
-          let newElement = CPListImageRowItemRowElement(
-            image: image.carPlayImage(carTraitCollection: traits),
-            title: container.item.playableContainable.name,
-            subtitle: container.item.playableContainable.subtitle
-          )
-          detailRow.elements[elementIndex] = newElement
-          newCreatedRowImages.append(newElement)
+       let targets = homeArtworkUpdate[downloadNotification.id] {
+      for target in targets where target.isDetail {
+        guard let elementIndex = detailRow.elements.firstIndex(where: { $0 == target.element })
+        else { continue }
+        let containable = target.item.playableContainable
+        let newElement = CPListImageRowItemRowElement(
+          image: getImage(for: containable),
+          title: containable.name,
+          subtitle: containable.subtitle
+        )
+        detailRow.elements[elementIndex] = newElement
+        // an item can be registered for several artworks (e.g. a playlist cover grid)
+        for (artworkID, artworkTargets) in homeArtworkUpdate {
+          homeArtworkUpdate[artworkID] = artworkTargets.map { artworkTarget in
+            var updated = artworkTarget
+            if artworkTarget.isDetail, artworkTarget.element == target.element {
+              updated.element = newElement
+            }
+            return updated
+          }
         }
       }
-      container.detailRow = newCreatedRowImages
     }
 
     // refresh List items
@@ -538,6 +533,18 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
           guard let item = listTemplateItem as? CPListItem,
                 let userInfo = item.userInfo as? [String: Any]
           else { continue }
+
+          if let artworkIDs = userInfo[CarPlayListUserInfoKeys.artworkDownloadIDs.rawValue]
+            as? [String],
+            let objectID = userInfo[CarPlayListUserInfoKeys.containableObjectID.rawValue]
+            as? NSManagedObjectID {
+            if artworkIDs.contains(downloadNotification.id),
+               let mo = appDelegate.storage.main.context.object(with: objectID) as? PlaylistMO {
+              let playlist = Playlist(library: appDelegate.storage.main.library, managedObject: mo)
+              item.setImage(getImage(for: playlist))
+            }
+            continue
+          }
 
           var isThisRelatedToTheDownload = false
           var isTrackDisplayed = false

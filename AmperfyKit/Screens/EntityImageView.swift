@@ -189,35 +189,25 @@ open class EntityImageView: UIView {
     quadImages.forEach { $0.isHidden = true }
     singleImage.isHidden = false
 
-    if let quadEntities = collection.quadImageEntity {
-      if quadEntities.count > 1 {
-        // check if all images are the same
-        if Set(quadEntities.compactMap { $0.artwork?.id }).count == 1 {
-          singleImage.displayAndUpdate(entity: quadEntities.first!)
-        } else {
-          singleImage.isHidden = true
-          quadImages.forEach {
-            $0.display(image: UIImage.getGeneratedArtwork(theme: theme, artworkType: .song))
-            $0.isHidden = false
-          }
-          for (index, entity) in quadEntities.enumerated() {
-            guard index < quadImages.count else { break }
-            quadImages[index].display(entity: entity)
-          }
-        }
-      } else if let firstEntity = quadEntities.first {
-        singleImage.displayAndUpdate(entity: firstEntity)
-      } else {
-        singleImage.display(artworkType: collection.defaultArtworkType)
+    switch collection.display {
+    case let .quad(quadEntities):
+      singleImage.isHidden = true
+      quadImages.forEach {
+        $0.display(image: UIImage.getGeneratedArtwork(theme: theme, artworkType: .song))
+        $0.isHidden = false
       }
-    } else if let singleEntity = collection.singleImageEntity {
-      singleImage.displayAndUpdate(entity: singleEntity)
-    } else if let fallbackArtwork = collection.fallbackArtwork {
+      for (index, entity) in quadEntities.enumerated() {
+        guard index < quadImages.count else { break }
+        quadImages[index].display(entity: entity)
+      }
+    case let .single(entity):
+      singleImage.displayAndUpdate(entity: entity)
+    case let .standalone(artwork):
       singleImage.displayAndUpdate(
-        artwork: fallbackArtwork,
+        artwork: artwork,
         artworkType: collection.defaultArtworkType
       )
-    } else {
+    case .placeholder:
       singleImage.display(artworkType: collection.defaultArtworkType)
     }
   }

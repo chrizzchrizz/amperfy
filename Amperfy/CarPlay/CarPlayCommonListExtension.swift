@@ -325,13 +325,24 @@ extension CarPlaySceneDelegate {
           library: appDelegate.storage.main.library,
           managedObject: fetchObject
         )
+        let collection = playlist.getArtworkCollection(theme: getPreference(activeAccountInfo).theme)
         let item = CPListItem(
           text: playlist.name,
           detailText: playlist.subtitle,
-          image: nil,
+          image: getImage(for: collection),
           accessoryImage: nil,
           accessoryType: .disclosureIndicator
         )
+        let artworks = collection.artworks
+        for artwork in artworks {
+          if let accountInfo = artwork.account?.info {
+            appDelegate.getMeta(accountInfo).artworkDownloadManager.download(object: artwork)
+          }
+        }
+        item.userInfo = [
+          CarPlayListUserInfoKeys.artworkDownloadIDs.rawValue: artworks.map { $0.uniqueID },
+          CarPlayListUserInfoKeys.containableObjectID.rawValue: fetchObject.objectID,
+        ]
         item.handler = { [weak self] item, completion in
           guard let self = self else { completion(); return }
           let playlistDetailTemplate = CPListTemplate(title: playlist.name, sections: [
@@ -629,6 +640,23 @@ extension CarPlaySceneDelegate {
     case artworkOwnerType
     case artworkOwnerObjectID
     case isTrackDisplayed
+    case artworkDownloadIDs
+    case containableObjectID
+  }
+
+  /// Image of a container (e.g. a playlist cover grid) like the app shows it.
+  func getImage(for containable: PlayableContainable) -> UIImage {
+    getImage(for: containable.getArtworkCollection(theme: getPreference(activeAccountInfo).theme))
+  }
+
+  func getImage(for collection: ArtworkCollection) -> UIImage {
+    let theme = getPreference(activeAccountInfo).theme
+    return LibraryEntityImage.getImageToDisplayImmediately(
+      collection: collection,
+      themePreference: theme,
+      artworkDisplayPreference: getPreference(activeAccountInfo).artworkDisplayPreference,
+      useCache: false
+    ).carPlayImage(carTraitCollection: traits)
   }
 
   func createDetailTemplate(

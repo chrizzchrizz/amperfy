@@ -49,6 +49,93 @@ extension LibraryEntityImage {
       artworkType: libraryEntity.getDefaultArtworkType()
     )
   }
+
+  /// Same selection as `EntityImageView`, rendered into a single image (e.g. for CarPlay).
+  static public func getImageToDisplayImmediately(
+    collection: ArtworkCollection,
+    themePreference: ThemePreference,
+    artworkDisplayPreference: ArtworkDisplayPreference,
+    useCache: Bool
+  )
+    -> UIImage {
+    switch collection.display {
+    case let .single(entity):
+      return getImageToDisplayImmediately(
+        libraryEntity: entity,
+        themePreference: themePreference,
+        artworkDisplayPreference: artworkDisplayPreference,
+        useCache: useCache
+      )
+    case let .standalone(artwork):
+      if let imagePath = artwork.imagePath, let image = UIImage(named: imagePath) {
+        return image
+      }
+    case let .quad(entities):
+      return quadImage(
+        entities: entities,
+        themePreference: themePreference,
+        artworkDisplayPreference: artworkDisplayPreference,
+        useCache: useCache
+      )
+    case .placeholder:
+      break
+    }
+    return UIImage.getGeneratedArtwork(
+      theme: themePreference,
+      artworkType: collection.defaultArtworkType
+    )
+  }
+
+  private static let quadImageSize = CGSize(width: 400, height: 400)
+
+  private static func quadImage(
+    entities: [AbstractLibraryEntity],
+    themePreference: ThemePreference,
+    artworkDisplayPreference: ArtworkDisplayPreference,
+    useCache: Bool
+  )
+    -> UIImage {
+    let format = UIGraphicsImageRendererFormat()
+    format.scale = 1
+    format.opaque = true
+    let tile = CGSize(width: quadImageSize.width / 2, height: quadImageSize.height / 2)
+    let placeholder = UIImage.getGeneratedArtwork(theme: themePreference, artworkType: .song)
+    return UIGraphicsImageRenderer(size: quadImageSize, format: format).image { context in
+      for index in 0 ..< 4 {
+        let rect = CGRect(
+          x: CGFloat(index % 2) * tile.width,
+          y: CGFloat(index / 2) * tile.height,
+          width: tile.width,
+          height: tile.height
+        )
+        let image = index < entities.count ? getImageToDisplayImmediately(
+          libraryEntity: entities[index],
+          themePreference: themePreference,
+          artworkDisplayPreference: artworkDisplayPreference,
+          useCache: useCache
+        ) : placeholder
+        context.cgContext.saveGState()
+        UIBezierPath(rect: rect).addClip()
+        // transparent covers must not show the black of the opaque renderer
+        UIColor.systemBackground.setFill()
+        context.fill(rect)
+        drawAspectFill(image, in: rect)
+        context.cgContext.restoreGState()
+      }
+    }
+  }
+
+  private static func drawAspectFill(_ image: UIImage, in rect: CGRect) {
+    guard image.size.width > 0, image.size.height > 0 else { return }
+    let scale = max(rect.width / image.size.width, rect.height / image.size.height)
+    let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+    image.draw(in: CGRect(
+      x: rect.midX - size.width / 2,
+      y: rect.midY - size.height / 2,
+      width: size.width,
+      height: size.height
+    ))
+  }
 }
 
 // MARK: - LibraryEntityImage

@@ -191,59 +191,36 @@ extension CarPlaySceneDelegate {
     }
     if !isDetail {
       homeRowData[section] = requestedData
-    } else {
-      for var container in homeArtworkUpdate {
-        container.value.detailRow.removeAll()
+    }
+    // drop the targets of the elements which are replaced now
+    for artworkID in Array(homeArtworkUpdate.keys) {
+      homeArtworkUpdate[artworkID]?.removeAll { $0.section == section && $0.isDetail == isDetail }
+      if homeArtworkUpdate[artworkID]?.isEmpty == true {
+        homeArtworkUpdate[artworkID] = nil
       }
     }
 
     var imageRowElements = [CPListImageRowItemRowElement]()
     let items = requestedData ?? []
     for item in items {
-      var image: UIImage?
-      var artwork: Artwork?
-      var entity: AbstractLibraryEntity?
-      if let libEntity = item.playableContainable as? AbstractLibraryEntity {
-        image = LibraryEntityImage.getImageToDisplayImmediately(
-          libraryEntity: libEntity,
-          themePreference: getPreference(activeAccountInfo).theme,
-          artworkDisplayPreference: getPreference(activeAccountInfo).artworkDisplayPreference,
-          useCache: false
-        )
-        if let entityArtwork = libEntity.artwork, let accountInfo = entityArtwork.account?.info {
-          artwork = entityArtwork
-          entity = libEntity
-          // trigger download only once
-          if homeArtworkUpdate[entityArtwork.uniqueID] == nil {
-            appDelegate.getMeta(accountInfo).artworkDownloadManager.download(object: entityArtwork)
-          }
-        }
-      }
-      let displayImage = image?.carPlayImage(carTraitCollection: traits) ?? UIImage
-        .getGeneratedArtwork(
-          theme: getPreference(activeAccountInfo).theme,
-          artworkType: item.playableContainable
-            .getArtworkCollection(theme: getPreference(activeAccountInfo).theme).defaultArtworkType
-        )
-
+      let containable = item.playableContainable
       let element = CPListImageRowItemRowElement(
-        image: displayImage,
-        title: item.playableContainable.name,
-        subtitle: item.playableContainable.subtitle
+        image: getImage(for: containable),
+        title: containable.name,
+        subtitle: containable.subtitle
       )
-      if let artwork, let entity {
-        if homeArtworkUpdate[artwork.uniqueID] == nil {
-          homeArtworkUpdate[artwork.uniqueID] = EntityImageRowContainer(
-            entity: entity,
-            item: item,
-            homeRow: isDetail ? [] : [element],
-            detailRow: isDetail ? [element] : []
-          )
-        } else if isDetail {
-          homeArtworkUpdate[artwork.uniqueID]?.detailRow.append(element)
-        } else {
-          homeArtworkUpdate[artwork.uniqueID]?.homeRow.append(element)
+      for artwork in containable.getArtworkCollection(theme: getPreference(activeAccountInfo).theme)
+        .artworks {
+        // trigger download only once
+        if homeArtworkUpdate[artwork.uniqueID] == nil, let accountInfo = artwork.account?.info {
+          appDelegate.getMeta(accountInfo).artworkDownloadManager.download(object: artwork)
         }
+        homeArtworkUpdate[artwork.uniqueID, default: []].append(HomeArtworkTarget(
+          section: section,
+          item: item,
+          isDetail: isDetail,
+          element: element
+        ))
       }
       imageRowElements.append(element)
     }
