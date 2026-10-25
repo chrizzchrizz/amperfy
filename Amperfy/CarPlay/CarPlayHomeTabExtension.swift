@@ -41,9 +41,9 @@ extension CarPlaySceneDelegate {
   func createHomeImageRows() -> [CPListImageRowItem] {
     guard let sharedHome else { return [] }
     var imageRows = [CPListImageRowItem]()
-    // decade and genre sections are app home only for now
+    // decade and genre sections are hidden as long as they have no albums (like in the app home)
     for section in sharedHome.orderedVisibleSections
-      where !section.isFixedDecadeOrGenre {
+      where !section.isFixedDecadeOrGenre || !(sharedHome.data[section] ?? []).isEmpty {
       if let row = homeImageRows[section] {
         let alreadyCreatedData = homeRowData[section]
         let requestedData = sharedHome.data[section]
@@ -76,7 +76,7 @@ extension CarPlaySceneDelegate {
 
     var title: String?
     if !isDetailTemplate {
-      title = section.title
+      title = section.headerTitle
     } else if isRandomSection {
       title = "Refresh"
     }
@@ -92,7 +92,7 @@ extension CarPlaySceneDelegate {
       if !isDetailTemplate {
         Task { @MainActor in
           let detailSectionRow = createHomeRow(section: section, isDetailTemplate: true)
-          let detailListTemplate = CPListTemplate(title: section.title, sections: [
+          let detailListTemplate = CPListTemplate(title: section.headerTitle, sections: [
             CPListSection(items: detailSectionRow != nil ? [detailSectionRow!] : []),
           ])
           let _ = try? await interfaceController?
@@ -122,7 +122,7 @@ extension CarPlaySceneDelegate {
             // do nothing
             break
           default:
-            // fixed decade and genre sections are app home only
+            // fixed decade and genre sections have no refresh
             break
           }
           if section.isRandomSection {
