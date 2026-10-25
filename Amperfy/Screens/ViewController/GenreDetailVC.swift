@@ -36,7 +36,7 @@ class GenreDetailVC: MultiSourceTableViewController {
 
   init(account: Account, genre: Genre) {
     self.genre = genre
-    super.init(style: .grouped, account: account)
+    super.init(style: .plain, account: account)
   }
 
   required init?(coder: NSCoder) {
@@ -76,7 +76,6 @@ class GenreDetailVC: MultiSourceTableViewController {
     tableView.estimatedSectionHeaderHeight = 0.0
     tableView.sectionFooterHeight = 0.0
     tableView.estimatedSectionFooterHeight = 0.0
-    tableView.backgroundColor = .backgroundColor
 
     configureSearchController(
       placeholder: "Artists, Albums and Songs",

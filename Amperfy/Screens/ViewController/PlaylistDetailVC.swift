@@ -96,7 +96,7 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
 
   init(account: Account, playlist: Playlist) {
     self.playlist = playlist
-    super.init(style: .grouped, account: account)
+    super.init(style: .plain, account: account)
   }
 
   required init?(coder: NSCoder) {
@@ -129,9 +129,9 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
     super.viewDidLoad()
     tableView.separatorStyle = .none // rows draw their own separators
 
-    #if !targetEnvironment(macCatalyst)
+    if #available(macCatalyst 27.0, *) {
       refreshControl = UIRefreshControl()
-    #endif
+    }
 
     appDelegate.userStatistics.visited(.playlistDetail)
     fetchedResultsController = PlaylistItemsFetchedResultsController(
@@ -150,7 +150,6 @@ class PlaylistDetailVC: SingleSnapshotFetchedResultsTableViewController<Playlist
     tableView.estimatedSectionFooterHeight = 0.0
     tableView.sectionHeaderHeight = 0.0
     tableView.estimatedSectionHeaderHeight = 0.0
-    tableView.backgroundColor = .backgroundColor
     tableView.separatorColor = UIColor.white.withAlphaComponent(0.2)
 
     // Use a single button, two buttons don't work on catalyst

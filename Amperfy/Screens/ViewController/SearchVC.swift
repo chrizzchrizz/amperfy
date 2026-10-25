@@ -87,7 +87,7 @@ class SearchVC: BasicTableViewController {
 
   init(account: Account) {
     self.account = account
-    super.init(style: .grouped)
+    super.init(style: .plain)
   }
 
   required init?(coder: NSCoder) {
@@ -161,7 +161,7 @@ class SearchVC: BasicTableViewController {
     tableView.estimatedSectionHeaderHeight = 0.0
     tableView.sectionFooterHeight = 0.0
     tableView.estimatedSectionFooterHeight = 0.0
-    tableView.backgroundColor = .backgroundColor
+    tableView.sectionHeaderTopPadding = 0.0
 
     containableAtIndexPathCallback = { [weak self] indexPath in
       guard let self else { return nil }

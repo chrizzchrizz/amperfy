@@ -127,9 +127,6 @@ class PlayerControlView: UIView {
   private var player: PlayerFacade!
   private var rootView: PopupPlayerVC?
   private var playerHandler: PlayerUIHandler?
-  #if targetEnvironment(macCatalyst) // ok
-    var airplayVolume: MPVolumeView?
-  #endif
 
   @IBOutlet
   weak var playButton: UIButton!
@@ -179,20 +176,10 @@ class PlayerControlView: UIView {
   #endif
 
   required init?(coder aDecoder: NSCoder) {
-    #if targetEnvironment(macCatalyst) // ok
-      self.airplayVolume = MPVolumeView(frame: .zero)
-      airplayVolume!.showsVolumeSlider = false
-      airplayVolume!.isHidden = true
-    #endif
-
     super.init(coder: aDecoder)
     self.layoutMargins = Self.margin
     self.player = appDelegate.player
     player.addNotifier(notifier: self)
-
-    #if targetEnvironment(macCatalyst) // ok
-      addSubview(airplayVolume!)
-    #endif
   }
 
   func prepare(toWorkOnRootView: PopupPlayerVC?) {
@@ -297,15 +284,7 @@ class PlayerControlView: UIView {
 
   @IBAction
   func airplayButtonPushed(_ sender: UIButton) {
-    #if targetEnvironment(macCatalyst) // ok
-      playerHandler?.airplayButtonPushed(
-        rootView: self,
-        airplayButton: airplayButton,
-        airplayVolume: airplayVolume
-      )
-    #else
-      playerHandler?.airplayButtonPushed(rootView: self, airplayButton: airplayButton)
-    #endif
+    playerHandler?.airplayButtonPushed(rootView: self)
   }
 
   @IBAction

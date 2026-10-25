@@ -70,7 +70,7 @@ class ArtistDetailVC: MultiSourceTableViewController {
 
   init(account: Account, artist: Artist) {
     self.artist = artist
-    super.init(style: .grouped, account: account)
+    super.init(style: .plain, account: account)
   }
 
   required init?(coder: NSCoder) {

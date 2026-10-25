@@ -41,7 +41,7 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
   private static var maxPlayContextCount = 40
 
   init(account: Account) {
-    super.init(style: .grouped, account: account)
+    super.init(style: .plain, account: account)
   }
 
   required init?(coder: NSCoder) {
@@ -52,9 +52,9 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
     super.viewDidLoad()
     tableView.separatorStyle = .none // rows draw their own separators
 
-    #if !targetEnvironment(macCatalyst)
+    if #available(macCatalyst 27.0, *) {
       refreshControl = UIRefreshControl()
-    #endif
+    }
 
     appDelegate.userStatistics.visited(.songs)
 
@@ -68,7 +68,6 @@ class SongsVC: SingleFetchedResultsTableViewController<SongMO> {
     tableView.register(nibName: PlayableTableCell.typeName)
     tableView.rowHeight = PlayableTableCell.rowHeight
     tableView.estimatedRowHeight = PlayableTableCell.rowHeight
-    tableView.backgroundColor = .backgroundColor
     tableView.clipsToBounds = false
 
     let playShuffleInfoConfig = PlayShuffleInfoConfiguration(
