@@ -73,10 +73,10 @@ class TabBarVC: UITabBarController {
       title: TabNavigatorItem.playlists.title,
       image: TabNavigatorItem.playlists.icon,
       identifier: "Tabs.Top.\(TabNavigatorItem.playlists.title)"
-    ) { _ in
+    ) { [account] _ in
       OfflineIndicatingNavigationController(
         rootViewController: TabNavigatorItem.playlists
-          .getController(account: self.account)
+          .getController(account: account)
       )
     }
     fixTabs.append(playlistsTab!)
