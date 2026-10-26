@@ -50,7 +50,12 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
 
   init(account: Account, album: Album) {
     self.album = album
-    super.init(style: .plain, account: account)
+    // Mac: pinned (plain style) disc headers make the system top edge effect blur the whole
+    // album header, grouped headers scroll with the rows
+    super.init(
+      style: UIDevice.current.userInterfaceIdiom == .mac ? .grouped : .plain,
+      account: account
+    )
   }
 
   required init?(coder: NSCoder) {
