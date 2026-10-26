@@ -264,8 +264,8 @@ final class ToastView: UIView {
 extension LogEntryType {
   fileprivate var toastColor: UIColor {
     switch self {
-    case .apiError, .error: return UIColor(red: 0.75, green: 0.22, blue: 0.17, alpha: 0.92)
-    case .info, .debug: return UIColor(red: 0.18, green: 0.44, blue: 0.71, alpha: 0.92)
+    case .apiError, .error: return UIColor(named: "ToastError") ?? .systemRed
+    case .info, .debug: return UIColor(named: "ToastInfo") ?? .defaultBlue
     }
   }
 }
