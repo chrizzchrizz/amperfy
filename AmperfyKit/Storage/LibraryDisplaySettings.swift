@@ -184,21 +184,32 @@ public struct LibraryDisplaySettings: Sendable, Codable {
   }
 
   /// The types not in use follow the ones in use, in `displayOrder`.
-  public init(inUse: [LibraryDisplayType]) {
-    self.init(order: inUse, inUse: Set(inUse))
+  public init(
+    inUse: [LibraryDisplayType],
+    excluded: Set<LibraryDisplayType> = LibraryDisplaySettings.tabTypes
+  ) {
+    self.init(order: inUse, inUse: Set(inUse), excluded: excluded)
   }
 
   /// Keeps the order arranged by the user; types missing in `order` (e.g. new ones) are appended
   /// in `displayOrder`.
-  public init(order: [LibraryDisplayType], inUse: Set<LibraryDisplayType>) {
+  /// `excluded` types have their own tab and never show up in the library.
+  public init(
+    order: [LibraryDisplayType],
+    inUse: Set<LibraryDisplayType>,
+    excluded: Set<LibraryDisplayType> = LibraryDisplaySettings.tabTypes
+  ) {
     self.order = order.completingOrder(with: Self.displayOrder)
       .completingOrder(with: LibraryDisplayType.allCases)
-    self.inUseTypes = inUse
+      .filter { !excluded.contains($0) }
+    self.inUseTypes = inUse.subtracting(excluded)
   }
+
+  /// types shown as top level tab instead of inside the library
+  public static let tabTypes: Set<LibraryDisplayType> = [.playlists]
 
   // order used for not used types
   private static let displayOrder: [LibraryDisplayType] = [
-    .playlists,
     .albums,
     .artists,
     .songs,
@@ -219,7 +230,6 @@ public struct LibraryDisplaySettings: Sendable, Codable {
   public static var defaultSettings: LibraryDisplaySettings {
     LibraryDisplaySettings(
       inUse: [
-        .playlists,
         .albums,
         .artists,
         .songs,
@@ -244,7 +254,8 @@ public struct LibraryDisplaySettings: Sendable, Codable {
         .favoriteSongs,
         .directories,
         .playlists,
-      ]
+      ],
+      excluded: []
     )
   }
 }

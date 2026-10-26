@@ -38,6 +38,7 @@ class SideBarVC: KeyCommandCollectionViewController {
     [
       LibraryNavigatorItem(title: "Search", tab: .search),
       LibraryNavigatorItem(title: "Home", tab: .home),
+      LibraryNavigatorItem(title: "Playlists", tab: .playlists),
       LibraryNavigatorItem(title: "Library", isInteractable: false),
     ]
   }()
@@ -86,6 +87,10 @@ class SideBarVC: KeyCommandCollectionViewController {
     super.viewDidLayoutSubviews()
     let topInsetCorrection = 55.0 - collectionView.safeAreaInsets.top
     collectionView.contentInset = .init(top: topInsetCorrection, left: 0, bottom: 0, right: 0)
+  }
+
+  func select(tab: TabNavigatorItem) {
+    libraryItemConfigurator.select(tab: tab)
   }
 
   public func pushedOn(selectedItem: LibraryNavigatorItem) {

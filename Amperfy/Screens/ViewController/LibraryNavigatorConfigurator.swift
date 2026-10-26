@@ -61,10 +61,12 @@ final class LibraryNavigatorItem: Hashable, Sendable {
 enum TabNavigatorItem: Int, Hashable, CaseIterable {
   case search
   case home
+  case playlists
 
   var title: String {
     switch self {
     case .home: return "Home"
+    case .playlists: return "Playlists"
     case .search: return "Search"
     }
   }
@@ -73,6 +75,7 @@ enum TabNavigatorItem: Int, Hashable, CaseIterable {
   var icon: UIImage {
     switch self {
     case .home: return .home
+    case .playlists: return .playlist
     case .search: return .search
     }
   }
@@ -81,6 +84,7 @@ enum TabNavigatorItem: Int, Hashable, CaseIterable {
   func getController(account: Account) -> UIViewController {
     switch self {
     case .home: return AppStoryboard.Main.segueToHome(account: account)
+    case .playlists: return AppStoryboard.Main.segueToPlaylists(account: account)
     case .search: return AppStoryboard.Main.segueToSearch(account: account)
     }
   }
@@ -169,6 +173,14 @@ class LibraryNavigatorConfigurator: NSObject {
         )
       }
     #endif
+  }
+
+  /// Highlights the sidebar entry of a tab that was opened from somewhere else (e.g. Home).
+  func select(tab: TabNavigatorItem) {
+    guard dataSource != nil,
+          let item = offsetData.first(where: { $0.tab == tab }),
+          let indexPath = dataSource.indexPath(for: item) else { return }
+    collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
   }
 
   /// Creates a new item on every state change: Mac Catalyst doesn't redraw the fill of an existing one

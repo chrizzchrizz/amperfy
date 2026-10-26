@@ -186,6 +186,10 @@ extension SplitVC: MainSceneHostingViewController {
   func pushTabCategory(tabCategory: TabNavigatorItem) {
     let vc = tabCategory.getController(account: account)
     setViewController(embeddInNavigation(vc: vc), for: .secondary)
+    // the sidebar doesn't know when a tab is opened from Home
+    let sideBarVC = (viewController(for: .primary) as? UINavigationController)?
+      .viewControllers.first as? SideBarVC
+    sideBarVC?.select(tab: tabCategory)
   }
 
   func displaySearch() {

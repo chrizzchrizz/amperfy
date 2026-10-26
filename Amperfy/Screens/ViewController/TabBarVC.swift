@@ -28,6 +28,7 @@ class TabBarVC: UITabBarController {
   private var libraryGroup: UITabGroup?
   private var searchTab: UISearchTab?
   private var homeTab: UITab?
+  private var playlistsTab: UITab?
   private let account: Account
 
   init(account: Account) {
@@ -67,6 +68,18 @@ class TabBarVC: UITabBarController {
       )
     }
     fixTabs.append(homeTab!)
+
+    playlistsTab = UITab(
+      title: TabNavigatorItem.playlists.title,
+      image: TabNavigatorItem.playlists.icon,
+      identifier: "Tabs.Top.\(TabNavigatorItem.playlists.title)"
+    ) { _ in
+      OfflineIndicatingNavigationController(
+        rootViewController: TabNavigatorItem.playlists
+          .getController(account: self.account)
+      )
+    }
+    fixTabs.append(playlistsTab!)
 
     // all library tabs in the order arranged by the user, the ones not in use are hidden
     let librarySettings = appDelegate.storage.settings.accounts
@@ -304,6 +317,11 @@ extension TabBarVC: MainSceneHostingViewController {
     switch tabCategory {
     case .home:
       selectedTab = homeTab
+    case .playlists:
+      selectedTab = playlistsTab
+      // coming from a "show all" button the list is expected, not a previously opened playlist
+      (playlistsTab?.viewController as? UINavigationController)?
+        .popToRootViewController(animated: false)
     case .search:
       selectedTab = searchTab
     }
