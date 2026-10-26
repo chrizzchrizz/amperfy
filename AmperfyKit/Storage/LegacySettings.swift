@@ -422,7 +422,10 @@ extension PersistentStorage {
         }
         let libraryDisplaySettings = libraryDisplaySettingsRaw
           .compactMap { LibraryDisplayType(rawValue: $0) }
-        return LibraryDisplaySettings(inUse: libraryDisplaySettings)
+        return LibraryDisplaySettings(
+          inUse: libraryDisplaySettings,
+          excluded: LibraryDisplaySettings.tabTypes
+        )
       }
       set {
         UserDefaults.standard.set(

@@ -182,7 +182,9 @@ class LibraryNavigatorConfigurator: NSObject {
           let indexPath = dataSource.indexPath(for: item) else { return }
     // only scroll if the entry is out of sight, otherwise the list would jump on every selection
     let isVisible = collectionView.layoutAttributesForItem(at: indexPath)
-      .map { collectionView.bounds.inset(by: collectionView.adjustedContentInset).contains($0.frame) }
+      .map {
+        collectionView.bounds.inset(by: collectionView.adjustedContentInset).contains($0.frame)
+      }
       ?? false
     collectionView.selectItem(
       at: indexPath,
@@ -224,7 +226,8 @@ class LibraryNavigatorConfigurator: NSObject {
       collectionView.isEditing.toggle()
       let newSettings = LibraryDisplaySettings(
         order: editor.items.compactMap { $0.library },
-        inUse: Set(editor.checkedItems.compactMap { $0.library })
+        inUse: Set(editor.checkedItems.compactMap { $0.library }),
+        excluded: LibraryDisplaySettings.tabTypes
       )
       appDelegate.storage.settings.accounts
         .updateSetting(account.info) { accountSetting in

@@ -169,13 +169,13 @@ public struct LibraryDisplaySettings: Sendable, Codable {
       // types added in later versions are not part of stored settings -> appended as not used
       let order = decodedOrder?.compactMap { LibraryDisplayType(rawValue: $0) } ?? mapped[0] +
         mapped[1]
-      self = LibraryDisplaySettings(order: order, inUse: Set(mapped[0]))
+      self = LibraryDisplaySettings(order: order, inUse: Set(mapped[0]), excluded: Self.tabTypes)
     } else if let first = mapped.first {
       // If only one group present, treat it as inUse and compute notUsed
-      self = LibraryDisplaySettings(inUse: first)
+      self = LibraryDisplaySettings(inUse: first, excluded: Self.tabTypes)
     } else {
       // Fallback to defaults if decoding produced no valid entries
-      self = LibraryDisplaySettings(inUse: [])
+      self = LibraryDisplaySettings(inUse: [], excluded: Self.tabTypes)
     }
   }
 
@@ -186,18 +186,19 @@ public struct LibraryDisplaySettings: Sendable, Codable {
   /// The types not in use follow the ones in use, in `displayOrder`.
   public init(
     inUse: [LibraryDisplayType],
-    excluded: Set<LibraryDisplayType> = LibraryDisplaySettings.tabTypes
+    excluded: Set<LibraryDisplayType>
   ) {
     self.init(order: inUse, inUse: Set(inUse), excluded: excluded)
   }
 
   /// Keeps the order arranged by the user; types missing in `order` (e.g. new ones) are appended
   /// in `displayOrder`.
-  /// `excluded` types have their own tab and never show up in the library.
+  /// `excluded` types never show up, e.g. `tabTypes` have their own tab. Passed explicitly by every
+  /// caller so a list that needs them (add to playlist) can't lose them by accident.
   public init(
     order: [LibraryDisplayType],
     inUse: Set<LibraryDisplayType>,
-    excluded: Set<LibraryDisplayType> = LibraryDisplaySettings.tabTypes
+    excluded: Set<LibraryDisplayType>
   ) {
     self.order = order.completingOrder(with: Self.displayOrder)
       .completingOrder(with: LibraryDisplayType.allCases)
@@ -234,7 +235,8 @@ public struct LibraryDisplaySettings: Sendable, Codable {
         .artists,
         .songs,
         .compilations,
-      ]
+      ],
+      excluded: tabTypes
     )
   }
 

@@ -181,7 +181,10 @@ public class LibraryUpdater {
         if let accountInfo = storage.settings.accounts.active {
           storage.settings.accounts.updateSetting(accountInfo) { accountSettings in
             accountSettings
-              .libraryDisplaySettings = LibraryDisplaySettings(inUse: libraryDisplaySettingsInUse)
+              .libraryDisplaySettings = LibraryDisplaySettings(
+                inUse: libraryDisplaySettingsInUse,
+                excluded: LibraryDisplaySettings.tabTypes
+              )
           }
         }
       }

@@ -25,7 +25,10 @@ import XCTest
 @MainActor
 class LibraryDisplaySettingsTest: XCTestCase {
   func testInUseInitDropsTabTypes() {
-    let settings = LibraryDisplaySettings(inUse: [.playlists, .albums, .artists])
+    let settings = LibraryDisplaySettings(
+      inUse: [.playlists, .albums, .artists],
+      excluded: LibraryDisplaySettings.tabTypes
+    )
     XCTAssertEqual(settings.inUse, [.albums, .artists])
     XCTAssertFalse(settings.order.contains(.playlists))
     XCTAssertFalse(settings.isVisible(libraryType: .playlists))
@@ -34,7 +37,8 @@ class LibraryDisplaySettingsTest: XCTestCase {
   func testOrderInitDropsTabTypes() {
     let settings = LibraryDisplaySettings(
       order: [.songs, .playlists, .albums],
-      inUse: [.playlists, .albums]
+      inUse: [.playlists, .albums],
+      excluded: LibraryDisplaySettings.tabTypes
     )
     XCTAssertFalse(settings.order.contains(.playlists))
     XCTAssertFalse(settings.notUsed.contains(.playlists))
