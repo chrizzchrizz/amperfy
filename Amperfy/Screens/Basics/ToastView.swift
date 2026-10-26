@@ -122,7 +122,7 @@ final class ToastView: UIView {
     alpha = 0
     transform = CGAffineTransform(scaleX: 0.7, y: 0.7)
     UIView.animate(
-      withDuration: 0.35,
+      withDuration: 0.28,
       delay: 0,
       usingSpringWithDamping: 0.75,
       initialSpringVelocity: 0.5,
@@ -144,7 +144,7 @@ final class ToastView: UIView {
     isDismissing = true
     dismissTask?.cancel()
     UIView.animate(
-      withDuration: 0.2,
+      withDuration: 0.15,
       delay: 0,
       options: [.curveEaseIn],
       animations: {
