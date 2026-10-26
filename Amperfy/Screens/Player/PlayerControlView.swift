@@ -428,7 +428,9 @@ class PlayerControlView: UIView {
     }
 
     menuActions.append(appDelegate.createSleepTimerMenu(refreshCB: nil))
-    menuActions.append(createPlaybackRateMenu())
+    if player.playerMode == .podcast {
+      menuActions.append(createPlaybackRateMenu())
+    }
 
     switch player.playerMode {
     case .music:
