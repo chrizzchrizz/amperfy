@@ -33,6 +33,8 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDataSourcePrefe
   /// A gap before the first line longer than this is shown as pause.
   private let introPauseThreshold = CMTime(value: 5, timescale: 1)
   /// A seek to the start of a line can end a few milliseconds before it, the line still has to be active.
+  /// Synced lyrics have no end time: the last line stays current this long before it is blurred.
+  private let lastLineHoldTime = CMTime(value: 5, timescale: 1)
   private let lineStartTolerance = CMTime(value: 250, timescale: 1_000)
   /// Start of the line the user tapped, the tolerance only applies until playback reaches it.
   private var selectedLineStart: CMTime?
@@ -278,13 +280,19 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDataSourcePrefe
     }
     lastIndex = indexOfCurrentLine
     let curIndexModel = lyricModels.object(at: indexOfCurrentLine)
-    curIndexModel?.isActiveLine = true
+    // nothing follows the last line: once it is over, no line is current anymore
+    let isLastLineOver = indexOfCurrentLine == lyricModels.count - 1 &&
+      curIndexModel?.isPause == false &&
+      time > (curIndexModel?.lyric?.startTime ?? .zero) + lastLineHoldTime
+    let wasActive = curIndexModel?.isActiveLine
+    curIndexModel?.isActiveLine = !isLastLineOver
 
-    if prevIndex != indexOfCurrentLine {
+    if prevIndex != indexOfCurrentLine || wasActive != curIndexModel?.isActiveLine {
       if curIndexModel != nil {
         reconfigureRows(at: [IndexPath(row: indexOfCurrentLine, section: 0)])
       }
-      if let prevIndex = prevIndex, lyricModels.object(at: prevIndex) != nil {
+      if let prevIndex = prevIndex, prevIndex != indexOfCurrentLine,
+         lyricModels.object(at: prevIndex) != nil {
         reconfigureRows(at: [IndexPath(row: prevIndex, section: 0)])
       }
     }
