@@ -91,8 +91,8 @@ class TabBarVC: UITabBarController {
           title: item.displayName,
           image: item.image,
           identifier: "Tabs.\(item.displayName)"
-        ) { tab in
-          item.controller(account: self.account, settings: self.appDelegate.storage.settings)
+        ) { [account, appDelegate] _ in
+          item.controller(account: account, settings: appDelegate.storage.settings)
         }
         tab.allowsHiding = true
         tab.isHiddenByDefault = !librarySettings.isVisible(libraryType: item)
