@@ -305,6 +305,18 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
     )
   }
 
+  /// The artist is hidden for songs of the album artist, those rows only have the title line.
+  override func tableView(
+    _ tableView: UITableView,
+    heightForRowAt indexPath: IndexPath
+  )
+    -> CGFloat {
+    let song = fetchedResultsController.getWrappedEntity(at: indexPath)
+    return song.creatorName == album.artist?.name
+      ? PlayableTableCell.singleLineRowHeight
+      : PlayableTableCell.rowHeight
+  }
+
   override func tableView(
     _ tableView: UITableView,
     heightForHeaderInSection section: Int

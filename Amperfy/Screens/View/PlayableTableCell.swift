@@ -85,6 +85,8 @@ class PlayableTableCell: BasicTableCell {
   private var ratingStarViews: [UIImageView] = []
 
   static let rowHeight: CGFloat = 48 + margin.bottom + margin.top
+  /// rows with the artist label hidden, only the title line remains
+  static let singleLineRowHeight: CGFloat = 40 + margin.bottom + margin.top
   private static let touchAnimation = 0.4
 
   private var style = PlayableTableCellStyle.none
