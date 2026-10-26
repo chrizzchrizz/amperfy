@@ -34,9 +34,9 @@ final class ToastView: UIView {
   /// Vertical center of the standard navigation bar content below the top safe area.
   static let navigationBarCenterOffset: CGFloat = 22
   static let displayDuration: Duration = .seconds(3)
-  private static let openDuration: TimeInterval = 0.45
-  private static let textRevealDelay: TimeInterval = 0.15
-  private static let textRevealDuration: TimeInterval = 0.25
+  private static let openDuration: TimeInterval = 0.3
+  private static let textRevealDelay: TimeInterval = 0.00
+  private static let textRevealDuration: TimeInterval = 0.20
   private static let textBlurPadding: CGFloat = 12
   /// Blur radii in points, from the blurriest to the sharp text.
   private static let textBlurRadii: [CGFloat] = [10, 6, 3, 1.5, 0]
@@ -137,7 +137,7 @@ final class ToastView: UIView {
       withDuration: Self.openDuration,
       delay: 0,
       usingSpringWithDamping: 0.6,
-      initialSpringVelocity: 0.8,
+      initialSpringVelocity: 0.9,
       options: [.allowUserInteraction]
     ) {
       self.alpha = 1
