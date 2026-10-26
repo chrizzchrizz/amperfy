@@ -180,7 +180,15 @@ class LibraryNavigatorConfigurator: NSObject {
     guard dataSource != nil,
           let item = offsetData.first(where: { $0.tab == tab }),
           let indexPath = dataSource.indexPath(for: item) else { return }
-    collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+    // only scroll if the entry is out of sight, otherwise the list would jump on every selection
+    let isVisible = collectionView.layoutAttributesForItem(at: indexPath)
+      .map { collectionView.bounds.inset(by: collectionView.adjustedContentInset).contains($0.frame) }
+      ?? false
+    collectionView.selectItem(
+      at: indexPath,
+      animated: false,
+      scrollPosition: isVisible ? [] : .centeredVertically
+    )
   }
 
   /// Creates a new item on every state change: Mac Catalyst doesn't redraw the fill of an existing one
