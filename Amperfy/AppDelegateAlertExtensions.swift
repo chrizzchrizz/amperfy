@@ -127,7 +127,7 @@ extension AppDelegate: AlertDisplayable {
       subtitle: subtitle,
       style: style,
       in: window,
-      above: Self.toastBottomEdge(in: window, host: topView)
+      placement: Self.toastPlacement(in: window, host: topView)
     ) {
       guard let topView = Self.topViewController(),
             topView.presentedViewController == nil
@@ -136,8 +136,22 @@ extension AppDelegate: AlertDisplayable {
     }
   }
 
-  /// Window y coordinate the toast floats above: the mini player if it is shown,
-  /// otherwise the tab bar or the bottom safe area.
+  /// The toast floats above the mini player if it is shown, otherwise above the tab bar or the
+  /// bottom safe area. With a split view it is centered on the content column next to the sidebar.
+  private static func toastPlacement(in window: UIWindow, host: UIViewController) -> ToastPlacement {
+    ToastPlacement(
+      centerX: toastCenterX(in: window, host: host),
+      bottomEdge: toastBottomEdge(in: window, host: host)
+    )
+  }
+
+  private static func toastCenterX(in window: UIWindow, host: UIViewController) -> CGFloat {
+    guard let contentView = (host as? SplitVC)?.viewController(for: .secondary)?.view,
+          contentView.window === window else { return window.bounds.midX }
+    let frame = contentView.convert(contentView.bounds, to: window)
+    return frame.isEmpty ? window.bounds.midX : frame.midX
+  }
+
   private static func toastBottomEdge(in window: UIWindow, host: UIViewController) -> CGFloat {
     let safeBottom = window.bounds.maxY - window.safeAreaInsets.bottom
     // frames in the upper half belong to a top tab bar (iPad), not to a bottom bar

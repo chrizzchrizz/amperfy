@@ -23,6 +23,16 @@ import AmperfyKit
 import CoreImage
 import UIKit
 
+// MARK: - ToastPlacement
+
+/// Where a toast floats in window coordinates.
+struct ToastPlacement {
+  /// Horizontal center of the toast.
+  let centerX: CGFloat
+  /// The toast floats above this y coordinate.
+  let bottomEdge: CGFloat
+}
+
 // MARK: - ToastView
 
 /// Compact capsule that rises and springs open above the bottom bar, reveals its text out of a blur
@@ -57,14 +67,14 @@ final class ToastView: UIView {
     subtitle: String,
     style: LogEntryType,
     in window: UIWindow,
-    above bottomEdge: CGFloat,
+    placement: ToastPlacement,
     onTap: (() -> Void)? = nil
   ) {
     guard current == nil else { return }
     let toast = ToastView(title: title, subtitle: subtitle, color: style.toastColor)
     toast.onTap = onTap
     current = toast
-    toast.present(in: window, above: bottomEdge)
+    toast.present(in: window, placement: placement)
   }
 
   private init(title: String, subtitle: String, color: UIColor) {
@@ -115,16 +125,16 @@ final class ToastView: UIView {
     layer.cornerRadius = bounds.height / 2
   }
 
-  private func present(in window: UIWindow, above bottomEdge: CGFloat) {
+  private func present(in window: UIWindow, placement: ToastPlacement) {
     translatesAutoresizingMaskIntoConstraints = false
     window.addSubview(self)
     let widthFill = widthAnchor.constraint(equalToConstant: Self.maxWidth)
     widthFill.priority = .defaultHigh
     NSLayoutConstraint.activate([
-      centerXAnchor.constraint(equalTo: window.centerXAnchor),
+      centerXAnchor.constraint(equalTo: window.leftAnchor, constant: placement.centerX),
       bottomAnchor.constraint(
         equalTo: window.topAnchor,
-        constant: bottomEdge - Self.bottomSpacing
+        constant: placement.bottomEdge - Self.bottomSpacing
       ),
       heightAnchor.constraint(equalToConstant: Self.height),
       widthAnchor.constraint(lessThanOrEqualToConstant: Self.maxWidth),
