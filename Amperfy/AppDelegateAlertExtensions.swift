@@ -21,7 +21,6 @@
 
 import AmperfyKit
 import Foundation
-import NotificationBannerSwift
 import OSLog
 import UIKit
 
@@ -117,49 +116,18 @@ extension AppDelegate: AlertDisplayable {
     style: LogEntryType,
     notificationBanner popupVC: UIViewController
   ) {
-    guard NotificationBannerQueue.default.numberOfBanners < 1,
+    guard !ToastView.isVisible,
           let topView = Self.topViewController(),
           topView.presentedViewController == nil,
-          let _ = UIApplication.shared.mainWindow
+          let window = Self.window
     else { return }
 
-    let banner = FloatingNotificationBanner(
-      title: title,
-      subtitle: subtitle,
-      style: BannerStyle.from(logType: style),
-      colors: AmperfyBannerColors()
-    )
-
-    banner.onTap = {
+    ToastView.show(title: title, subtitle: subtitle, style: style, in: window) {
       guard let topView = Self.topViewController(),
             topView.presentedViewController == nil
       else { return }
       topView.present(popupVC, animated: true, completion: nil)
     }
-
-    if UIDevice.current.userInterfaceIdiom == .pad {
-      banner.bannerHeight = 80
-    } else if UIDevice.current.userInterfaceIdiom == .phone {
-      banner.bannerHeight = 180
-    } else { // mac
-      banner.bannerHeight = 140
-    }
-
-    let topViewInset = UIEdgeInsets(
-      top: 40,
-      left: 24,
-      bottom: 24,
-      right: 24
-    )
-    banner.show(
-      queuePosition: QueuePosition.back,
-      bannerPosition: BannerPosition.top,
-      on: topView,
-      edgeInsets: topViewInset,
-      cornerRadius: 10,
-      shadowOpacity: 0.5,
-      shadowBlurRadius: 5
-    )
   }
 
   func display(popup popupVC: UIViewController) {
