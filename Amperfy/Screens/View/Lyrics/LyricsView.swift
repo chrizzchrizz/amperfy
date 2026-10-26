@@ -24,11 +24,18 @@ import CoreMedia
 import Foundation
 import UIKit
 
-class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
+class LyricsView: UITableView, UITableViewDataSource, UITableViewDataSourcePrefetching,
+  UITableViewDelegate {
   private var lyrics: StructuredLyrics? = nil
   private var lyricModels: [LyricTableCellModel] = []
   private var lastIndex: Int?
   private var lineSpacing: CGFloat = 16
+  /// A gap before the first line longer than this is shown as pause.
+  private let introPauseThreshold = CMTime(value: 5, timescale: 1)
+  /// A seek to the start of a line can end a few milliseconds before it, the line still has to be active.
+  private let lineStartTolerance = CMTime(value: 250, timescale: 1_000)
+  /// Start of the line the user tapped, the tolerance only applies until playback reaches it.
+  private var selectedLineStart: CMTime?
   private var hasLastLyricsLineAlreadyDisplayedOnce = false
   private var scrollAnimation = true
   private var suppressAutoScrollUntil: Date?
@@ -53,23 +60,15 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
     clipsToBounds = true
 
     dataSource = self
+    prefetchDataSource = self
     delegate = self
     allowsSelection = true
 
     backgroundColor = .clear
   }
 
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    reloadInsets()
-
-    layer.mask = visibilityMask()
-    layer.masksToBounds = true
-  }
-
-  private func visibilityMask() -> CAGradientLayer {
+  private lazy var fadeMask: CAGradientLayer = {
     let mask = CAGradientLayer()
-    mask.frame = bounds
     mask.colors = [
       UIColor.white.withAlphaComponent(0).cgColor,
       UIColor.white.cgColor,
@@ -78,6 +77,22 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
     ]
     mask.locations = [0, 0.2, 0.8, 1]
     return mask
+  }()
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    // layout runs on every scroll step: reuse the mask and skip unchanged insets
+    reloadInsets()
+
+    if layer.mask == nil {
+      layer.mask = fadeMask
+      layer.masksToBounds = true
+    }
+    // the table scrolls its bounds, the mask has to stay at the visible part
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    fadeMask.frame = bounds
+    CATransaction.commit()
   }
 
   public func display(lyrics: StructuredLyrics, scrollAnimation: Bool) {
@@ -128,6 +143,19 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
     return cell
   }
 
+  /// Renders the blurred images before the rows scroll into view.
+  public func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
+    let width = LyricTableCell.adjustContainerWidthForMargins(containerWidth: bounds.width)
+    for indexPath in indexPaths {
+      guard let model = lyricModels.object(at: indexPath.row), !model.isActiveLine else { continue }
+      model.prepareBlurredImage(
+        width: width,
+        height: lineSpacing + model.calcHeight(containerWidth: bounds.width),
+        scale: traitCollection.displayScale
+      )
+    }
+  }
+
   public func tableView(
     _ tableView: UITableView,
     shouldHighlightRowAt indexPath: IndexPath
@@ -147,7 +175,10 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
           lyric.start != nil
     else { return }
     suppressAutoScrollUntil = Date().addingTimeInterval(autoScrollSuppressionInterval)
+    selectedLineStart = lyric.startTime
     onLyricSelected?(lyric)
+    // do not wait for the next player tick to highlight the selected line
+    scroll(toTime: lyric.startTime)
   }
 
   public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
@@ -178,20 +209,34 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
       return
     }
 
+    if lyrics.synced, let firstStart = lyrics.line.first?.startTime,
+       firstStart > introPauseThreshold {
+      var intro = LyricsLine()
+      intro.start = 0
+      let model = LyricTableCellModel(lyric: intro, isPause: true)
+      model.isActiveLine = false
+      lyricModels.append(model)
+    }
     for lyric in lyrics.line {
-      let model = LyricTableCellModel(lyric: lyric)
+      // synced lyrics mark pauses with empty lines; unsynced ones use them as paragraph breaks
+      let isPause = lyrics.synced && lyric.value.trimmingCharacters(in: .whitespaces).isEmpty
+      let model = LyricTableCellModel(lyric: lyric, isPause: isPause)
+      // without timing there is no current line, so nothing may be blurred
+      model.isActiveLine = !lyrics.synced
       lyricModels.append(model)
     }
     reloadData()
   }
 
   func reloadInsets() {
-    contentInset = UIEdgeInsets(
-      top: frame.height / 2,
+    let newInset = UIEdgeInsets(
+      top: frame.height / 4,
       left: 0,
       bottom: frame.height / 2,
       right: 0
     )
+    guard contentInset != newInset else { return }
+    contentInset = newInset
   }
 
   func scroll(toTime time: CMTime) {
@@ -205,7 +250,19 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
       return Date() >= suppressUntil
     }()
 
-    guard let indexOfNextLine = lyrics.line.firstIndex(where: { $0.startTime >= time }) else {
+    var tolerance = CMTime.zero
+    if let selectedLineStart {
+      if time >= selectedLineStart {
+        self.selectedLineStart = nil
+      } else if selectedLineStart - time <= lineStartTolerance {
+        tolerance = lineStartTolerance
+      }
+    }
+
+    guard let indexOfNextLine = lyricModels.firstIndex(where: {
+      ($0.lyric?.startTime ?? .zero) > time + tolerance
+    })
+    else {
       if !hasLastLyricsLineAlreadyDisplayedOnce {
         if isAutoScrollAllowed {
           scrollToRow(
@@ -230,7 +287,10 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDelegate {
     let indexOfCurrentLine = max(indexOfNextLine - 1, 0)
     if let lastIndex = lastIndex,
        let lastIndexModel = lyricModels.object(at: lastIndex) {
-      lastIndexModel.isActiveLine = false
+      // resetting the current line would make it flicker between blurred and sharp
+      if lastIndex != indexOfCurrentLine {
+        lastIndexModel.isActiveLine = false
+      }
       prevIndex = lastIndex
     }
     lastIndex = indexOfCurrentLine

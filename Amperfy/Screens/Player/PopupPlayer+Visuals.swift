@@ -34,6 +34,8 @@ extension PopupPlayerVC {
   func refreshCurrentlyPlayingInfoView() {
     refreshBackgroundItemArtwork()
     largeCurrentlyPlayingView?.refresh()
+    controlView?.refreshDisplayLyricsButton()
+    lyricsHeaderCell?.refresh()
     for visibleCell in tableView.visibleCells {
       if let currentlyPlayingCell = visibleCell as? CurrentlyPlayingTableCell {
         currentlyPlayingCell.refresh()
@@ -45,6 +47,7 @@ extension PopupPlayerVC {
   func refreshCurrentlyPlayingArtworks() {
     refreshBackgroundItemArtwork()
     largeCurrentlyPlayingView?.refreshArtwork()
+    lyricsHeaderCell?.refreshArtwork()
     for visibleCell in tableView.visibleCells {
       if let currentlyPlayingCell = visibleCell as? CurrentlyPlayingTableCell {
         currentlyPlayingCell.refreshArtwork()
@@ -64,7 +67,11 @@ extension PopupPlayerVC {
        let rootView = rootView {
       button.showsMenuAsPrimaryAction = true
       button.menu = UIMenu.lazyMenu {
-        EntityPreviewActionBuilder(container: currentlyPlaying, on: rootView).createMenuActions()
+        EntityPreviewActionBuilder(
+          container: currentlyPlaying,
+          on: rootView,
+          isLyricsActionAllowed: false
+        ).createMenuActions()
       }
       button.isEnabled = true
     } else {

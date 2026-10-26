@@ -165,6 +165,8 @@ class PlayerControlView: UIView {
   @IBOutlet
   weak var airplayButton: UIButton!
   @IBOutlet
+  weak var displayLyricsButton: UIButton!
+  @IBOutlet
   weak var displayPlaylistButton: UIButton!
   @IBOutlet
   weak var volumeButton: UIButton!
@@ -211,6 +213,7 @@ class PlayerControlView: UIView {
     skipBackwardButton.tintColor = .label
     skipForwardButton.tintColor = .label
     airplayButton.tintColor = .label
+    displayLyricsButton.tintColor = .label
     playerModeButton.tintColor = .label
     volumeButton.tintColor = .label
     optionsButton.imageView?.tintColor = .label
@@ -323,8 +326,22 @@ class PlayerControlView: UIView {
   }
 
   @IBAction
+  func displayLyricsPressed() {
+    rootView?.setLyricsDisplayed(rootView?.currentLayout != .lyrics)
+  }
+
+  func refreshDisplayLyricsButton() {
+    playerHandler?.refreshDisplayLyricsButton(displayLyricsButton: displayLyricsButton)
+  }
+
+  func refreshDisplayPlaylistButton() {
+    playerHandler?.refreshDisplayPlaylistButton(displayPlaylistButton: displayPlaylistButton)
+  }
+
+  @IBAction
   func displayPlaylistPressed() {
     rootView?.switchDisplayStyleOptionPersistent()
+    playerHandler?.refreshDisplayLyricsButton(displayLyricsButton: displayLyricsButton)
     playerHandler?.refreshDisplayPlaylistButton(displayPlaylistButton: displayPlaylistButton)
     playerHandler?.refreshPlayerOptions(
       optionsButton: optionsButton,
@@ -363,6 +380,7 @@ class PlayerControlView: UIView {
     )
     playerHandler?.refreshPrevNextButtons(previousButton: previousButton, nextButton: nextButton)
     playerHandler?.refreshDisplayPlaylistButton(displayPlaylistButton: displayPlaylistButton)
+    playerHandler?.refreshDisplayLyricsButton(displayLyricsButton: displayLyricsButton)
     refreshPlayerModeChangeButton()
     refreshTimeSliderColors()
   }
@@ -434,43 +452,20 @@ class PlayerControlView: UIView {
     menuActions.append(appDelegate.createSleepTimerMenu(refreshCB: nil))
     menuActions.append(createPlaybackRateMenu())
 
-    if rootView?.largeCurrentlyPlayingView?.isLyricsButtonAllowedToDisplay ?? false {
-      if !appDelegate.storage.settings.user.isPlayerLyricsDisplayed ||
-        appDelegate.storage.settings.user.playerDisplayStyle != .large {
-        let showLyricsAction = UIAction(title: "Show Lyrics", image: .lyrics, handler: { _ in
-          if !self.appDelegate.storage.settings.user.isPlayerLyricsDisplayed {
-            self.appDelegate.storage.settings.user.isPlayerLyricsDisplayed.toggle()
-            self.appDelegate.storage.settings.user.isPlayerVisualizerDisplayed = false
-            self.rootView?.largeCurrentlyPlayingView?.display(element: .lyrics)
-          }
-          if self.appDelegate.storage.settings.user.playerDisplayStyle != .large {
-            self.displayPlaylistPressed()
-          }
-        })
-        menuActions.append(showLyricsAction)
-      } else {
-        let hideLyricsAction = UIAction(title: "Hide Lyrics", image: .lyrics, handler: { _ in
-          self.appDelegate.storage.settings.user.isPlayerLyricsDisplayed.toggle()
-          self.rootView?.largeCurrentlyPlayingView?.display(element: .artwork)
-        })
-        menuActions.append(hideLyricsAction)
-      }
-    }
-
     if !appDelegate.storage.settings.user.isPlayerVisualizerDisplayed ||
       appDelegate.storage.settings.user.playerDisplayStyle != .large {
       let showVisualizerAction = UIAction(
         title: "Show Audio Visualizer",
         image: .audioVisualizer,
         handler: { _ in
-          if !self.appDelegate.storage.settings.user.isPlayerVisualizerDisplayed {
-            self.appDelegate.storage.settings.user.isPlayerVisualizerDisplayed = true
-            self.appDelegate.storage.settings.user.isPlayerLyricsDisplayed = false
-            self.rootView?.largeCurrentlyPlayingView?.display(element: .visualizer)
-          }
-          if self.appDelegate.storage.settings.user.playerDisplayStyle != .large {
-            self.displayPlaylistPressed()
-          }
+          self.appDelegate.storage.settings.user.isPlayerVisualizerDisplayed = true
+          self.appDelegate.storage.settings.user.isPlayerLyricsDisplayed = false
+          self.appDelegate.storage.settings.user.playerDisplayStyle = .large
+          self.rootView?.applyDisplayLayout()
+          self.refreshDisplayLyricsButton()
+          self.playerHandler?.refreshDisplayPlaylistButton(
+            displayPlaylistButton: self.displayPlaylistButton
+          )
         }
       )
       menuActions.append(showVisualizerAction)
@@ -480,7 +475,7 @@ class PlayerControlView: UIView {
         image: .audioVisualizer,
         handler: { _ in
           self.appDelegate.storage.settings.user.isPlayerVisualizerDisplayed = false
-          self.rootView?.largeCurrentlyPlayingView?.display(element: .artwork)
+          self.rootView?.applyDisplayLayout()
         }
       )
       menuActions.append(hideVisualizerAction)

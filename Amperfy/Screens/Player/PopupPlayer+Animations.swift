@@ -27,113 +27,190 @@ extension PopupPlayerVC {
 
   func switchDisplayStyleOptionPersistent() {
     appDelegate.userStatistics.usedAction(.changePlayerDisplayStyle)
-    var displayStyle = appDelegate.storage.settings.user.playerDisplayStyle
-    displayStyle.switchToNextStyle()
-    appDelegate.storage.settings.user.playerDisplayStyle = displayStyle
-    changeDisplayStyleVisually(to: displayStyle, animated: true)
+    if currentLayout == .lyrics {
+      // the playlist button leaves the lyrics and shows the queue
+      appDelegate.storage.settings.user.isPlayerLyricsDisplayed = false
+      appDelegate.storage.settings.user.playerDisplayStyle = .compact
+    } else {
+      var displayStyle = appDelegate.storage.settings.user.playerDisplayStyle
+      displayStyle.switchToNextStyle()
+      appDelegate.storage.settings.user.playerDisplayStyle = displayStyle
+    }
+    applyDisplayLayout(animated: true)
   }
 
-  func changeDisplayStyleVisually(to displayStyle: PlayerDisplayStyle, animated: Bool = true) {
-    var viewToDisapper: UIView?
-    var artworkToDisapper: UIView?
-    var containerToDisapper: UIView?
-    var favoriteToDisapper: UIView?
-    var optionsToDisapper: UIView?
+  var targetLayout: PopupPlayerLayout {
+    if appDelegate.storage.settings.user.isPlayerLyricsDisplayed,
+       largeCurrentlyPlayingView?.isLyricsButtonAllowedToDisplay ?? false {
+      return .lyrics
+    }
+    switch appDelegate.storage.settings.user.playerDisplayStyle {
+    case .compact: return .compact
+    case .large: return .large
+    }
+  }
 
-    var viewToApper: UIView?
-    var artworkToApper: UIView?
-    var containerToApper: UIView?
-    var favoriteToApper: UIView?
-    var optionsToApper: UIView?
+  private struct LayoutElements {
+    let view: UIView
+    let container: UIView
+    let artwork: UIView
+    let favorite: UIView
+    let options: UIView
+  }
 
-    switch displayStyle {
+  private func layoutView(of layout: PopupPlayerLayout) -> UIView {
+    switch layout {
+    case .large: return largePlayerPlaceholderView
+    case .compact: return tableView
+    case .lyrics: return lyricsLayoutView
+    }
+  }
+
+  private func elements(of layout: PopupPlayerLayout) -> LayoutElements? {
+    switch layout {
+    case .large:
+      guard let large = largeCurrentlyPlayingView else { return nil }
+      return LayoutElements(
+        view: largePlayerPlaceholderView,
+        container: large,
+        artwork: large.artworkImage,
+        favorite: large.favoriteButton,
+        options: large.optionsButton
+      )
     case .compact:
-      viewToDisapper = largePlayerPlaceholderView
-      artworkToDisapper = largeCurrentlyPlayingView?.artworkImage
-      containerToDisapper = largeCurrentlyPlayingView
-      favoriteToDisapper = largeCurrentlyPlayingView?.favoriteButton
-      optionsToDisapper = largeCurrentlyPlayingView?.optionsButton
-      viewToApper = tableView
-      artworkToApper = currentlyPlayingTableCell?.artworkImage
-      containerToApper = currentlyPlayingTableCell
-      favoriteToApper = currentlyPlayingTableCell?.favoriteButton
-      optionsToApper = currentlyPlayingTableCell?.optionsButton
+      guard let cell = currentlyPlayingTableCell else { return nil }
+      return LayoutElements(
+        view: tableView,
+        container: cell,
+        artwork: cell.artworkImage,
+        favorite: cell.favoriteButton,
+        options: cell.optionsButton
+      )
+    case .lyrics:
+      guard let header = lyricsHeaderCell else { return nil }
+      return LayoutElements(
+        view: lyricsLayoutView,
+        container: header,
+        artwork: header.artworkImage,
+        favorite: header.favoriteButton,
+        options: header.optionsButton
+      )
+    }
+  }
+
+  func applyDisplayLayout(animated: Bool = true) {
+    let target = targetLayout
+    let previous = currentLayout
+    // the large view decides what it shows: artwork, visualizer or the lyrics of the lyrics layout.
+    // Showing the same element again would reload the lyrics and reset their scroll position.
+    if let largeView = largeCurrentlyPlayingView {
+      let element = largeView.getDisplayElementBasedOnConfig()
+      if element != largeView.displayElement {
+        largeView.display(element: element)
+      }
+    }
+    guard previous != target || !animated else { return }
+    currentLayout = target
+
+    switch target {
+    case .compact:
       scrollToCurrentlyPlayingRow()
       currentlyPlayingTableCell?.refresh()
     case .large:
-      viewToDisapper = tableView
-      artworkToDisapper = currentlyPlayingTableCell?.artworkImage
-      containerToDisapper = currentlyPlayingTableCell
-      favoriteToDisapper = currentlyPlayingTableCell?.favoriteButton
-      optionsToDisapper = currentlyPlayingTableCell?.optionsButton
-      viewToApper = largePlayerPlaceholderView
-      artworkToApper = largeCurrentlyPlayingView?.artworkImage
-      containerToApper = largeCurrentlyPlayingView
-      favoriteToApper = largeCurrentlyPlayingView?.favoriteButton
-      optionsToApper = largeCurrentlyPlayingView?.optionsButton
       largeCurrentlyPlayingView?.refresh()
+    case .lyrics:
+      lyricsHeaderCell?.refresh()
     }
 
-    guard let viewToDisapper = viewToDisapper,
-          let viewToApper = viewToApper
-    else { return }
+    let allViews: [UIView] = [largePlayerPlaceholderView, tableView, lyricsLayoutView]
+    // the cells may not exist yet, the visibility must not depend on them
+    func showInstantly() {
+      let targetView = layoutView(of: target)
+      for layoutView in allViews {
+        let isTarget = layoutView === targetView
+        layoutView.alpha = isTarget ? 1.0 : 0.0
+        layoutView.isHidden = !isTarget
+      }
+      lyricsContainerView.alpha = 1.0
+    }
 
-    if animated {
-      guard let artworkToDisapper = artworkToDisapper,
-            let artworkToApper = artworkToApper,
-            let favoriteToDisapper = favoriteToDisapper,
-            let favoriteToApper = favoriteToApper,
-            let optionsToDisapper = optionsToDisapper,
-            let optionsToApper = optionsToApper
-      else { return }
+    guard animated, let previous, previous != target,
+          let sourceElements = elements(of: previous),
+          let targetElements = elements(of: target)
+    else {
+      showInstantly()
+      return
+    }
 
-      // 1. Force autolayout to layout
-      // the containers, not only the artwork: their margins decide where the artwork ends up
-      containerToDisapper?.layoutIfNeeded()
-      containerToApper?.layoutIfNeeded()
-      artworkToApper.layoutIfNeeded()
-      // 2. Calculate source and target frames
-      let artworkSourceFrame = frameInsideThePlaceholder(of: artworkToDisapper)
-      let artworkTargetFrame = frameInsideThePlaceholder(of: artworkToApper)
-      // 3. Create fake image and animate it
-      animateArtwork(
-        image: largeCurrentlyPlayingView?.artworkImage.image,
-        sourceView: artworkToDisapper,
-        targetView: artworkToApper,
-        sourceFrame: artworkSourceFrame,
-        targetFrame: artworkTargetFrame
-      )
+    // a scrolled queue would make the artwork start at a stale position
+    if previous == .compact {
+      scrollToCurrentlyPlayingRow()
+      tableView.layoutIfNeeded()
+    }
 
-      favoriteToApper.layoutIfNeeded()
-      let favoriteSourceFrame = frameInsideThePlaceholder(of: favoriteToDisapper)
-      let favoriteTargetFrame = frameInsideThePlaceholder(of: favoriteToApper)
-      animateFavorite(
-        sourceView: favoriteToDisapper,
-        targetView: favoriteToApper,
-        sourceFrame: favoriteSourceFrame,
-        targetFrame: favoriteTargetFrame
-      )
+    // 1. Force autolayout to layout
+    // the containers, not only the artwork: their margins decide where the artwork ends up
+    targetElements.view.isHidden = false
+    view.layoutIfNeeded()
+    sourceElements.container.layoutIfNeeded()
+    targetElements.container.layoutIfNeeded()
+    targetElements.artwork.layoutIfNeeded()
+    // 2. Calculate source and target frames and 3. animate replicas of the elements
+    animateArtwork(
+      image: largeCurrentlyPlayingView?.artworkImage.image,
+      sourceView: sourceElements.artwork,
+      targetView: targetElements.artwork,
+      sourceFrame: frameInsideThePlaceholder(of: sourceElements.artwork),
+      targetFrame: frameInsideThePlaceholder(of: targetElements.artwork)
+    )
+    targetElements.favorite.layoutIfNeeded()
+    animateFavorite(
+      sourceView: sourceElements.favorite,
+      targetView: targetElements.favorite,
+      sourceFrame: frameInsideThePlaceholder(of: sourceElements.favorite),
+      targetFrame: frameInsideThePlaceholder(of: targetElements.favorite)
+    )
+    targetElements.options.layoutIfNeeded()
+    animateOptions(
+      sourceView: sourceElements.options,
+      targetView: targetElements.options,
+      sourceFrame: frameInsideThePlaceholder(of: sourceElements.options),
+      targetFrame: frameInsideThePlaceholder(of: targetElements.options)
+    )
 
-      optionsToApper.layoutIfNeeded()
-      let optionsSourceFrame = frameInsideThePlaceholder(of: optionsToDisapper)
-      let optionsTargetFrame = frameInsideThePlaceholder(of: optionsToApper)
-      animateOptions(
-        sourceView: optionsToDisapper,
-        targetView: optionsToApper,
-        sourceFrame: optionsSourceFrame,
-        targetFrame: optionsTargetFrame
-      )
-
-      viewToDisapper.isHidden = false
-      viewToApper.isHidden = false
-      UIView.animate(
-        withDuration: Self.displaStyleAnimationDuration * 2 / 3,
-        delay: 0,
-        animations: ({
-          viewToDisapper.alpha = 0.0
-        }),
-        completion: nil
-      )
+    let viewToDisapper = sourceElements.view
+    let viewToApper = targetElements.view
+    viewToDisapper.isHidden = false
+    viewToApper.isHidden = false
+    // queue and lyrics have the same header at the same place: a cross fade would dim the title for
+    // a moment, so the incoming view stays opaque below the fading one and only the lyrics fade in
+    let isHeaderShared = Set([previous, target]) == Set([.compact, .lyrics])
+    lyricsContainerView.alpha = 1.0
+    if isHeaderShared {
+      viewToApper.alpha = 1.0
+      if target == .lyrics {
+        lyricsContainerView.alpha = 0.0
+        UIView.animate(
+          withDuration: Self.displaStyleAnimationDuration * 2 / 3,
+          delay: Self.displaStyleAnimationDuration / 3,
+          animations: { self.lyricsContainerView.alpha = 1.0 }
+        )
+      }
+    }
+    UIView.animate(
+      withDuration: Self.displaStyleAnimationDuration * 2 / 3,
+      delay: 0,
+      animations: ({
+        viewToDisapper.alpha = 0.0
+      }),
+      completion: { _ in
+        // a faded out view must not swallow touches
+        if self.currentLayout != previous {
+          viewToDisapper.isHidden = true
+        }
+      }
+    )
+    if !isHeaderShared {
       UIView.animate(
         withDuration: Self.displaStyleAnimationDuration * 2 / 3,
         delay: Self.displaStyleAnimationDuration / 3,
@@ -142,12 +219,6 @@ extension PopupPlayerVC {
         }),
         completion: nil
       )
-
-    } else {
-      viewToDisapper.alpha = 0.0
-      viewToApper.alpha = 1.0
-      viewToDisapper.isHidden = true
-      viewToApper.isHidden = false
     }
   }
 
@@ -200,12 +271,18 @@ extension PopupPlayerVC {
     fakeImageView.layer.cornerRadius = sourceView.layer.cornerRadius
 
     // animate alpha for active lyrics view
-    UIView.animate(withDuration: Self.displaStyleAnimationDuration, delay: 0, animations: {
-      fakeImageView.alpha = targetView.alpha
-      fakeImageView.layer.cornerRadius = targetView.layer.cornerRadius
-    }, completion: { _ in
-      fakeImageView.alpha = targetView.alpha
-    })
+    UIView.animate(
+      withDuration: Self.displaStyleAnimationDuration,
+      delay: 0,
+      options: .curveEaseOut,
+      animations: {
+        fakeImageView.alpha = targetView.alpha
+        fakeImageView.layer.cornerRadius = targetView.layer.cornerRadius
+      },
+      completion: { _ in
+        fakeImageView.alpha = targetView.alpha
+      }
+    )
 
     animatePlayStyleObject(
       object: fakeImageView,
@@ -262,12 +339,18 @@ extension PopupPlayerVC {
 
     view.addSubview(object)
 
-    UIView.animate(withDuration: Self.displaStyleAnimationDuration, delay: 0, animations: {
-      object.frame = targetFrame
-    }, completion: { _ in
-      sourceView.isHidden = false
-      targetView.isHidden = false
-      object.removeFromSuperview()
-    })
+    UIView.animate(
+      withDuration: Self.displaStyleAnimationDuration,
+      delay: 0,
+      options: .curveEaseOut,
+      animations: {
+        object.frame = targetFrame
+      },
+      completion: { _ in
+        sourceView.isHidden = false
+        targetView.isHidden = false
+        object.removeFromSuperview()
+      }
+    )
   }
 }

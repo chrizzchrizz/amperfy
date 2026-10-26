@@ -297,7 +297,7 @@ class MiniPlayerView: UIView {
     if appDelegate.storage.settings.user.isPlayerLyricsDisplayed {
       appDelegate.storage.settings.user.playerDisplayStyle = .large
     }
-    playerHandler?.refreshDisplayLyrisButton(displayLyricsButton: lyricsButton)
+    playerHandler?.refreshDisplayLyricsButton(displayLyricsButton: lyricsButton)
     playerHandler?.refreshDisplayPlaylistButton(displayPlaylistButton: playlistButton)
 
     guard let host = AppDelegate.mainWindowHostVC as? SplitVC else { return }
@@ -324,7 +324,7 @@ class MiniPlayerView: UIView {
       appDelegate.storage.settings.user.isPlayerLyricsDisplayed = false
     }
     playerHandler?.refreshDisplayPlaylistButton(displayPlaylistButton: playlistButton)
-    playerHandler?.refreshDisplayLyrisButton(displayLyricsButton: lyricsButton)
+    playerHandler?.refreshDisplayLyricsButton(displayLyricsButton: lyricsButton)
 
     guard let host = AppDelegate.mainWindowHostVC as? SplitVC else { return }
     host.displayOrHideInspector()

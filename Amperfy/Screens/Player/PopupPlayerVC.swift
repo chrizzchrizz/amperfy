@@ -23,6 +23,17 @@ import AmperfyKit
 import CoreMedia
 import UIKit
 
+// MARK: - PopupPlayerLayout
+
+enum PopupPlayerLayout {
+  /// big artwork above the title, the visualizer can replace the artwork
+  case large
+  /// small artwork and title in the first row of the queue
+  case compact
+  /// small artwork and title in a header, the lyrics fill the space below
+  case lyrics
+}
+
 // MARK: - PopupPlayerVC
 
 class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
@@ -51,6 +62,10 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
   private var windowStyleObservation: (any UITraitChangeRegistration)?
 
   var currentlyPlayingTableCell: CurrentlyPlayingTableCell?
+  var currentLayout: PopupPlayerLayout?
+  let lyricsLayoutView = UIView()
+  let lyricsContainerView = UIView()
+  var lyricsHeaderCell: CurrentlyPlayingTableCell?
   var contextPrevQueueSectionHeader: ContextQueuePrevSectionHeader?
   var userQueueSectionHeader: UserQueueSectionHeader?
   var contextNextQueueSectionHeader: ContextQueueNextSectionHeader?
@@ -92,6 +107,7 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
           .constraint(equalTo: controlPlaceholderView.trailingAnchor),
       ])
     }
+    setupLyricsLayout()
     if let createdLargeCurrentlyPlayingView = ViewCreator<LargeCurrentlyPlayingPlayerView>
       .createFromNib(withinFixedFrame: CGRect(
         x: 0,
@@ -184,10 +200,7 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
       }
     }
     becomeFirstResponder()
-    changeDisplayStyleVisually(
-      to: appDelegate.storage.settings.user.playerDisplayStyle,
-      animated: false
-    )
+    applyDisplayLayout(animated: false)
     reloadData()
     scrollToCurrentlyPlayingRow()
     controlView?.refreshView()
@@ -201,6 +214,55 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
 
   override func viewWillLayoutSubviews() {
     adjustLayoutMargins()
+  }
+
+  /// Table view and lyrics layout share the same area, the lyrics layout has its own header row.
+  private func setupLyricsLayout() {
+    lyricsLayoutView.translatesAutoresizingMaskIntoConstraints = false
+    lyricsLayoutView.isHidden = true
+    lyricsLayoutView.alpha = 0.0
+    view.insertSubview(lyricsLayoutView, aboveSubview: tableView)
+    lyricsContainerView.translatesAutoresizingMaskIntoConstraints = false
+    lyricsLayoutView.addSubview(lyricsContainerView)
+    NSLayoutConstraint.activate([
+      lyricsLayoutView.topAnchor.constraint(equalTo: tableView.topAnchor),
+      lyricsLayoutView.bottomAnchor.constraint(equalTo: tableView.bottomAnchor),
+      lyricsLayoutView.leadingAnchor.constraint(equalTo: tableView.leadingAnchor),
+      lyricsLayoutView.trailingAnchor.constraint(equalTo: tableView.trailingAnchor),
+      lyricsContainerView.bottomAnchor.constraint(equalTo: lyricsLayoutView.bottomAnchor),
+      lyricsContainerView.leadingAnchor.constraint(equalTo: lyricsLayoutView.leadingAnchor),
+      lyricsContainerView.trailingAnchor.constraint(equalTo: lyricsLayoutView.trailingAnchor),
+    ])
+
+    guard let header = ViewCreator<CurrentlyPlayingTableCell>.createFromNib() else {
+      lyricsContainerView.topAnchor.constraint(equalTo: lyricsLayoutView.topAnchor).isActive = true
+      return
+    }
+    lyricsHeaderCell = header
+    header.prepare(toWorkOnRootView: self)
+    header.backgroundColor = .clear
+    header.translatesAutoresizingMaskIntoConstraints = false
+    lyricsLayoutView.addSubview(header)
+    NSLayoutConstraint.activate([
+      header.topAnchor.constraint(equalTo: lyricsLayoutView.topAnchor),
+      header.leadingAnchor.constraint(equalTo: lyricsLayoutView.leadingAnchor),
+      header.trailingAnchor.constraint(equalTo: lyricsLayoutView.trailingAnchor),
+      header.heightAnchor.constraint(equalToConstant: CurrentlyPlayingTableCell.rowHeight),
+      lyricsContainerView.topAnchor.constraint(equalTo: header.bottomAnchor),
+    ])
+  }
+
+  func setLyricsDisplayed(_ isDisplayed: Bool) {
+    appDelegate.storage.settings.user.isPlayerLyricsDisplayed = isDisplayed
+    if isDisplayed {
+      appDelegate.storage.settings.user.isPlayerVisualizerDisplayed = false
+    } else {
+      // leaving the lyrics always shows the cover, also if the queue was shown before
+      appDelegate.storage.settings.user.playerDisplayStyle = .large
+    }
+    applyDisplayLayout(animated: true)
+    controlView?.refreshDisplayLyricsButton()
+    controlView?.refreshDisplayPlaylistButton()
   }
 
   func fetchSongInfoAndUpdateViews() {
@@ -429,6 +491,7 @@ extension PopupPlayerVC: MusicPlayable {
   func didStartPlayingFromBeginning() {
     fetchSongInfoAndUpdateViews()
     largeCurrentlyPlayingView?.initializeLyrics()
+    applyDisplayLayout(animated: false)
   }
 
   func didStartPlaying() {

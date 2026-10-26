@@ -70,6 +70,7 @@ class EntityPreviewActionBuilder {
   private var isGoToSiteUrl = false
   private var isShowPodcastDetails = false
   private var isShowSongDetails = false
+  private let isLyricsActionAllowed: Bool
   private var isInstantMix = false
   private var isShareable = false
 
@@ -77,8 +78,10 @@ class EntityPreviewActionBuilder {
     container: PlayableContainable,
     on rootView: UIViewController,
     playContextCb: GetPlayContextCallback? = nil,
-    playerIndexCb: GetPlayerIndexCallback? = nil
+    playerIndexCb: GetPlayerIndexCallback? = nil,
+    isLyricsActionAllowed: Bool = true
   ) {
+    self.isLyricsActionAllowed = isLyricsActionAllowed
     self.appDelegate = (UIApplication.shared.delegate as! AppDelegate)
     self.entityContainer = container
     self.rootView = rootView
@@ -124,7 +127,7 @@ class EntityPreviewActionBuilder {
     if isShowArtist {
       gotoActions.append(createShowArtistAction())
     }
-    if isShowSongDetails,
+    if isShowSongDetails, isLyricsActionAllowed,
        let song = (entityContainer as? AbstractPlayable)?.asSong,
        let lyricsShowAction = createShowLyricsAction(song: song) {
       gotoActions.append(lyricsShowAction)

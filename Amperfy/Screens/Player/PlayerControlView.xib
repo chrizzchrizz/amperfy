@@ -145,6 +145,26 @@
                 <stackView opaque="NO" contentMode="scaleToFill" distribution="equalSpacing" translatesAutoresizingMaskIntoConstraints="NO" id="xXq-r4-gI6">
                     <rect key="frame" x="37.5" y="142" width="300" height="28"/>
                     <subviews>
+                        <button opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" adjustsImageSizeForAccessibilityContentSizeCategory="YES" lineBreakMode="middleTruncation" preferredBehavioralStyle="pad" translatesAutoresizingMaskIntoConstraints="NO" id="Ly1-Rc-Btn" userLabel="Display Lyrics Button">
+                            <rect key="frame" x="0.0" y="0.0" width="28" height="28"/>
+                            <constraints>
+                                <constraint firstAttribute="width" secondItem="Ly1-Rc-Btn" secondAttribute="height" multiplier="1:1" id="Ly2-Rc-Asp"/>
+                                <constraint firstAttribute="height" constant="28" id="Ly3-Rc-Hgt"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                            <color key="tintColor" systemColor="labelColor"/>
+                            <state key="normal">
+                                <color key="titleColor" systemColor="labelColor"/>
+                                <imageReference key="image" image="quote.bubble" catalog="system" symbolScale="medium"/>
+                            </state>
+                            <buttonConfiguration key="configuration" style="gray" cornerStyle="medium" buttonSize="small">
+                                <imageReference key="image" image="quote.bubble" catalog="system" symbolScale="small"/>
+                                <backgroundConfiguration key="background"/>
+                            </buttonConfiguration>
+                            <connections>
+                                <action selector="displayLyricsPressed" destination="iN0-l3-epB" eventType="touchUpInside" id="Ly4-Rc-Act"/>
+                            </connections>
+                        </button>
                         <button opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" adjustsImageSizeForAccessibilityContentSizeCategory="YES" lineBreakMode="middleTruncation" preferredBehavioralStyle="pad" translatesAutoresizingMaskIntoConstraints="NO" id="ZVN-JG-VAA" userLabel="Display Playlist Button">
                             <rect key="frame" x="67.5" y="0.0" width="28" height="28"/>
                             <constraints>
@@ -295,6 +315,7 @@
             <connections>
                 <outlet property="airplayButton" destination="l5j-2I-Ltc" id="ENH-UT-6ix"/>
                 <outlet property="audioInfoLabel" destination="fic-HG-erH" id="NjD-Ev-fjR"/>
+                <outlet property="displayLyricsButton" destination="Ly1-Rc-Btn" id="Ly5-Rc-Out"/>
                 <outlet property="displayPlaylistButton" destination="ZVN-JG-VAA" id="2Rh-6V-CMd"/>
                 <outlet property="elapsedTimeLabel" destination="okd-ac-nGY" id="MFD-Qa-B7r"/>
                 <outlet property="liveLabel" destination="lCe-bR-yIr" id="vcG-AT-BfK"/>

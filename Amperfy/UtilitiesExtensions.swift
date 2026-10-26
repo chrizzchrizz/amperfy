@@ -148,7 +148,7 @@ extension UIButton.Configuration {
       config.baseForegroundColor = !isSelected ? .label : .systemBackground
       config.baseBackgroundColor = !isSelected ? .clear : .label
     #endif
-    config.cornerStyle = .medium
+    config.cornerStyle = .capsule
     return config
   }
 

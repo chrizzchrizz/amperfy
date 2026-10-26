@@ -258,6 +258,10 @@ class PlayerUIHandler: NSObject {
     case .miniPlayeriOS, .miniPlayerMac:
       displayPlaylistButton.tintColor = isSelected ? .tintColor : .label
     case .popupPlayer:
+      // the lyrics replace the queue, even if the queue is the stored display style
+      let isLyricsShown = appDelegate.storage.settings.user.isPlayerLyricsDisplayed &&
+        isLyricsButtonAllowedToDisplay
+      let isSelected = isSelected && !isLyricsShown
       var config = UIButton.Configuration.player(isSelected: isSelected)
       config.image = .playlistDisplayStyle
       displayPlaylistButton.isSelected = isSelected
@@ -265,14 +269,28 @@ class PlayerUIHandler: NSObject {
     }
   }
 
-  func refreshDisplayLyrisButton(displayLyricsButton: UIButton) {
+  func refreshDisplayLyricsButton(displayLyricsButton: UIButton) {
     let isSelected = appDelegate.storage.settings.user.isPlayerLyricsDisplayed
 
     switch style {
     case .miniPlayeriOS, .miniPlayerMac:
       displayLyricsButton.tintColor = isSelected ? .tintColor : .label
     case .popupPlayer:
-      break
+      let isLyricsShown = isSelected && isLyricsButtonAllowedToDisplay
+      // without lyrics the button is inactive, unless it is needed to hide the lyrics
+      let hasLyrics = player.currentlyPlaying?.asSong?.lyricsRelFilePath != nil
+      let isEnabled = hasLyrics || isLyricsShown
+      var config = UIButton.Configuration.player(isSelected: isLyricsShown)
+      config.image = isLyricsShown ? .lyricsFilled : .lyrics
+      if !isEnabled {
+        config.baseForegroundColor = UIColor.label.withAlphaComponent(0.3)
+        // the tinted style would otherwise draw its own gray fill for the disabled state
+        config.background.backgroundColor = .clear
+      }
+      displayLyricsButton.isSelected = isLyricsShown
+      displayLyricsButton.configuration = config
+      displayLyricsButton.isEnabled = isEnabled
+      displayLyricsButton.isHidden = !isLyricsButtonAllowedToDisplay
     }
   }
 

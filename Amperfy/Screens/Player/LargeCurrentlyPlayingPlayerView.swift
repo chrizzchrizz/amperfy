@@ -128,7 +128,7 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
   private var rootView: PopupPlayerVC?
   private var lyricsView: LyricsView?
   private var visualizerHostingView: SwiftUIContentView?
-  private var displayElement: LargeDisplayElement = .artwork
+  private(set) var displayElement: LargeDisplayElement = .artwork
   private var ratingView: RatingView?
 
   @IBOutlet
@@ -158,7 +158,6 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
     // Force a layout to prevent wrong size on first appearance on macOS
     upperContainerView.layoutIfNeeded()
 
-    lyricsView?.frame = upperContainerView.bounds
     visualizerHostingView?.hostingController?.view.frame = upperContainerView.bounds
     updateArtworkShadowPath()
   }
@@ -197,7 +196,7 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
     artistLabel.applyAmperfyStyle()
 
     lyricsView = LyricsView()
-    lyricsView!.frame = upperContainerView.bounds
+    lyricsView!.translatesAutoresizingMaskIntoConstraints = false
     lyricsView!.onLyricSelected = { [weak self] lyric in
       self?.appDelegate.player.seek(toSecond: lyric.startTime.seconds)
     }
@@ -205,7 +204,16 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
     lyricsTap.cancelsTouchesInView = false
     lyricsTap.delegate = self
     lyricsView!.addGestureRecognizer(lyricsTap)
-    upperContainerView.addSubview(lyricsView!)
+    // the lyrics are shown below the header of the lyrics layout, not inside of this view
+    if let lyricsContainer = toWorkOnRootView?.lyricsContainerView {
+      lyricsContainer.addSubview(lyricsView!)
+      NSLayoutConstraint.activate([
+        lyricsView!.topAnchor.constraint(equalTo: lyricsContainer.topAnchor),
+        lyricsView!.bottomAnchor.constraint(equalTo: lyricsContainer.bottomAnchor),
+        lyricsView!.leadingAnchor.constraint(equalTo: lyricsContainer.leadingAnchor),
+        lyricsView!.trailingAnchor.constraint(equalTo: lyricsContainer.trailingAnchor),
+      ])
+    }
 
     visualizerHostingView = SwiftUIContentView()
     visualizerHostingView!.hostingController?.view.frame = upperContainerView.bounds
@@ -263,8 +271,7 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
   @objc
   private func handleLyricsTap(_ gesture: UITapGestureRecognizer) {
     // Toggle back to artwork when lyrics are tapped
-    appDelegate.storage.settings.user.isPlayerLyricsDisplayed = false
-    display(element: .artwork)
+    rootView?.setLyricsDisplayed(false)
   }
 
   func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch)
@@ -369,7 +376,7 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
   }
 
   public func getDisplayElementBasedOnConfig() -> LargeDisplayElement {
-    if appDelegate.storage.settings.user.isPlayerLyricsDisplayed {
+    if appDelegate.storage.settings.user.isPlayerLyricsDisplayed, isLyricsButtonAllowedToDisplay {
       return .lyrics
     } else if appDelegate.storage.settings.user.isPlayerVisualizerDisplayed {
       return .visualizer
@@ -388,7 +395,7 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
       showArtwork()
     case .lyrics:
       hideVisualizer()
-      almostHideArtwork()
+      showArtwork()
       initializeLyrics()
     case .visualizer:
       hideLyrics()
