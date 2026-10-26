@@ -162,8 +162,11 @@ final class ToastView: UIView {
 
   @objc
   private func handleTap() {
+    // runs even while the automatic fade out is already in progress
     let action = onTap
-    dismiss { action?() }
+    onTap = nil
+    dismiss()
+    action?()
   }
 }
 
