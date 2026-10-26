@@ -143,11 +143,21 @@ final class ToastView: UIView {
     guard !isDismissing else { return }
     isDismissing = true
     dismissTask?.cancel()
-    removeFromSuperview()
-    if Self.current === self {
-      Self.current = nil
-    }
-    completion?()
+    UIView.animate(
+      withDuration: 0.15,
+      delay: 0,
+      options: [.curveEaseIn],
+      animations: {
+        self.alpha = 0
+      },
+      completion: { _ in
+        self.removeFromSuperview()
+        if Self.current === self {
+          Self.current = nil
+        }
+        completion?()
+      }
+    )
   }
 
   @objc
