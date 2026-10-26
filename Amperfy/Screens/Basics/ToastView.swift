@@ -25,14 +25,15 @@ import UIKit
 
 // MARK: - ToastView
 
-/// Compact capsule that springs open below the status bar, reveals its text out of a blur
+/// Compact capsule that springs open below the navigation bar, reveals its text out of a blur
 /// and disappears on its own.
 @MainActor
 final class ToastView: UIView {
   static let maxWidth: CGFloat = 200
   static let height: CGFloat = 50
-  /// Vertical center of the standard navigation bar content below the top safe area.
-  static let navigationBarCenterOffset: CGFloat = 22
+  /// Distance between the bottom of the navigation bar and the toast.
+  static let navigationBarSpacing: CGFloat = 8
+  private static let fallbackNavigationBarHeight: CGFloat = 44
   static let displayDuration: Duration = .seconds(3)
   private static let openDuration: TimeInterval = 0.3
   private static let textRevealDelay: TimeInterval = 0.00
@@ -120,9 +121,9 @@ final class ToastView: UIView {
     widthFill.priority = .defaultHigh
     NSLayoutConstraint.activate([
       centerXAnchor.constraint(equalTo: window.centerXAnchor),
-      centerYAnchor.constraint(
-        equalTo: window.safeAreaLayoutGuide.topAnchor,
-        constant: Self.navigationBarCenterOffset
+      topAnchor.constraint(
+        equalTo: window.topAnchor,
+        constant: Self.navigationBarBottom(in: window) + Self.navigationBarSpacing
       ),
       heightAnchor.constraint(equalToConstant: Self.height),
       widthAnchor.constraint(lessThanOrEqualToConstant: Self.maxWidth),
@@ -150,6 +151,26 @@ final class ToastView: UIView {
       guard !Task.isCancelled else { return }
       self?.dismiss()
     }
+  }
+
+  /// Bottom edge of the widest visible navigation bar in window coordinates.
+  private static func navigationBarBottom(in window: UIWindow) -> CGFloat {
+    var navigationBars: [UINavigationBar] = []
+    func collect(_ view: UIView) {
+      guard !view.isHidden, view.alpha > 0.01 else { return }
+      if let navigationBar = view as? UINavigationBar {
+        navigationBars.append(navigationBar)
+      }
+      view.subviews.forEach(collect)
+    }
+    collect(window)
+    let frames = navigationBars
+      .map { $0.convert($0.bounds, to: window) }
+      .filter { !$0.isEmpty && $0.intersects(window.bounds) }
+    guard let widest = frames.max(by: { $0.width < $1.width }) else {
+      return window.safeAreaInsets.top + fallbackNavigationBarHeight
+    }
+    return widest.maxY
   }
 
   /// Hides the text and returns a closure that reveals it from blurred to sharp.
