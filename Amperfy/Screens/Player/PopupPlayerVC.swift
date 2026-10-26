@@ -263,18 +263,25 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
     controlView?.refreshDisplayPlaylistButton()
   }
 
+  /// The lyrics come with the song info, until it is fetched "No Lyrics" would only flash up.
+  private(set) var isFetchingSongInfo = false
+
   func fetchSongInfoAndUpdateViews() {
     guard appDelegate.storage.settings.user.isOnlineMode,
           let song = player.currentlyPlaying?.asSong,
           let account = song.account
     else { return }
 
-    Task { @MainActor in do {
-      try await self.appDelegate.getMeta(account.info).librarySyncer.sync(song: song)
+    isFetchingSongInfo = true
+    Task { @MainActor in
+      do {
+        try await self.appDelegate.getMeta(account.info).librarySyncer.sync(song: song)
+      } catch {
+        self.appDelegate.eventLogger.report(topic: "Song Info", error: error)
+      }
+      self.isFetchingSongInfo = false
       self.refreshCurrentlyPlayingInfoView()
-    } catch {
-      self.appDelegate.eventLogger.report(topic: "Song Info", error: error)
-    }}
+    }
   }
 
   func reloadData() {

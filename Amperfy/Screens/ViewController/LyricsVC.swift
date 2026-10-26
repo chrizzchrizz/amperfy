@@ -67,19 +67,26 @@ class LyricsVC: UIViewController {
     refreshLyrics()
   }
 
+  /// The lyrics come with the song info, until it is fetched "No Lyrics" would only flash up.
+  private var isFetchingSongInfo = false
+
   private func fetchSongInfoAndUpdateLyrics() {
     guard appDelegate.storage.settings.user.isOnlineMode,
           let song = player.currentlyPlaying?.asSong,
           let account = song.account
     else { return }
 
-    Task { @MainActor in do {
-      try await self.appDelegate.getMeta(account.info).librarySyncer
-        .sync(song: song)
+    isFetchingSongInfo = true
+    Task { @MainActor in
+      do {
+        try await self.appDelegate.getMeta(account.info).librarySyncer
+          .sync(song: song)
+      } catch {
+        self.appDelegate.eventLogger.report(topic: "Song Info", error: error)
+      }
+      self.isFetchingSongInfo = false
       self.refreshLyrics()
-    } catch {
-      self.appDelegate.eventLogger.report(topic: "Song Info", error: error)
-    }}
+    }
   }
 
   private func showLyrics(structuredLyrics: StructuredLyrics) {
@@ -104,7 +111,11 @@ class LyricsVC: UIViewController {
           let song = playable.asSong,
           let account = song.account,
           let lyricsRelFilePath = song.lyricsRelFilePath else {
-      showLyricsAreNotAvailable()
+      if isFetchingSongInfo {
+        lyricsView?.clear()
+      } else {
+        showLyricsAreNotAvailable()
+      }
       return
     }
 

@@ -239,7 +239,12 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
           let account = song.account,
           let lyricsRelFilePath = song.lyricsRelFilePath
     else {
-      showLyricsAreNotAvailable()
+      if rootView?.isFetchingSongInfo == true {
+        // the lyrics might arrive with the song info
+        lyricsView?.clear()
+      } else {
+        showLyricsAreNotAvailable()
+      }
       return
     }
 
