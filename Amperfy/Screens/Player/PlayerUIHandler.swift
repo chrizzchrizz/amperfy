@@ -251,7 +251,11 @@ class PlayerUIHandler: NSObject {
     autoplayButton.isSelected = isActive
   }
 
-  func refreshDisplayPlaylistButton(displayPlaylistButton: UIButton) {
+  /// `selectedForegroundColor`: see `refreshDisplayLyricsButton`.
+  func refreshDisplayPlaylistButton(
+    displayPlaylistButton: UIButton,
+    selectedForegroundColor: UIColor? = nil
+  ) {
     let isSelected = appDelegate.storage.settings.user.playerDisplayStyle == .compact
 
     switch style {
@@ -264,12 +268,22 @@ class PlayerUIHandler: NSObject {
       let isSelected = isSelected && !isLyricsShown
       var config = UIButton.Configuration.player(isSelected: isSelected)
       config.image = .playlistDisplayStyle
+      #if !targetEnvironment(macCatalyst)
+        if isSelected, let selectedForegroundColor {
+          config.baseForegroundColor = selectedForegroundColor
+        }
+      #endif
       displayPlaylistButton.isSelected = isSelected
       displayPlaylistButton.configuration = config
     }
   }
 
-  func refreshDisplayLyricsButton(displayLyricsButton: UIButton) {
+  /// `selectedForegroundColor`: icon color of the active popup player button, e.g. the player's
+  /// background color; the active button is filled with the label color.
+  func refreshDisplayLyricsButton(
+    displayLyricsButton: UIButton,
+    selectedForegroundColor: UIColor? = nil
+  ) {
     let isSelected = appDelegate.storage.settings.user.isPlayerLyricsDisplayed
 
     switch style {
@@ -282,6 +296,11 @@ class PlayerUIHandler: NSObject {
       let isEnabled = hasLyrics || isLyricsShown
       var config = UIButton.Configuration.player(isSelected: isLyricsShown)
       config.image = isLyricsShown ? .lyricsFilled : .lyrics
+      #if !targetEnvironment(macCatalyst)
+        if isLyricsShown, let selectedForegroundColor {
+          config.baseForegroundColor = selectedForegroundColor
+        }
+      #endif
       if !isEnabled {
         config.baseForegroundColor = UIColor.label.withAlphaComponent(0.3)
         // the tinted style would otherwise draw its own gray fill for the disabled state

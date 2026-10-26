@@ -331,18 +331,24 @@ class PlayerControlView: UIView {
   }
 
   func refreshDisplayLyricsButton() {
-    playerHandler?.refreshDisplayLyricsButton(displayLyricsButton: displayLyricsButton)
+    playerHandler?.refreshDisplayLyricsButton(
+      displayLyricsButton: displayLyricsButton,
+      selectedForegroundColor: rootView?.backgroundColorView.backgroundColor
+    )
   }
 
   func refreshDisplayPlaylistButton() {
-    playerHandler?.refreshDisplayPlaylistButton(displayPlaylistButton: displayPlaylistButton)
+    playerHandler?.refreshDisplayPlaylistButton(
+      displayPlaylistButton: displayPlaylistButton,
+      selectedForegroundColor: rootView?.backgroundColorView.backgroundColor
+    )
   }
 
   @IBAction
   func displayPlaylistPressed() {
     rootView?.switchDisplayStyleOptionPersistent()
-    playerHandler?.refreshDisplayLyricsButton(displayLyricsButton: displayLyricsButton)
-    playerHandler?.refreshDisplayPlaylistButton(displayPlaylistButton: displayPlaylistButton)
+    refreshDisplayLyricsButton()
+    refreshDisplayPlaylistButton()
     playerHandler?.refreshPlayerOptions(
       optionsButton: optionsButton,
       menuCreateCB: createPlayerOptionsMenu
@@ -379,8 +385,8 @@ class PlayerControlView: UIView {
       liveLabel: liveLabel
     )
     playerHandler?.refreshPrevNextButtons(previousButton: previousButton, nextButton: nextButton)
-    playerHandler?.refreshDisplayPlaylistButton(displayPlaylistButton: displayPlaylistButton)
-    playerHandler?.refreshDisplayLyricsButton(displayLyricsButton: displayLyricsButton)
+    refreshDisplayPlaylistButton()
+    refreshDisplayLyricsButton()
     refreshPlayerModeChangeButton()
     refreshTimeSliderColors()
   }
