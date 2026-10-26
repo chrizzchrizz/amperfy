@@ -146,6 +146,10 @@ class TabBarVC: UITabBarController {
         self.configureTraitChangesForMiniPlayer()
       }
     )
+
+    if appDelegate.storage.settings.user.isOfflineMode {
+      appDelegate.eventLogger.info(topic: "Reminder", message: "Offline Mode is active.")
+    }
   }
 
   private func setMiniPlayerVisible(_ isVisible: Bool) {
