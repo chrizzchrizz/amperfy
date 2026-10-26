@@ -63,6 +63,10 @@ class PlayableTableCell: BasicTableCell {
   @IBOutlet
   weak private var favoriteIconImage: UIImageView!
 
+  /// vertical position of the title/artist block in the row
+  @IBOutlet
+  weak var labelsCenterYConstraint: NSLayoutConstraint!
+
   /// aligns the favorite icon with the track number (centered on the title line), otherwise it is
   /// centered in the row
   @IBOutlet
@@ -371,6 +375,8 @@ class PlayableTableCell: BasicTableCell {
     }
     // e.g. on the album screen, where the album artist is already shown in the header
     artistLabel.isHidden = hiddenCreatorName != nil && playable.creatorName == hiddenCreatorName
+    // the title has more free space above its glyphs than the artist below, lift both lines a bit
+    labelsCenterYConstraint.constant = artistLabel.isHidden ? 0 : -1
 
     configureStyle(
       playable: playable,
