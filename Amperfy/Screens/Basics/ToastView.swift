@@ -35,7 +35,7 @@ final class ToastView: UIView {
   static let navigationBarCenterOffset: CGFloat = 22
   static let displayDuration: Duration = .seconds(3)
   private static let openDuration: TimeInterval = 0.45
-  private static let textRevealDelay: TimeInterval = 0.25
+  private static let textRevealDelay: TimeInterval = 0.15
   private static let textRevealDuration: TimeInterval = 0.25
   private static let textBlurPadding: CGFloat = 12
   /// Blur radii in points, from the blurriest to the sharp text.
