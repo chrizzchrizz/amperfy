@@ -152,7 +152,6 @@ public class PersistentStorage {
     case PodcastsShowSetting = "podcastsShowSetting"
     case PlayerDisplayStyle = "playerDisplayStyle"
     case IsPlayerLyricsDisplayed = "isPlayerLyricsDisplayed" // not used anymore
-    case IsPlayerVisualizerDisplayed = "isPlayerVisualizerDisplayed"
     case IsOfflineMode = "isOfflineMode"
     case IsAutoDownloadLatestSongsActive = "isAutoDownloadLatestSongsActive"
     case IsAutoDownloadLatestPodcastEpisodesActive = "isAutoDownloadLatestPodcastEpisodesActive"

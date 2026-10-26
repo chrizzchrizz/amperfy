@@ -154,9 +154,6 @@
 		50AB3B3C2F01D5AC00556CE4 /* OpenAppWithConfigurationIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AB3B3B2F01D5AC00556CE4 /* OpenAppWithConfigurationIntent.swift */; };
 		50AB3B3E2F02BBFD00556CE4 /* SetFavoriteForCurrentlyPlayingSongIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AB3B3D2F02BBFD00556CE4 /* SetFavoriteForCurrentlyPlayingSongIntent.swift */; };
 		50AB3B402F02BC8600556CE4 /* FavoriteTypeAppEnum.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AB3B3F2F02BC8600556CE4 /* FavoriteTypeAppEnum.swift */; };
-		50AB3B462F03119800556CE4 /* GenerativeArtView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AB3B412F03119800556CE4 /* GenerativeArtView.swift */; };
-		50AB3B472F03119800556CE4 /* WaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AB3B442F03119800556CE4 /* WaveformView.swift */; };
-		50AB3B482F03119800556CE4 /* SpectrumBarsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AB3B432F03119800556CE4 /* SpectrumBarsView.swift */; };
 		50AB3B4B2F031D0C00556CE4 /* SetRatingForCurrentlyPlayingSongIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AB3B4A2F031D0C00556CE4 /* SetRatingForCurrentlyPlayingSongIntent.swift */; };
 		50AB3B4D2F032D6200556CE4 /* HomeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AB3B4C2F032D6200556CE4 /* HomeManager.swift */; };
 		50AC4E5328D909730091FF33 /* EventLogSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AC4E5128D909720091FF33 /* EventLogSettingsView.swift */; };
@@ -484,12 +481,6 @@
 		50CFB59728D4FC0100A47D44 /* ArtworkSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CFB59628D4FC0100A47D44 /* ArtworkSettingsView.swift */; };
 		50CFB59A28D5009200A47D44 /* ArtworkDownloadSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CFB59928D5009200A47D44 /* ArtworkDownloadSettingsView.swift */; };
 		50CFBC542E464EEF00EAA7BC /* AppDelegateMainMenuExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CFBC532E464EDE00EAA7BC /* AppDelegateMainMenuExtension.swift */; };
-		50D54B6D2E30FFDB0078631E /* Magnitude.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D54B642E30F9350078631E /* Magnitude.swift */; };
-		50D54B6E2E30FFDB0078631E /* AudioAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D54B622E30F9350078631E /* AudioAnalyzer.swift */; };
-		50D54B6F2E30FFDB0078631E /* AmplitudeSpectrumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D54B612E30F9350078631E /* AmplitudeSpectrumView.swift */; };
-		50D54B702E30FFDB0078631E /* ShapeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D54B652E30F9350078631E /* ShapeType.swift */; };
-		50D54B712E30FFDB0078631E /* WindowType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D54B662E30F9350078631E /* WindowType.swift */; };
-		50D54B722E30FFDB0078631E /* FFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D54B632E30F9350078631E /* FFT.swift */; };
 		50D7709F2E4F1D1C0075D3BF /* AmperfyAppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 50D7709E2E4F1D1C0075D3BF /* AmperfyAppIcon.icon */; };
 		50D770A02E4F20000075D3BF /* AmperfyAppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 50D7709E2E4F1D1C0075D3BF /* AmperfyAppIcon.icon */; };
 		50DE29EB2B8FCEB700ABA78E /* LibraryNavigatorConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50DE29EA2B8FCEB700ABA78E /* LibraryNavigatorConfigurator.swift */; };
@@ -896,9 +887,6 @@
 		50AB3B3B2F01D5AC00556CE4 /* OpenAppWithConfigurationIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAppWithConfigurationIntent.swift; sourceTree = "<group>"; };
 		50AB3B3D2F02BBFD00556CE4 /* SetFavoriteForCurrentlyPlayingSongIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetFavoriteForCurrentlyPlayingSongIntent.swift; sourceTree = "<group>"; };
 		50AB3B3F2F02BC8600556CE4 /* FavoriteTypeAppEnum.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteTypeAppEnum.swift; sourceTree = "<group>"; };
-		50AB3B412F03119800556CE4 /* GenerativeArtView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerativeArtView.swift; sourceTree = "<group>"; };
-		50AB3B432F03119800556CE4 /* SpectrumBarsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrumBarsView.swift; sourceTree = "<group>"; };
-		50AB3B442F03119800556CE4 /* WaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformView.swift; sourceTree = "<group>"; };
 		50AB3B4A2F031D0C00556CE4 /* SetRatingForCurrentlyPlayingSongIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetRatingForCurrentlyPlayingSongIntent.swift; sourceTree = "<group>"; };
 		50AB3B4C2F032D6200556CE4 /* HomeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeManager.swift; sourceTree = "<group>"; };
 		50AB92BB26660FD800DCE45C /* artists_example_1.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = artists_example_1.xml; sourceTree = "<group>"; };
@@ -1048,12 +1036,6 @@
 		50CFB59628D4FC0100A47D44 /* ArtworkSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkSettingsView.swift; sourceTree = "<group>"; };
 		50CFB59928D5009200A47D44 /* ArtworkDownloadSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkDownloadSettingsView.swift; sourceTree = "<group>"; };
 		50CFBC532E464EDE00EAA7BC /* AppDelegateMainMenuExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegateMainMenuExtension.swift; sourceTree = "<group>"; };
-		50D54B612E30F9350078631E /* AmplitudeSpectrumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmplitudeSpectrumView.swift; sourceTree = "<group>"; };
-		50D54B622E30F9350078631E /* AudioAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioAnalyzer.swift; sourceTree = "<group>"; };
-		50D54B632E30F9350078631E /* FFT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFT.swift; sourceTree = "<group>"; };
-		50D54B642E30F9350078631E /* Magnitude.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Magnitude.swift; sourceTree = "<group>"; };
-		50D54B652E30F9350078631E /* ShapeType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeType.swift; sourceTree = "<group>"; };
-		50D54B662E30F9350078631E /* WindowType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowType.swift; sourceTree = "<group>"; };
 		50D7709E2E4F1D1C0075D3BF /* AmperfyAppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AmperfyAppIcon.icon; sourceTree = "<group>"; };
 		50D92CCA25E3ED700017E91D /* MappingModelV4toV5.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = MappingModelV4toV5.xcmappingmodel; sourceTree = "<group>"; };
 		50D92CCE25E3FE560017E91D /* MigrationPolicyV4toV5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationPolicyV4toV5.swift; sourceTree = "<group>"; };
@@ -1681,16 +1663,6 @@
 			path = Migration;
 			sourceTree = "<group>";
 		};
-		50AB3B452F03119800556CE4 /* AudioVisualizerViews */ = {
-			isa = PBXGroup;
-			children = (
-				50AB3B412F03119800556CE4 /* GenerativeArtView.swift */,
-				50AB3B432F03119800556CE4 /* SpectrumBarsView.swift */,
-				50AB3B442F03119800556CE4 /* WaveformView.swift */,
-			);
-			path = AudioVisualizerViews;
-			sourceTree = "<group>";
-		};
 		50AE79BE2C206ECB0085CBB3 /* Lyrics */ = {
 			isa = PBXGroup;
 			children = (
@@ -1978,19 +1950,6 @@
 			path = Artwork;
 			sourceTree = "<group>";
 		};
-		50D54B602E30F90D0078631E /* AudioVisualizerKit */ = {
-			isa = PBXGroup;
-			children = (
-				50D54B612E30F9350078631E /* AmplitudeSpectrumView.swift */,
-				50D54B622E30F9350078631E /* AudioAnalyzer.swift */,
-				50D54B632E30F9350078631E /* FFT.swift */,
-				50D54B642E30F9350078631E /* Magnitude.swift */,
-				50D54B652E30F9350078631E /* ShapeType.swift */,
-				50D54B662E30F9350078631E /* WindowType.swift */,
-			);
-			path = AudioVisualizerKit;
-			sourceTree = "<group>";
-		};
 		50DB1180266501EC0033BFFA /* Ampache */ = {
 			isa = PBXGroup;
 			children = (
@@ -2183,8 +2142,6 @@
 		50F8CA2B21FA48770084F8D8 /* Player */ = {
 			isa = PBXGroup;
 			children = (
-				50D54B602E30F90D0078631E /* AudioVisualizerKit */,
-				50AB3B452F03119800556CE4 /* AudioVisualizerViews */,
 				5011712F27565B2A00B7C08D /* PlayerFacade.swift */,
 				50C9D6E5284FABCB007F18D0 /* AudioPlayer.swift */,
 				508FDE4921F44E91005A0724 /* BackendAudioPlayer.swift */,
@@ -2726,12 +2683,6 @@
 				5A11A0012EB0000100AAAA02 /* SsSimilarArtistParserDelegate.swift in Sources */,
 				50C9D65E284FAA0B007F18D0 /* AmpacheArtworkDownloadDelegate.swift in Sources */,
 				50C9D6D3284FAB0C007F18D0 /* JSONConverter.swift in Sources */,
-				50D54B6D2E30FFDB0078631E /* Magnitude.swift in Sources */,
-				50D54B6E2E30FFDB0078631E /* AudioAnalyzer.swift in Sources */,
-				50D54B6F2E30FFDB0078631E /* AmplitudeSpectrumView.swift in Sources */,
-				50D54B702E30FFDB0078631E /* ShapeType.swift in Sources */,
-				50D54B712E30FFDB0078631E /* WindowType.swift in Sources */,
-				50D54B722E30FFDB0078631E /* FFT.swift in Sources */,
 				50C9D670284FAA4D007F18D0 /* LibraryStorage.swift in Sources */,
 				50C9D672284FAA4D007F18D0 /* BasicFetchedResultsController.swift in Sources */,
 				50C9D682284FAA6C007F18D0 /* PodcastEpisodeMO+CoreDataProperties.swift in Sources */,
@@ -2796,9 +2747,6 @@
 				50AE79AE2C1E23930085CBB3 /* SsOpenSubsonicExtensionsParserDelegate.swift in Sources */,
 				50C9D671284FAA4D007F18D0 /* Identifyable.swift in Sources */,
 				50C9D6B2284FAA87007F18D0 /* ScrobbleEntry.swift in Sources */,
-				50AB3B462F03119800556CE4 /* GenerativeArtView.swift in Sources */,
-				50AB3B472F03119800556CE4 /* WaveformView.swift in Sources */,
-				50AB3B482F03119800556CE4 /* SpectrumBarsView.swift in Sources */,
 				50C9D6A9284FAA87007F18D0 /* PlaylistItem.swift in Sources */,
 				50C9D6A6284FAA7F007F18D0 /* CoreDataMigrationVersion.swift in Sources */,
 				50C9D692284FAA6C007F18D0 /* DownloadMO+CoreDataClass.swift in Sources */,

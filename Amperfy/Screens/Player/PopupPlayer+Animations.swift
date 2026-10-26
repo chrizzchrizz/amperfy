@@ -101,7 +101,7 @@ extension PopupPlayerVC {
   func applyDisplayLayout(animated: Bool = true) {
     let target = targetLayout
     let previous = currentLayout
-    // the large view decides what it shows: artwork, visualizer or the lyrics of the lyrics layout.
+    // the large view decides what it shows: artwork or the lyrics of the lyrics layout.
     // Showing the same element again would reload the lyrics and reset their scroll position.
     if let largeView = largeCurrentlyPlayingView {
       let element = largeView.getDisplayElementBasedOnConfig()

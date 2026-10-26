@@ -411,28 +411,6 @@ class PlayerControlView: UIView {
     )
   }
 
-  func createVisualizerTypeMenu() -> UIMenuElement {
-    let currentType = appDelegate.storage.settings.user.selectedVisualizerType
-    let availableTypes: [UIAction] = VisualizerType.allCases.reversed()
-      .compactMap { visualizerType in
-        UIAction(
-          title: visualizerType.displayName,
-          image: UIImage(systemName: visualizerType.iconName),
-          state: visualizerType == currentType ? .on : .off,
-          handler: { _ in
-            self.appDelegate.storage.settings.user.selectedVisualizerType = visualizerType
-            self.rootView?.largeCurrentlyPlayingView?.showVisualizer()
-          }
-        )
-      }
-    return UIMenu(
-      title: "Visualizer Style",
-      subtitle: currentType.displayName,
-      image: .sparkles,
-      children: availableTypes
-    )
-  }
-
   func createPlayerOptionsMenu() -> [UIMenuElement] {
     var menuActions = [UIMenuElement]()
     if player.currentlyPlaying != nil || player.prevQueueCount > 0 || player
@@ -451,38 +429,6 @@ class PlayerControlView: UIView {
 
     menuActions.append(appDelegate.createSleepTimerMenu(refreshCB: nil))
     menuActions.append(createPlaybackRateMenu())
-
-    if !appDelegate.storage.settings.user.isPlayerVisualizerDisplayed ||
-      appDelegate.storage.settings.user.playerDisplayStyle != .large {
-      let showVisualizerAction = UIAction(
-        title: "Show Audio Visualizer",
-        image: .audioVisualizer,
-        handler: { _ in
-          self.appDelegate.storage.settings.user.isPlayerVisualizerDisplayed = true
-          self.appDelegate.storage.settings.user.isPlayerLyricsDisplayed = false
-          self.appDelegate.storage.settings.user.playerDisplayStyle = .large
-          self.rootView?.applyDisplayLayout()
-          self.refreshDisplayLyricsButton()
-          self.playerHandler?.refreshDisplayPlaylistButton(
-            displayPlaylistButton: self.displayPlaylistButton
-          )
-        }
-      )
-      menuActions.append(showVisualizerAction)
-    } else {
-      let hideVisualizerAction = UIAction(
-        title: "Hide Audio Visualizer",
-        image: .audioVisualizer,
-        handler: { _ in
-          self.appDelegate.storage.settings.user.isPlayerVisualizerDisplayed = false
-          self.rootView?.applyDisplayLayout()
-        }
-      )
-      menuActions.append(hideVisualizerAction)
-
-      // Add visualizer type selector submenu
-      menuActions.append(createVisualizerTypeMenu())
-    }
 
     switch player.playerMode {
     case .music:

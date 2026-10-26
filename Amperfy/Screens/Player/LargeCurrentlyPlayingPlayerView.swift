@@ -24,94 +24,11 @@ import MarqueeLabel
 import MediaPlayer
 import UIKit
 
-import SwiftUI
-
 // MARK: - LargeDisplayElement
 
 enum LargeDisplayElement {
   case artwork
   case lyrics
-  case visualizer
-}
-
-// MARK: - AudioAnalyzerView
-
-struct AudioAnalyzerView: View {
-  @EnvironmentObject
-  var audioAnalyzer: AudioAnalyzer
-  let visualizerType: VisualizerType
-
-  var body: some View {
-    Group {
-      switch visualizerType {
-      case .waveform:
-        WaveformView(
-          magnitudes: audioAnalyzer.magnitudes,
-          rms: audioAnalyzer.rms
-        )
-      case .spectrumBars:
-        SpectrumBarsView(
-          magnitudes: audioAnalyzer.magnitudes,
-          barCount: 32
-        )
-      case .generativeArt:
-        GenerativeArtView(
-          magnitudes: audioAnalyzer.magnitudes,
-          rms: audioAnalyzer.rms
-        )
-      case .ring:
-        AmplitudeSpectrumView(
-          shapeType: .ring,
-          magnitudes: audioAnalyzer.magnitudes,
-          range: 0 ..< 75,
-          rms: audioAnalyzer.rms
-        )
-      }
-    }
-    .padding()
-  }
-}
-
-// MARK: - AudioAnalyzerWrapperView
-
-struct AudioAnalyzerWrapperView: View {
-  let visualizerType: VisualizerType
-
-  var body: some View {
-    VStack {
-      AudioAnalyzerView(visualizerType: visualizerType)
-        .environmentObject(appDelegate.player.audioAnalyzer)
-    }
-  }
-}
-
-// MARK: - SwiftUIContentView
-
-class SwiftUIContentView: UIView {
-  var hostingController: UIHostingController<AudioAnalyzerWrapperView>?
-
-  public func setupSwiftUIView(
-    parentVC: UIViewController,
-    parentView: UIView,
-    visualizerType: VisualizerType
-  ) {
-    let swiftUIView = AudioAnalyzerWrapperView(visualizerType: visualizerType)
-    let hostingController = UIHostingController(rootView: swiftUIView)
-    self.hostingController = hostingController
-
-    parentVC.addChild(hostingController)
-    parentView.addSubview(hostingController.view)
-
-    hostingController.view.frame = parentView.frame
-    hostingController.view.backgroundColor = .clear
-
-    hostingController.view.translatesAutoresizingMaskIntoConstraints = false
-    hostingController.didMove(toParent: parentVC)
-  }
-
-  public func updateVisualizerType(_ visualizerType: VisualizerType) {
-    hostingController?.rootView = AudioAnalyzerWrapperView(visualizerType: visualizerType)
-  }
 }
 
 // MARK: - LargeCurrentlyPlayingPlayerView
@@ -127,7 +44,6 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
 
   private var rootView: PopupPlayerVC?
   private var lyricsView: LyricsView?
-  private var visualizerHostingView: SwiftUIContentView?
   private(set) var displayElement: LargeDisplayElement = .artwork
   private var ratingView: RatingView?
 
@@ -158,7 +74,6 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
     // Force a layout to prevent wrong size on first appearance on macOS
     upperContainerView.layoutIfNeeded()
 
-    visualizerHostingView?.hostingController?.view.frame = upperContainerView.bounds
     updateArtworkShadowPath()
   }
 
@@ -213,16 +128,6 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
         lyricsView!.leadingAnchor.constraint(equalTo: lyricsContainer.leadingAnchor),
         lyricsView!.trailingAnchor.constraint(equalTo: lyricsContainer.trailingAnchor),
       ])
-    }
-
-    visualizerHostingView = SwiftUIContentView()
-    visualizerHostingView!.hostingController?.view.frame = upperContainerView.bounds
-    if let toWorkOnRootView {
-      visualizerHostingView!.setupSwiftUIView(
-        parentVC: toWorkOnRootView,
-        parentView: self,
-        visualizerType: appDelegate.storage.settings.user.selectedVisualizerType
-      )
     }
 
     setupRatingView()
@@ -305,9 +210,6 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
     artworkImage.isUserInteractionEnabled = true
     artworkImage.addGestureRecognizer(createLeftSwipe())
     artworkImage.addGestureRecognizer(createRightSwipe())
-    visualizerHostingView?.hostingController?.view.isUserInteractionEnabled = true
-    visualizerHostingView?.hostingController?.view.addGestureRecognizer(createRightSwipe())
-    visualizerHostingView?.hostingController?.view.addGestureRecognizer(createLeftSwipe())
   }
 
   @objc
@@ -378,8 +280,6 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
   public func getDisplayElementBasedOnConfig() -> LargeDisplayElement {
     if appDelegate.storage.settings.user.isPlayerLyricsDisplayed, isLyricsButtonAllowedToDisplay {
       return .lyrics
-    } else if appDelegate.storage.settings.user.isPlayerVisualizerDisplayed {
-      return .visualizer
     } else {
       return .artwork
     }
@@ -390,42 +290,17 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
 
     switch element {
     case .artwork:
-      hideVisualizer()
       hideLyrics()
       showArtwork()
     case .lyrics:
-      hideVisualizer()
       showArtwork()
       initializeLyrics()
-    case .visualizer:
-      hideLyrics()
-      almostHideArtwork()
-      showVisualizer()
     }
-  }
-
-  public func almostHideArtwork() {
-    artworkImage.alpha = 0.1
-    artworkShadowView.alpha = 0.1
   }
 
   public func showArtwork() {
     artworkImage.alpha = 1
     artworkShadowView.alpha = 1
-  }
-
-  public func hideVisualizer() {
-    visualizerHostingView?.hostingController?.view.isHidden = true
-    appDelegate.player.audioAnalyzer.isActive = false
-  }
-
-  public func showVisualizer() {
-    visualizerHostingView?.updateVisualizerType(
-      appDelegate.storage.settings.user.selectedVisualizerType
-    )
-    visualizerHostingView?.hostingController?.view.isHidden = false
-    appDelegate.player.audioAnalyzer
-      .isActive = (appDelegate.storage.settings.user.playerDisplayStyle == .large)
   }
 
   private func hideLyrics() {

@@ -470,17 +470,6 @@ extension PersistentStorage {
       ) }
     }
 
-    public var isPlayerVisualizerDisplayed: Bool {
-      get {
-        UserDefaults.standard
-          .object(forKey: UserDefaultsKey.IsPlayerVisualizerDisplayed.rawValue) as? Bool ?? false
-      }
-      set { UserDefaults.standard.set(
-        newValue,
-        forKey: UserDefaultsKey.IsPlayerVisualizerDisplayed.rawValue
-      ) }
-    }
-
     public var isOfflineMode: Bool {
       get {
         UserDefaults.standard
@@ -799,7 +788,6 @@ extension PersistentStorage {
     settings.user.isLyricsSmoothScrolling = legacySettings.isLyricsSmoothScrolling
     settings.user.cacheLimit = legacySettings.cacheLimit
     settings.user.isPlayerLyricsDisplayed = legacySettings.isPlayerLyricsDisplayed
-    settings.user.isPlayerVisualizerDisplayed = legacySettings.isPlayerVisualizerDisplayed
     settings.user.isOfflineMode = legacySettings.isOfflineMode
     settings.user.isPlaybackStartOnlyOnPlay = legacySettings.isPlaybackStartOnlyOnPlay
     settings.user.isHapticsEnabled = legacySettings.isHapticsEnabled

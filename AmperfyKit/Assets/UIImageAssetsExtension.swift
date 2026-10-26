@@ -148,7 +148,6 @@ public struct AmperfyImage: Sendable {
   public static let arrowRight = Self("arrow.right.circle.fill")
   public static let arrowTurnUp = Self("arrowshape.turn.up.backward.circle.fill")
   public static let artist = Self("music.mic")
-  public static let audioVisualizer = Self("circle.dashed")
   public static let ban = Self("circle.slash")
   public static let backwardMenu = Self("backward")
   public static let backwardFill = Self("backward.fill")
@@ -293,8 +292,6 @@ extension UIImage {
     .withRenderingMode(.alwaysTemplate)
   public static let arrowRight = UIImage.create(systemName: AmperfyImage.arrowRight.systemName)
   public static let arrowTurnUp = UIImage.create(systemName: AmperfyImage.arrowTurnUp.systemName)
-  public static let audioVisualizer = UIImage
-    .create(systemName: AmperfyImage.audioVisualizer.systemName)
   public static let backwardFill = UIImage.create(systemName: AmperfyImage.backwardFill.systemName)
   public static let backwardMenu = UIImage.create(systemName: AmperfyImage.backwardMenu.systemName)
   public static let ban = UIImage.create(systemName: AmperfyImage.ban.systemName)

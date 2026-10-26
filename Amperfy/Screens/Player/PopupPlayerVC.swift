@@ -26,7 +26,7 @@ import UIKit
 // MARK: - PopupPlayerLayout
 
 enum PopupPlayerLayout {
-  /// big artwork above the title, the visualizer can replace the artwork
+  /// big artwork above the title
   case large
   /// small artwork and title in the first row of the queue
   case compact
@@ -254,9 +254,7 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
 
   func setLyricsDisplayed(_ isDisplayed: Bool) {
     appDelegate.storage.settings.user.isPlayerLyricsDisplayed = isDisplayed
-    if isDisplayed {
-      appDelegate.storage.settings.user.isPlayerVisualizerDisplayed = false
-    } else {
+    if !isDisplayed {
       // leaving the lyrics always shows the cover, also if the queue was shown before
       appDelegate.storage.settings.user.playerDisplayStyle = .large
     }
