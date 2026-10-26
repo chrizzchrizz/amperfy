@@ -72,7 +72,7 @@ class TabBarVC: UITabBarController {
     playlistsTab = UITab(
       title: TabNavigatorItem.playlists.title,
       image: TabNavigatorItem.playlists.icon,
-      identifier: "Tabs.Top.\(TabNavigatorItem.playlists.title)"
+      identifier: "Tabs.\(TabNavigatorItem.playlists.title)"
     ) { [account] _ in
       OfflineIndicatingNavigationController(
         rootViewController: TabNavigatorItem.playlists
