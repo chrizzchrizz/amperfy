@@ -199,6 +199,9 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
     similarContentFooter?.layout(in: tableView)
+    for header in discHeaders.allObjects {
+      header.alignLeading(withRowsOf: tableView)
+    }
   }
 
   private func loadSimilarContent() {
@@ -263,6 +266,8 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
   /// Only albums with two or more discs show a "CD n" header above each disc's songs.
   /// Not derived from the (possibly filtered) sections, so a search keeps the headers.
   private var isDiscHeaderVisible = false
+  /// The headers follow the row content, which is only known once the rows are laid out.
+  private let discHeaders = NSHashTable<ArtistSectionHeaderView>.weakObjects()
 
   private func updateDiscHeaderVisibility() {
     // keep the last value while searching, the results only contain a part of the album
@@ -298,11 +303,13 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
   )
     -> UIView? {
     guard isDiscHeaderVisible, let title = discTitle(inSection: section) else { return nil }
-    return ArtistSectionHeaderView(
+    let header = ArtistSectionHeaderView(
       title: title,
       bottomPadding: ArtistSectionHeaderView.contentSpacing,
       font: ArtistSectionHeaderView.songTitleFont
     )
+    discHeaders.add(header)
+    return header
   }
 
   /// The artist is hidden for songs of the album artist, those rows only have the title line.

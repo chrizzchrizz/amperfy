@@ -1145,6 +1145,7 @@ final class ArtistSectionHeaderView: UIView {
   private static let sideInset: CGFloat = 16.0
 
   private let titleLabel = UILabel()
+  private var pinnedLeading: NSLayoutConstraint?
   private var isPinnedToTable = false
 
   init(title: String, bottomPadding: CGFloat, font: UIFont = font) {
@@ -1183,16 +1184,32 @@ final class ArtistSectionHeaderView: UIView {
     while let current = view, !(current is UITableView) { view = current.superview }
     guard let tableView = view as? UITableView else { return }
     isPinnedToTable = true
+    let leading = titleLabel.leadingAnchor.constraint(
+      equalTo: tableView.safeAreaLayoutGuide.leadingAnchor,
+      constant: Self.sideInset
+    )
+    pinnedLeading = leading
     NSLayoutConstraint.activate([
-      titleLabel.leadingAnchor.constraint(
-        equalTo: tableView.safeAreaLayoutGuide.leadingAnchor,
-        constant: Self.sideInset
-      ),
+      leading,
       titleLabel.trailingAnchor.constraint(
         equalTo: tableView.safeAreaLayoutGuide.trailingAnchor,
         constant: -Self.sideInset
       ),
     ])
+  }
+
+  /// Starts the title where the content of the song rows starts, which is also where their
+  /// separator lines start. The inset differs between iPhone, iPad and Mac.
+  func alignLeading(withRowsOf tableView: UITableView) {
+    guard let pinnedLeading,
+          let cell = tableView.visibleCells.first(where: { $0 is BasicTableCell })
+    else { return }
+    let rowContent = cell.contentView.layoutMarginsGuide.layoutFrame
+    let rowLeading = cell.contentView.convert(rowContent, to: tableView).minX
+    let inset = rowLeading - tableView.safeAreaInsets.left
+    if abs(pinnedLeading.constant - inset) > 0.01 {
+      pinnedLeading.constant = inset
+    }
   }
 
   required init?(coder: NSCoder) {
