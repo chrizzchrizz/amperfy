@@ -25,14 +25,15 @@ import UIKit
 
 // MARK: - ToastView
 
-/// Compact capsule that springs open below the status bar, reveals its text out of a blur
+/// Compact capsule that rises and springs open above the bottom bar, reveals its text out of a blur
 /// and disappears on its own.
 @MainActor
 final class ToastView: UIView {
   static let maxWidth: CGFloat = 200
   static let height: CGFloat = 50
-  /// Vertical center of the standard navigation bar content below the top safe area.
-  static let navigationBarCenterOffset: CGFloat = 22
+  /// Distance between the toast and the edge it floats above.
+  static let bottomSpacing: CGFloat = 8
+  private static let riseDistance: CGFloat = 16
   static let displayDuration: Duration = .seconds(3)
   private static let openDuration: TimeInterval = 0.3
   private static let textRevealDelay: TimeInterval = 0.00
@@ -56,13 +57,14 @@ final class ToastView: UIView {
     subtitle: String,
     style: LogEntryType,
     in window: UIWindow,
+    above bottomEdge: CGFloat,
     onTap: (() -> Void)? = nil
   ) {
     guard current == nil else { return }
     let toast = ToastView(title: title, subtitle: subtitle, color: style.toastColor)
     toast.onTap = onTap
     current = toast
-    toast.present(in: window)
+    toast.present(in: window, above: bottomEdge)
   }
 
   private init(title: String, subtitle: String, color: UIColor) {
@@ -113,16 +115,16 @@ final class ToastView: UIView {
     layer.cornerRadius = bounds.height / 2
   }
 
-  private func present(in window: UIWindow) {
+  private func present(in window: UIWindow, above bottomEdge: CGFloat) {
     translatesAutoresizingMaskIntoConstraints = false
     window.addSubview(self)
     let widthFill = widthAnchor.constraint(equalToConstant: Self.maxWidth)
     widthFill.priority = .defaultHigh
     NSLayoutConstraint.activate([
       centerXAnchor.constraint(equalTo: window.centerXAnchor),
-      centerYAnchor.constraint(
-        equalTo: window.safeAreaLayoutGuide.topAnchor,
-        constant: Self.navigationBarCenterOffset
+      bottomAnchor.constraint(
+        equalTo: window.topAnchor,
+        constant: bottomEdge - Self.bottomSpacing
       ),
       heightAnchor.constraint(equalToConstant: Self.height),
       widthAnchor.constraint(lessThanOrEqualToConstant: Self.maxWidth),
@@ -131,7 +133,8 @@ final class ToastView: UIView {
     window.layoutIfNeeded()
 
     alpha = 0
-    transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
+    transform = CGAffineTransform(translationX: 0, y: Self.riseDistance)
+      .scaledBy(x: 0.6, y: 0.6)
     let textReveal = prepareTextReveal()
     UIView.animate(
       withDuration: Self.openDuration,

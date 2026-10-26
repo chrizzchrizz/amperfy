@@ -122,12 +122,41 @@ extension AppDelegate: AlertDisplayable {
           let window = Self.window
     else { return }
 
-    ToastView.show(title: title, subtitle: subtitle, style: style, in: window) {
+    ToastView.show(
+      title: title,
+      subtitle: subtitle,
+      style: style,
+      in: window,
+      above: Self.toastBottomEdge(in: window, host: topView)
+    ) {
       guard let topView = Self.topViewController(),
             topView.presentedViewController == nil
       else { return }
       topView.present(popupVC, animated: true, completion: nil)
     }
+  }
+
+  /// Window y coordinate the toast floats above: the mini player if it is shown,
+  /// otherwise the tab bar or the bottom safe area.
+  private static func toastBottomEdge(in window: UIWindow, host: UIViewController) -> CGFloat {
+    let safeBottom = window.bounds.maxY - window.safeAreaInsets.bottom
+    // frames in the upper half belong to a top tab bar (iPad), not to a bottom bar
+    func lowerEdge(of view: UIView) -> CGFloat? {
+      guard view.window === window, !view.isHidden, view.alpha > 0.01 else { return nil }
+      let frame = view.convert(view.bounds, to: window)
+      guard !frame.isEmpty, frame.minY > window.bounds.midY else { return nil }
+      return frame.minY
+    }
+
+    let miniPlayer = (host as? TabBarVC)?.miniPlayer ?? (host as? SplitVC)?.miniPlayer
+    if let miniPlayer, miniPlayer.isPlayableLoaded,
+       let edge = lowerEdge(of: miniPlayer.glassContainer) {
+      return edge
+    }
+    if let tabBar = (host as? TabBarVC)?.tabBar, let edge = lowerEdge(of: tabBar) {
+      return edge
+    }
+    return safeBottom
   }
 
   func display(popup popupVC: UIViewController) {
