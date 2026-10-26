@@ -2,8 +2,8 @@
 //  ToastView.swift
 //  Amperfy
 //
-//  Created by Maximilian Bauer on 20.06.21.
-//  Copyright (c) 2021 Maximilian Bauer. All rights reserved.
+//  Created by Chrizz Gelbach on 26.10.26.
+//  Copyright (c) 2026 Chrizz Gelbach. All rights reserved.
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
