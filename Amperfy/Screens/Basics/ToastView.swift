@@ -39,11 +39,16 @@ struct ToastPlacement {
 /// and disappears on its own.
 @MainActor
 final class ToastView: UIView {
-  static let maxWidth: CGFloat = 200
+  #if targetEnvironment(macCatalyst)
+    static let maxWidth: CGFloat = 300
+  #else
+    static let maxWidth: CGFloat = 200
+  #endif
+  
   static let height: CGFloat = 50
   /// Distance between the toast and the edge it floats above.
-  static let bottomSpacing: CGFloat = 8
-  private static let riseDistance: CGFloat = 16
+  static let bottomSpacing: CGFloat = 48
+  private static let riseDistance: CGFloat = 32
   static let displayDuration: Duration = .seconds(3)
   private static let openDuration: TimeInterval = 0.3
   private static let textRevealDelay: TimeInterval = 0.00
@@ -81,8 +86,8 @@ final class ToastView: UIView {
     super.init(frame: .zero)
     backgroundColor = color
     layer.shadowColor = UIColor.black.cgColor
-    layer.shadowOpacity = 0.2
-    layer.shadowRadius = 6
+    layer.shadowOpacity = 0.4
+    layer.shadowRadius = 3
     layer.shadowOffset = CGSize(width: 0, height: 2)
 
     titleLabel.text = title
