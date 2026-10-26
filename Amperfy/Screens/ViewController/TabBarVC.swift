@@ -61,10 +61,10 @@ class TabBarVC: UITabBarController {
       title: TabNavigatorItem.home.title,
       image: TabNavigatorItem.home.icon,
       identifier: "Tabs.\(TabNavigatorItem.home.title)"
-    ) { _ in
+    ) { [account] _ in
       OfflineIndicatingNavigationController(
         rootViewController: TabNavigatorItem.home
-          .getController(account: self.account)
+          .getController(account: account)
       )
     }
     fixTabs.append(homeTab!)
