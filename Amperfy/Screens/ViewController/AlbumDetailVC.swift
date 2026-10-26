@@ -312,7 +312,7 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
   )
     -> CGFloat {
     let song = fetchedResultsController.getWrappedEntity(at: indexPath)
-    return song.creatorName == album.artist?.name
+    return PlayableTableCell.isCreatorHidden(of: song, hiddenCreatorName: album.artist?.name)
       ? PlayableTableCell.singleLineRowHeight
       : PlayableTableCell.rowHeight
   }

@@ -93,6 +93,11 @@ class PlayableTableCell: BasicTableCell {
   static let singleLineRowHeight: CGFloat = 40 + margin.bottom + margin.top
   private static let touchAnimation = 0.4
 
+  /// Single rule for the cell and the row height of its table view.
+  static func isCreatorHidden(of playable: AbstractPlayable, hiddenCreatorName: String?) -> Bool {
+    hiddenCreatorName != nil && playable.creatorName == hiddenCreatorName
+  }
+
   private var style = PlayableTableCellStyle.none
   private var playerIndexCb: GetPlayerIndexFromTableCellCallback?
   private var playContextCb: GetPlayContextFromTableCellCallback?
@@ -374,7 +379,7 @@ class PlayableTableCell: BasicTableCell {
       artistLabel.text = playable.creatorName
     }
     // e.g. on the album screen, where the album artist is already shown in the header
-    artistLabel.isHidden = hiddenCreatorName != nil && playable.creatorName == hiddenCreatorName
+    artistLabel.isHidden = Self.isCreatorHidden(of: playable, hiddenCreatorName: hiddenCreatorName)
     // the title has more free space above its glyphs than the artist below, lift both lines a bit
     labelsCenterYConstraint.constant = artistLabel.isHidden ? 0 : -1
 
