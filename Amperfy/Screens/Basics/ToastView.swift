@@ -39,12 +39,7 @@ struct ToastPlacement {
 /// and disappears on its own.
 @MainActor
 final class ToastView: UIView {
-  #if targetEnvironment(macCatalyst)
-    static let maxWidth: CGFloat = 300
-  #else
-    static let maxWidth: CGFloat = 200
-  #endif
-  
+  static let maxWidth: CGFloat = UIDevice.current.userInterfaceIdiom == .phone ? 200 : 300
   static let height: CGFloat = 50
   /// Distance between the toast and the edge it floats above.
   static let bottomSpacing: CGFloat = 48
