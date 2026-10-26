@@ -36,6 +36,8 @@ final class ToastView: UIView {
   private static weak var current: ToastView?
   static var isVisible: Bool { current != nil }
 
+  private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .systemThickMaterial))
+  private let tintView = UIView()
   private let titleLabel = UILabel()
   private let subtitleLabel = UILabel()
   private var onTap: (() -> Void)?
@@ -50,26 +52,45 @@ final class ToastView: UIView {
     onTap: (() -> Void)? = nil
   ) {
     guard current == nil else { return }
-    let toast = ToastView(title: title, subtitle: subtitle, color: style.toastColor)
+    let toast = ToastView(title: title, subtitle: subtitle, accent: style.toastAccent)
     toast.onTap = onTap
     current = toast
     toast.present(in: window)
   }
 
-  private init(title: String, subtitle: String, color: UIColor) {
+  private init(title: String, subtitle: String, accent: UIColor) {
     super.init(frame: .zero)
-    backgroundColor = color
     layer.shadowColor = UIColor.black.cgColor
-    layer.shadowOpacity = 0.2
-    layer.shadowRadius = 6
+    layer.shadowOpacity = 0.15
+    layer.shadowRadius = 8
     layer.shadowOffset = CGSize(width: 0, height: 2)
+
+    blurView.clipsToBounds = true
+    blurView.layer.borderWidth = 1
+    blurView.layer.borderColor = accent.withAlphaComponent(0.45).cgColor
+    blurView.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(blurView)
+    tintView.backgroundColor = accent.withAlphaComponent(0.12)
+    tintView.translatesAutoresizingMaskIntoConstraints = false
+    blurView.contentView.addSubview(tintView)
+    NSLayoutConstraint.activate([
+      blurView.topAnchor.constraint(equalTo: topAnchor),
+      blurView.bottomAnchor.constraint(equalTo: bottomAnchor),
+      blurView.leadingAnchor.constraint(equalTo: leadingAnchor),
+      blurView.trailingAnchor.constraint(equalTo: trailingAnchor),
+      tintView.topAnchor.constraint(equalTo: blurView.contentView.topAnchor),
+      tintView.bottomAnchor.constraint(equalTo: blurView.contentView.bottomAnchor),
+      tintView.leadingAnchor.constraint(equalTo: blurView.contentView.leadingAnchor),
+      tintView.trailingAnchor.constraint(equalTo: blurView.contentView.trailingAnchor),
+    ])
 
     titleLabel.text = title
     titleLabel.font = .systemFont(ofSize: 13, weight: .medium)
     subtitleLabel.text = subtitle
     subtitleLabel.font = .systemFont(ofSize: 12)
+    titleLabel.textColor = .label
+    subtitleLabel.textColor = .secondaryLabel
     for label in [titleLabel, subtitleLabel] {
-      label.textColor = .white
       label.textAlignment = .center
       label.numberOfLines = 1
       label.lineBreakMode = .byTruncatingTail
@@ -100,6 +121,7 @@ final class ToastView: UIView {
   override func layoutSubviews() {
     super.layoutSubviews()
     layer.cornerRadius = bounds.height / 2
+    blurView.layer.cornerRadius = bounds.height / 2
   }
 
   private func present(in window: UIWindow) {
@@ -169,7 +191,7 @@ final class ToastView: UIView {
 }
 
 extension LogEntryType {
-  fileprivate var toastColor: UIColor {
+  fileprivate var toastAccent: UIColor {
     switch self {
     case .apiError, .error: return .systemRed
     case .info, .debug: return .defaultBlue
