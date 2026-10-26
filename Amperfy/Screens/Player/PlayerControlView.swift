@@ -459,8 +459,8 @@ class PlayerControlView: UIView {
     case .podcast: break
     }
 
-    switch appDelegate.storage.settings.user.playerDisplayStyle {
-    case .compact:
+    // the queue is only visible in the compact layout, not in large or lyrics
+    if rootView?.currentLayout == .compact {
       let scrollToCurrentlyPlaying = UIAction(
         title: "Scroll to currently playing",
         image: .squareArrow,
@@ -469,7 +469,6 @@ class PlayerControlView: UIView {
         }
       )
       menuActions.append(scrollToCurrentlyPlaying)
-    case .large: break
     }
 
     let playerInfo = UIAction(title: "Player Info", image: .info, handler: { _ in
