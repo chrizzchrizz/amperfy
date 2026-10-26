@@ -144,7 +144,7 @@ final class ToastView: UIView {
     isDismissing = true
     dismissTask?.cancel()
     UIView.animate(
-      withDuration: 0.1,
+      withDuration: 0.05,
       delay: 0,
       options: [.curveEaseIn],
       animations: {
