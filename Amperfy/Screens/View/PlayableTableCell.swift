@@ -99,6 +99,7 @@ class PlayableTableCell: BasicTableCell {
   private var playIndicator: PlayIndicator?
   private var isDislayAlbumTrackNumberStyle: Bool = false
   private var isAlbumSubtitle: Bool = false
+  private var hiddenCreatorName: String?
   private var displayMode: DisplayMode = .normal
   private var hoverGestureRecognizer: UIHoverGestureRecognizer!
   private var tapGestureRecognizer: UITapGestureRecognizer!
@@ -274,6 +275,7 @@ class PlayableTableCell: BasicTableCell {
     playerIndexCb: GetPlayerIndexFromTableCellCallback? = nil,
     isDislayAlbumTrackNumberStyle: Bool = false,
     isAlbumSubtitle: Bool = false,
+    hiddenCreatorName: String? = nil,
     download: Download? = nil,
     isMarked: Bool = false
   ) {
@@ -289,6 +291,7 @@ class PlayableTableCell: BasicTableCell {
     self.rootView = rootView
     self.isDislayAlbumTrackNumberStyle = isDislayAlbumTrackNumberStyle
     self.isAlbumSubtitle = isAlbumSubtitle
+    self.hiddenCreatorName = hiddenCreatorName
     self.download = download
     self.isMarked = isMarked
     isDownloadRunning = playable.isDownloading
@@ -364,6 +367,8 @@ class PlayableTableCell: BasicTableCell {
     } else {
       artistLabel.text = playable.creatorName
     }
+    // e.g. on the album screen, where the album artist is already shown in the header
+    artistLabel.isHidden = hiddenCreatorName != nil && playable.creatorName == hiddenCreatorName
 
     configureStyle(
       playable: playable,

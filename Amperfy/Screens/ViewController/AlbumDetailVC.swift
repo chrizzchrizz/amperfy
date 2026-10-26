@@ -254,7 +254,8 @@ class AlbumDetailVC: SingleSnapshotFetchedResultsTableViewController<SongMO> {
       playable: song,
       playContextCb: { [weak self] cell in self?.convertCellViewToPlayContext(cell: cell) },
       rootView: self,
-      isDislayAlbumTrackNumberStyle: true
+      isDislayAlbumTrackNumberStyle: true,
+      hiddenCreatorName: album.artist?.name
     )
     return cell
   }
