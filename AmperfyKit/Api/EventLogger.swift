@@ -55,6 +55,19 @@ public protocol AlertDisplayable {
   ) -> UIViewController
 }
 
+// MARK: - AlertToastText
+
+/// Short texts for the toast; the full message is shown in the detail popup.
+public struct AlertToastText: Sendable {
+  public let title: String
+  public let subtitle: String
+
+  public init(title: String, subtitle: String) {
+    self.title = title
+    self.subtitle = subtitle
+  }
+}
+
 // MARK: - EventLogger
 
 @MainActor
@@ -76,18 +89,25 @@ public class EventLogger {
       shortMessage: message,
       detailMessage: message,
       logType: .debug,
-      displayPopup: false
+      displayPopup: false,
+      toast: AlertToastText(title: topic, subtitle: message)
     )
   }
 
-  public func info(topic: String, message: String, displayPopup: Bool = true) {
+  public func info(
+    topic: String,
+    message: String,
+    displayPopup: Bool = true,
+    toast: AlertToastText? = nil
+  ) {
     report(
       topic: topic,
       statusCode: .info,
       shortMessage: message,
       detailMessage: message,
       logType: .info,
-      displayPopup: displayPopup
+      displayPopup: displayPopup,
+      toast: toast ?? AlertToastText(title: topic, subtitle: message)
     )
   }
 
@@ -95,7 +115,8 @@ public class EventLogger {
     topic: String,
     statusCode: AmperfyLogStatusCode,
     message: String,
-    displayPopup: Bool
+    displayPopup: Bool,
+    toast: AlertToastText? = nil
   ) {
     report(
       topic: topic,
@@ -103,7 +124,8 @@ public class EventLogger {
       shortMessage: message,
       detailMessage: message,
       logType: .info,
-      displayPopup: displayPopup
+      displayPopup: displayPopup,
+      toast: toast ?? AlertToastText(title: topic, subtitle: message)
     )
   }
 
@@ -119,7 +141,8 @@ public class EventLogger {
       shortMessage: message,
       detailMessage: message,
       logType: .error,
-      displayPopup: displayPopup
+      displayPopup: displayPopup,
+      toast: AlertToastText(title: "Something went wrong", subtitle: topic)
     )
   }
 
@@ -136,7 +159,8 @@ public class EventLogger {
       shortMessage: shortMessage,
       detailMessage: detailMessage,
       logType: .error,
-      displayPopup: displayPopup
+      displayPopup: displayPopup,
+      toast: AlertToastText(title: "Something went wrong", subtitle: topic)
     )
   }
 
@@ -146,7 +170,8 @@ public class EventLogger {
     shortMessage: String,
     detailMessage: String,
     logType: LogEntryType,
-    displayPopup: Bool
+    displayPopup: Bool,
+    toast: AlertToastText
   ) {
     saveAndDisplay(
       topic: topic,
@@ -156,7 +181,8 @@ public class EventLogger {
       logMessage: topic + ": " + shortMessage,
       displayPopup: displayPopup,
       popupMessage: shortMessage,
-      detailMessage: detailMessage
+      detailMessage: detailMessage,
+      toast: toast
     )
   }
 
@@ -174,7 +200,11 @@ public class EventLogger {
       logMessage: topic + ": " + error.localizedDescription,
       displayPopup: displayPopup && !isHiddenNetworkError,
       popupMessage: error.localizedDescription,
-      detailMessage: error.localizedDescription
+      detailMessage: error.localizedDescription,
+      toast: AlertToastText(
+        title: Self.isNetworkError(error) ? "No connection" : "Something went wrong",
+        subtitle: topic
+      )
     )
   }
 
@@ -200,6 +230,13 @@ public class EventLogger {
     }
 
     let isInfoError = error.type == .resource
+    let toast = if isInfoError {
+      AlertToastText(title: topic, subtitle: error.message)
+    } else if error.statusCode > 0 {
+      AlertToastText(title: "Server error", subtitle: "\(topic) · \(error.statusCode)")
+    } else {
+      AlertToastText(title: "Something went wrong", subtitle: topic)
+    }
     detailMessage += "\n\nError Content:\n" + error.asInfo(topic: topic).asJSONString()
 
     saveAndDisplay(
@@ -210,7 +247,8 @@ public class EventLogger {
       logMessage: error.message,
       displayPopup: displayPopup,
       popupMessage: alertMessage,
-      detailMessage: detailMessage
+      detailMessage: detailMessage,
+      toast: toast
     )
   }
 
@@ -222,7 +260,8 @@ public class EventLogger {
     logMessage: String,
     displayPopup: Bool,
     popupMessage: String,
-    detailMessage: String
+    detailMessage: String,
+    toast: AlertToastText
   ) {
     os_log("%s", log: self.log, type: .error, logMessage)
     Task { @MainActor in
@@ -239,7 +278,8 @@ public class EventLogger {
             topic: topic,
             shortMessage: popupMessage,
             detailMessage: detailMessage,
-            logType: logType
+            logType: logType,
+            toast: toast
           )
         }
       } catch {
@@ -252,7 +292,8 @@ public class EventLogger {
     topic: String,
     shortMessage: String,
     detailMessage: String,
-    logType: LogEntryType
+    logType: LogEntryType,
+    toast: AlertToastText
   ) {
     guard let displayer = alertDisplayer else { return }
     Task { @MainActor in
@@ -264,8 +305,8 @@ public class EventLogger {
         logType: logType
       )
       displayer.display(
-        title: topic,
-        subtitle: shortMessage,
+        title: toast.title,
+        subtitle: toast.subtitle,
         style: logType,
         notificationBanner: popupVC
       )
