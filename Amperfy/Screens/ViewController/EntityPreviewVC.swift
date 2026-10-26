@@ -71,6 +71,7 @@ class EntityPreviewActionBuilder {
   private var isShowPodcastDetails = false
   private var isShowSongDetails = false
   private let isLyricsActionAllowed: Bool
+  private let isFavoriteActionAllowed: Bool
   private var isInstantMix = false
   private var isShareable = false
 
@@ -79,9 +80,11 @@ class EntityPreviewActionBuilder {
     on rootView: UIViewController,
     playContextCb: GetPlayContextCallback? = nil,
     playerIndexCb: GetPlayerIndexCallback? = nil,
-    isLyricsActionAllowed: Bool = true
+    isLyricsActionAllowed: Bool = true,
+    isFavoriteActionAllowed: Bool = true
   ) {
     self.isLyricsActionAllowed = isLyricsActionAllowed
+    self.isFavoriteActionAllowed = isFavoriteActionAllowed
     self.appDelegate = (UIApplication.shared.delegate as! AppDelegate)
     self.entityContainer = container
     self.rootView = rootView
@@ -142,7 +145,8 @@ class EntityPreviewActionBuilder {
     if !gotoActions.isEmpty {
       menuActions.append(UIMenu(options: .displayInline, children: gotoActions))
     }
-    if let libraryEntity = entityContainer as? AbstractLibraryEntity, entityContainer.isFavoritable,
+    if isFavoriteActionAllowed, let libraryEntity = entityContainer as? AbstractLibraryEntity,
+       entityContainer.isFavoritable,
        appDelegate.storage.settings.user.isOnlineMode {
       ratingFavActions.append(createFavoriteMenu(libraryEntity: libraryEntity))
     }

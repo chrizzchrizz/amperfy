@@ -70,7 +70,8 @@ extension PopupPlayerVC {
         EntityPreviewActionBuilder(
           container: currentlyPlaying,
           on: rootView,
-          isLyricsActionAllowed: false
+          isLyricsActionAllowed: false,
+          isFavoriteActionAllowed: false
         ).createMenuActions()
       }
       button.isEnabled = true
