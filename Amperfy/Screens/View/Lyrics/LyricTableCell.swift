@@ -61,8 +61,12 @@ class LyricTableCellModel {
   static let pauseText = "● ● ●"
   static let pauseFont = UIFont.systemFont(ofSize: 16, weight: .bold)
 
+  /// Pauses (intro, empty lines) only show dots and cannot be selected.
+  let isPause: Bool
+
   init(lyric: LyricsLine, isPause: Bool = false) {
     self.lyric = lyric
+    self.isPause = isPause
     self.isActiveLine = false
     let text = isPause ? Self.pauseText : lyric.value
     let font = isPause ? Self.pauseFont : Self.font

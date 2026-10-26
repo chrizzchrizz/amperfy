@@ -36,7 +36,6 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDataSourcePrefe
   private let lineStartTolerance = CMTime(value: 250, timescale: 1_000)
   /// Start of the line the user tapped, the tolerance only applies until playback reaches it.
   private var selectedLineStart: CMTime?
-  private var hasLastLyricsLineAlreadyDisplayedOnce = false
   private var scrollAnimation = true
   private var suppressAutoScrollUntil: Date?
   private let autoScrollSuppressionInterval: TimeInterval = 5.0
@@ -163,6 +162,7 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDataSourcePrefe
     -> Bool {
     guard lyrics?.synced == true,
           let model = lyricModels.object(at: indexPath.row),
+          !model.isPause,
           model.lyric?.start != nil
     else { return false }
     return true
@@ -171,14 +171,17 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDataSourcePrefe
   public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     guard lyrics?.synced == true,
           let model = lyricModels.object(at: indexPath.row),
+          !model.isPause,
           let lyric = model.lyric,
           lyric.start != nil
     else { return }
     suppressAutoScrollUntil = Date().addingTimeInterval(autoScrollSuppressionInterval)
-    selectedLineStart = lyric.startTime
     onLyricSelected?(lyric)
-    // do not wait for the next player tick to highlight the selected line
+    // do not wait for the next player tick to highlight the selected line;
+    // scrolling to the start would reset the tolerance, so it is set afterwards
+    selectedLineStart = nil
     scroll(toTime: lyric.startTime)
+    selectedLineStart = lyric.startTime
   }
 
   public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
@@ -201,7 +204,6 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDataSourcePrefe
   private func reloadViewModels() {
     lyricModels.removeAll()
     lastIndex = nil
-    hasLastLyricsLineAlreadyDisplayedOnce = false
     reloadInsets()
 
     guard let lyrics = lyrics else {
@@ -259,31 +261,12 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDataSourcePrefe
       }
     }
 
-    guard let indexOfNextLine = lyricModels.firstIndex(where: {
+    // after the last line there is no next one, the last line stays the current line
+    let indexOfNextLine = lyricModels.firstIndex(where: {
       ($0.lyric?.startTime ?? .zero) > time + tolerance
-    })
-    else {
-      if !hasLastLyricsLineAlreadyDisplayedOnce {
-        if isAutoScrollAllowed {
-          scrollToRow(
-            at: IndexPath(row: lyricModels.count - 1, section: 0),
-            at: .middle,
-            animated: scrollAnimation
-          )
-          hasLastLyricsLineAlreadyDisplayedOnce = true
-        }
-      }
-      if let lastIndex = lastIndex,
-         let lastIndexModel = lyricModels.object(at: lastIndex) {
-        lastIndexModel.isActiveLine = false
-        reconfigureRows(at: [IndexPath(row: lastIndex, section: 0)])
-      }
-      lastIndex = nil
-      return
-    }
+    }) ?? lyricModels.count
 
     var prevIndex: Int?
-    hasLastLyricsLineAlreadyDisplayedOnce = false
     let indexOfCurrentLine = max(indexOfNextLine - 1, 0)
     if let lastIndex = lastIndex,
        let lastIndexModel = lyricModels.object(at: lastIndex) {
