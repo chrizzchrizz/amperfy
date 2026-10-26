@@ -20,11 +20,13 @@
 //
 
 import AmperfyKit
+import CoreImage
 import UIKit
 
 // MARK: - ToastView
 
-/// Compact capsule that scales in below the status bar and disappears on its own.
+/// Compact capsule that springs open below the status bar, reveals its text out of a blur
+/// and disappears on its own.
 @MainActor
 final class ToastView: UIView {
   static let maxWidth: CGFloat = 200
@@ -32,10 +34,17 @@ final class ToastView: UIView {
   /// Vertical center of the standard navigation bar content below the top safe area.
   static let navigationBarCenterOffset: CGFloat = 22
   static let displayDuration: Duration = .seconds(3)
+  private static let openDuration: TimeInterval = 0.45
+  private static let textRevealDelay: TimeInterval = 0.25
+  private static let textRevealDuration: TimeInterval = 0.25
+  private static let textBlurPadding: CGFloat = 12
+  /// Blur radii in points, from the blurriest to the sharp text.
+  private static let textBlurRadii: [CGFloat] = [10, 6, 3, 1.5, 0]
 
   private static weak var current: ToastView?
   static var isVisible: Bool { current != nil }
 
+  private let textStack = UIStackView()
   private let titleLabel = UILabel()
   private let subtitleLabel = UILabel()
   private var onTap: (() -> Void)?
@@ -75,15 +84,17 @@ final class ToastView: UIView {
       label.lineBreakMode = .byTruncatingTail
     }
 
-    let stack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
-    stack.axis = .vertical
-    stack.alignment = .fill
-    stack.translatesAutoresizingMaskIntoConstraints = false
-    addSubview(stack)
+    for label in [titleLabel, subtitleLabel] {
+      textStack.addArrangedSubview(label)
+    }
+    textStack.axis = .vertical
+    textStack.alignment = .fill
+    textStack.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(textStack)
     NSLayoutConstraint.activate([
-      stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-      stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-      stack.centerYAnchor.constraint(equalTo: centerYAnchor),
+      textStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+      textStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+      textStack.centerYAnchor.constraint(equalTo: centerYAnchor),
     ])
 
     addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTap)))
@@ -120,22 +131,84 @@ final class ToastView: UIView {
     window.layoutIfNeeded()
 
     alpha = 0
-    transform = CGAffineTransform(scaleX: 0.7, y: 0.7)
+    transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
+    let textReveal = prepareTextReveal()
     UIView.animate(
-      withDuration: 0.2,
+      withDuration: Self.openDuration,
       delay: 0,
-      usingSpringWithDamping: 0.75,
-      initialSpringVelocity: 0.5,
+      usingSpringWithDamping: 0.6,
+      initialSpringVelocity: 0.8,
       options: [.allowUserInteraction]
     ) {
       self.alpha = 1
       self.transform = .identity
     }
+    textReveal?()
 
     dismissTask = Task { [weak self] in
       try? await Task.sleep(for: Self.displayDuration)
       guard !Task.isCancelled else { return }
       self?.dismiss()
+    }
+  }
+
+  /// Hides the text and returns a closure that reveals it from blurred to sharp.
+  private func prepareTextReveal() -> (() -> Void)? {
+    let padding = Self.textBlurPadding
+    let size = CGSize(
+      width: textStack.bounds.width + 2 * padding,
+      height: textStack.bounds.height + 2 * padding
+    )
+    // the stack is rendered on its own, so the transparent toast does not affect the image
+    let image = UIGraphicsImageRenderer(size: size).image { context in
+      context.cgContext.translateBy(x: padding, y: padding)
+      textStack.layer.render(in: context.cgContext)
+    }
+    guard let sharp = image.cgImage else { return nil }
+    let source = CIImage(cgImage: sharp)
+    let ciContext = CIContext()
+    let frames = Self.textBlurRadii.compactMap { radius -> CGImage? in
+      guard radius > 0 else { return sharp }
+      return ciContext.createCGImage(
+        source.clampedToExtent()
+          .applyingGaussianBlur(sigma: Double(radius * image.scale))
+          .cropped(to: source.extent),
+        from: source.extent
+      )
+    }
+    guard let first = frames.first else { return nil }
+
+    let blurredText = UIView(frame: textStack.frame.insetBy(dx: -padding, dy: -padding))
+    blurredText.isUserInteractionEnabled = false
+    blurredText.layer.contentsScale = image.scale
+    blurredText.layer.contents = first
+    blurredText.alpha = 0
+    addSubview(blurredText)
+    textStack.alpha = 0
+
+    return { [weak self, weak blurredText] in
+      guard let blurredText else { return }
+      let animation = CAKeyframeAnimation(keyPath: "contents")
+      animation.values = frames
+      animation.calculationMode = .discrete
+      animation.duration = Self.textRevealDuration
+      animation.beginTime = CACurrentMediaTime() + Self.textRevealDelay
+      animation.fillMode = .backwards
+      CATransaction.begin()
+      CATransaction.setCompletionBlock {
+        self?.textStack.alpha = 1
+        blurredText.removeFromSuperview()
+      }
+      blurredText.layer.contents = frames.last
+      blurredText.layer.add(animation, forKey: "unblur")
+      CATransaction.commit()
+      UIView.animate(
+        withDuration: Self.textRevealDuration,
+        delay: Self.textRevealDelay,
+        options: [.curveEaseOut]
+      ) {
+        blurredText.alpha = 1
+      }
     }
   }
 
