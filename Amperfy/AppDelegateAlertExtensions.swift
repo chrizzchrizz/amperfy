@@ -136,41 +136,34 @@ extension AppDelegate: AlertDisplayable {
     }
   }
 
-  /// The toast floats above the mini player if it is shown, otherwise above the tab bar or the
-  /// bottom safe area. With a split view it is centered on the content column next to the sidebar.
+  /// The toast floats above the mini player and is centered on it. Without a mini player it sits
+  /// above the tab bar or the bottom safe area, centered on the content column of a split view.
   private static func toastPlacement(in window: UIWindow, host: UIViewController) -> ToastPlacement {
-    ToastPlacement(
-      centerX: toastCenterX(in: window, host: host),
-      bottomEdge: toastBottomEdge(in: window, host: host)
-    )
-  }
-
-  private static func toastCenterX(in window: UIWindow, host: UIViewController) -> CGFloat {
-    guard let contentView = (host as? SplitVC)?.viewController(for: .secondary)?.view,
-          contentView.window === window else { return window.bounds.midX }
-    let frame = contentView.convert(contentView.bounds, to: window)
-    return frame.isEmpty ? window.bounds.midX : frame.midX
-  }
-
-  private static func toastBottomEdge(in window: UIWindow, host: UIViewController) -> CGFloat {
-    let safeBottom = window.bounds.maxY - window.safeAreaInsets.bottom
     // frames in the upper half belong to a top tab bar (iPad), not to a bottom bar
-    func lowerEdge(of view: UIView) -> CGFloat? {
+    func bottomFrame(of view: UIView) -> CGRect? {
       guard view.window === window, !view.isHidden, view.alpha > 0.01 else { return nil }
       let frame = view.convert(view.bounds, to: window)
-      guard !frame.isEmpty, frame.minY > window.bounds.midY else { return nil }
-      return frame.minY
+      return !frame.isEmpty && frame.minY > window.bounds.midY ? frame : nil
     }
 
     let miniPlayer = (host as? TabBarVC)?.miniPlayer ?? (host as? SplitVC)?.miniPlayer
-    if let miniPlayer, miniPlayer.isPlayableLoaded,
-       let edge = lowerEdge(of: miniPlayer.glassContainer) {
-      return edge
+    let miniPlayerFrame = miniPlayer.flatMap {
+      $0.isPlayableLoaded ? bottomFrame(of: $0.glassContainer) : nil
     }
-    if let tabBar = (host as? TabBarVC)?.tabBar, let edge = lowerEdge(of: tabBar) {
-      return edge
+    let tabBarFrame = (host as? TabBarVC).flatMap { bottomFrame(of: $0.tabBar) }
+
+    let contentView = (host as? SplitVC)?.viewController(for: .secondary)?.view
+    let contentFrame = contentView.flatMap { view -> CGRect? in
+      guard view.window === window else { return nil }
+      let frame = view.convert(view.bounds, to: window)
+      return frame.isEmpty ? nil : frame
     }
-    return safeBottom
+
+    return ToastPlacement(
+      centerX: miniPlayerFrame?.midX ?? contentFrame?.midX ?? window.bounds.midX,
+      bottomEdge: (miniPlayerFrame ?? tabBarFrame)?.minY
+        ?? window.bounds.maxY - window.safeAreaInsets.bottom
+    )
   }
 
   func display(popup popupVC: UIViewController) {
