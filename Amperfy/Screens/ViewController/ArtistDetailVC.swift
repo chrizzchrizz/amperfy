@@ -1228,7 +1228,11 @@ private final class ArtistBackdropView: UIView {
   override func layoutSubviews() {
     super.layoutSubviews()
     imageView.frame = bounds
+    // a mask layer animates its frame implicitly, i.e. grows from the top left corner
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
     fadeMask.frame = bounds
+    CATransaction.commit()
   }
 
   /// Path of the image that is currently shown, so a failed load is tried again.
