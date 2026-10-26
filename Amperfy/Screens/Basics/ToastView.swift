@@ -29,7 +29,8 @@ import UIKit
 final class ToastView: UIView {
   static let maxWidth: CGFloat = 200
   static let height: CGFloat = 50
-  static let topSpacing: CGFloat = 8
+  /// Vertical center of the standard navigation bar content below the top safe area.
+  static let navigationBarCenterOffset: CGFloat = 22
   static let displayDuration: Duration = .seconds(3)
 
   private static weak var current: ToastView?
@@ -108,9 +109,9 @@ final class ToastView: UIView {
     widthFill.priority = .defaultHigh
     NSLayoutConstraint.activate([
       centerXAnchor.constraint(equalTo: window.centerXAnchor),
-      topAnchor.constraint(
+      centerYAnchor.constraint(
         equalTo: window.safeAreaLayoutGuide.topAnchor,
-        constant: Self.topSpacing
+        constant: Self.navigationBarCenterOffset
       ),
       heightAnchor.constraint(equalToConstant: Self.height),
       widthAnchor.constraint(lessThanOrEqualToConstant: Self.maxWidth),
