@@ -47,6 +47,7 @@ class PlaylistEditVC: SingleSnapshotFetchedResultsTableViewController<PlaylistIt
 
   private var selectedItems = [PlaylistItem]()
   private var editMode = PlaylistEditMode.reorder
+  private lazy var coverPicker = CoverImagePicker(presenter: self)
 
   init(account: Account, playlist: Playlist) {
     self.playlist = playlist
@@ -116,6 +117,7 @@ class PlaylistEditVC: SingleSnapshotFetchedResultsTableViewController<PlaylistIt
     tableView.dropDelegate = self
     tableView.dragInteractionEnabled = true
     detailOperationsView?.startEditing()
+    enableCoverEditingIfSupported()
 
     navigationController?.setToolbarHidden(false, animated: false)
     let flexible = UIBarButtonItem(
@@ -145,6 +147,68 @@ class PlaylistEditVC: SingleSnapshotFetchedResultsTableViewController<PlaylistIt
 
     changeEditMode(.reorder)
     refreshBarButtons()
+  }
+
+  private func enableCoverEditingIfSupported() {
+    guard appDelegate.storage.settings.user.isOnlineMode, !playlist.isSmartPlaylist else { return }
+    Task { @MainActor in
+      let librarySyncer = self.appDelegate.getMeta(self.account.info).librarySyncer
+      guard await librarySyncer.isPlaylistCoverUploadSupported() else { return }
+      self.detailOperationsView?.onCoverEditTap = { [weak self] sourceView in
+        self?.presentCoverSourceSelection(sourceView: sourceView)
+      }
+    }
+  }
+
+  private func presentCoverSourceSelection(sourceView: UIView) {
+    let alert = UIAlertController(title: "Cover", message: nil, preferredStyle: .actionSheet)
+    alert.addAction(UIAlertAction(title: "Photo Library", style: .default) { [weak self] _ in
+      self?.coverPicker.pickFromPhotoLibrary { self?.uploadCover($0) }
+    })
+    alert.addAction(UIAlertAction(title: "Files", style: .default) { [weak self] _ in
+      self?.coverPicker.pickFromFiles { self?.uploadCover($0) }
+    })
+    alert.addAction(UIAlertAction(title: "Remove Cover", style: .destructive) { [weak self] _ in
+      self?.removeCover()
+    })
+    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+    alert.popoverPresentationController?.sourceView = sourceView
+    alert.popoverPresentationController?.sourceRect = sourceView.bounds
+    present(alert, animated: true)
+  }
+
+  private func uploadCover(_ image: UIImage) {
+    guard let jpegData = image.jpegData(compressionQuality: 0.9) else { return }
+    performCoverChange(topic: "Playlist Upload Cover") { librarySyncer, playlist in
+      try await librarySyncer.syncUpload(playlist: playlist, coverJpegData: jpegData)
+    }
+  }
+
+  private func removeCover() {
+    performCoverChange(topic: "Playlist Remove Cover") { librarySyncer, playlist in
+      try await librarySyncer.syncUpload(playlistToRemoveCover: playlist)
+    }
+  }
+
+  private func performCoverChange(
+    topic: String,
+    change: @escaping @MainActor (LibrarySyncer, Playlist) async throws -> ()
+  ) {
+    detailOperationsView?.isUserInteractionEnabled = false
+    Task { @MainActor in
+      defer {
+        self.detailOperationsView?.isUserInteractionEnabled = true
+        self.detailOperationsView?.refresh()
+      }
+      do {
+        try await change(
+          self.appDelegate.getMeta(self.account.info).librarySyncer,
+          self.playlist
+        )
+      } catch {
+        self.appDelegate.eventLogger.report(topic: topic, error: error)
+      }
+    }
   }
 
   func changeEditMode(_ newMode: PlaylistEditMode) {

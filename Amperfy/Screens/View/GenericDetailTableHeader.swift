@@ -212,6 +212,7 @@ class GenericDetailTableHeader: UIView {
       nameTextField.isHidden = true
     }
 
+    updateCoverEditOverlay()
     playShuffleInfoView?.refresh()
   }
 
@@ -319,6 +320,36 @@ class GenericDetailTableHeader: UIView {
     frame = CGRect(x: 0, y: 0, width: rootView.view.bounds.size.width, height: height)
   }
 
+  /// Set by the owner if the cover can be changed, the cover is a button while editing.
+  var onCoverEditTap: ((_ sourceView: UIView) -> ())? {
+    didSet { updateCoverEditOverlay() }
+  }
+
+  private var coverEditOverlay: CoverEditOverlayView?
+
+  private func updateCoverEditOverlay() {
+    guard isEditing, onCoverEditTap != nil, let container = entityImage.superview else {
+      coverEditOverlay?.removeFromSuperview()
+      coverEditOverlay = nil
+      return
+    }
+    guard coverEditOverlay == nil else { return }
+    let overlay = CoverEditOverlayView()
+    overlay.cornerRadiusProvider = { [weak self] in self?.entityImage.layer.cornerRadius ?? 0 }
+    overlay.addAction(UIAction { [weak self, weak overlay] _ in
+      guard let overlay else { return }
+      self?.onCoverEditTap?(overlay)
+    }, for: .touchUpInside)
+    container.addSubview(overlay)
+    NSLayoutConstraint.activate([
+      overlay.leadingAnchor.constraint(equalTo: entityImage.leadingAnchor),
+      overlay.trailingAnchor.constraint(equalTo: entityImage.trailingAnchor),
+      overlay.topAnchor.constraint(equalTo: entityImage.topAnchor),
+      overlay.bottomAnchor.constraint(equalTo: entityImage.bottomAnchor),
+    ])
+    coverEditOverlay = overlay
+  }
+
   func startEditing() {
     isEditing = true
     refresh()
@@ -395,5 +426,70 @@ private final class CoverShadowView: UIView {
     fade.fillMode = .backwards
     layer.shadowOpacity = Self.shadowOpacity
     layer.add(fade, forKey: "fadeIn")
+  }
+}
+
+// MARK: - CoverEditOverlayView
+
+/// Whole cover as a button, marked with a photo symbol in a white circle.
+private class CoverEditOverlayView: UIControl {
+  /// Relative to the cover size.
+  private static let circleRelativeSize: CGFloat = 0.36
+  private static let symbolRelativeSize: CGFloat = 0.45
+
+  var cornerRadiusProvider: (() -> CGFloat)?
+
+  private let circleView = UIView()
+  private let symbolView = UIImageView()
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    translatesAutoresizingMaskIntoConstraints = false
+    clipsToBounds = true
+    isAccessibilityElement = true
+    accessibilityLabel = "Change Cover"
+    accessibilityTraits = .button
+
+    circleView.isUserInteractionEnabled = false
+    circleView.backgroundColor = .white
+    circleView.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(circleView)
+
+    symbolView.image = UIImage.photo
+    symbolView.tintColor = .black
+    symbolView.contentMode = .scaleAspectFit
+    symbolView.translatesAutoresizingMaskIntoConstraints = false
+    circleView.addSubview(symbolView)
+
+    NSLayoutConstraint.activate([
+      circleView.centerXAnchor.constraint(equalTo: centerXAnchor),
+      circleView.centerYAnchor.constraint(equalTo: centerYAnchor),
+      circleView.widthAnchor.constraint(
+        equalTo: widthAnchor,
+        multiplier: Self.circleRelativeSize
+      ),
+      circleView.heightAnchor.constraint(equalTo: circleView.widthAnchor),
+      symbolView.centerXAnchor.constraint(equalTo: circleView.centerXAnchor),
+      symbolView.centerYAnchor.constraint(equalTo: circleView.centerYAnchor),
+      symbolView.widthAnchor.constraint(
+        equalTo: circleView.widthAnchor,
+        multiplier: Self.symbolRelativeSize
+      ),
+      symbolView.heightAnchor.constraint(equalTo: symbolView.widthAnchor),
+    ])
+  }
+
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    layer.cornerRadius = cornerRadiusProvider?() ?? 0
+    circleView.layer.cornerRadius = circleView.bounds.width / 2
+  }
+
+  override var isHighlighted: Bool {
+    didSet { alpha = isHighlighted ? 0.7 : 1 }
   }
 }
