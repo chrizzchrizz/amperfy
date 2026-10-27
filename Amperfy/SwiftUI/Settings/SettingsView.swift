@@ -55,15 +55,6 @@ struct SettingsView: View {
   var body: some View {
     let list =
       SettingsList {
-        SettingsSection {
-          SettingsRow(title: "Version") {
-            SecondaryText(AppDelegate.version)
-          }
-          SettingsRow(title: "Build Number") {
-            SecondaryText(AppDelegate.buildNumber)
-          }
-        }
-
         SettingsSection(
           content: {
             SettingsCheckBoxRow(title: "Offline Mode", isOn: $settings.isOfflineMode)
@@ -108,6 +99,12 @@ struct SettingsView: View {
             navigationLink(.xcallback)
           }
         #endif
+
+        SettingsSection(
+          content: { EmptyView() },
+          footer: "Version \(AppDelegate.version) – Build Number \(AppDelegate.buildNumber)"
+        )
+        .listSectionSpacing(.custom(10))
       }
 
     #if targetEnvironment(macCatalyst) // ok
