@@ -59,6 +59,7 @@ class LibraryVC: KeyCommandCollectionViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     navigationController?.navigationBar.prefersLargeTitles = true
+    collectionView.topEdgeEffect.style = .soft
     libraryItemConfigurator.viewDidLoad(
       navigationItem: navigationItem,
       collectionView: collectionView

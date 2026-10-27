@@ -67,6 +67,7 @@ final class HomeVC: UICollectionViewController {
     super.viewDidLoad()
     // ensures that the collection view stops placing items under the sidebar
     collectionView.contentInsetAdjustmentBehavior = .scrollableAxes
+    collectionView.topEdgeEffect.style = .soft
     title = "Home"
 
     accountNotificationHandler = AccountNotificationHandler(
