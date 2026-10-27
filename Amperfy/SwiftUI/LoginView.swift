@@ -90,8 +90,8 @@ struct LoginView: View {
   #endif
   private static let titleFont = Font.title
   private static let fieldFont = Font.body
-  private static let secondaryButtonFont = Font.title3
-  private static let loginButtonFont = Font.title3
+  private static let secondaryButtonFont = Font.body
+  private static let loginButtonFont = Font.headline
   private static let apiTypes: [BackenApiType] = [
     .notDetected,
     .ampache,
@@ -183,7 +183,7 @@ struct LoginView: View {
         .frame(width: 107, height: 92)
         .foregroundStyle(themeColor)
         .accessibilityHidden(true)
-      Text("Connect with your Library")
+      Text("Connect with your library")
         .font(Self.titleFont)
         .fontWeight(.semibold)
         .multilineTextAlignment(.center)
@@ -260,7 +260,7 @@ struct LoginView: View {
         .padding(.trailing, 16)
     }
     .font(Self.fieldFont)
-    .frame(height: Self.fieldHeight)
+    .frame(minHeight: Self.fieldHeight)
   }
 
   private var usernameField: some View {
@@ -273,7 +273,7 @@ struct LoginView: View {
       .onSubmit { focusedField = .password }
       .font(Self.fieldFont)
       .padding(.horizontal, 16)
-      .frame(height: Self.fieldHeight)
+      .frame(minHeight: Self.fieldHeight)
   }
 
   private var passwordField: some View {
@@ -286,7 +286,7 @@ struct LoginView: View {
       .onSubmit(login)
       .font(Self.fieldFont)
       .padding(.horizontal, 16)
-      .frame(height: Self.fieldHeight)
+      .frame(minHeight: Self.fieldHeight)
   }
 
   private var apiTypePicker: some View {
@@ -309,7 +309,7 @@ struct LoginView: View {
       }
       .font(Self.fieldFont)
       .padding(.horizontal, 16)
-      .frame(height: Self.fieldHeight)
+      .frame(minHeight: Self.fieldHeight)
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -325,7 +325,7 @@ struct LoginView: View {
         .font(Self.secondaryButtonFont)
         .foregroundStyle(.primary)
         .frame(maxWidth: .infinity)
-        .frame(height: Self.fieldHeight)
+        .frame(minHeight: Self.fieldHeight)
         .background(Color("LoginFieldBackground"), in: Capsule())
         .contentShape(Capsule())
     }
@@ -345,7 +345,7 @@ struct LoginView: View {
       .font(Self.loginButtonFont)
       .foregroundStyle(Color(uiColor: theme.contrastColor))
       .frame(maxWidth: .infinity)
-      .frame(height: Self.fieldHeight)
+      .frame(minHeight: Self.fieldHeight)
       .background(themeColor, in: Capsule())
       .contentShape(Capsule())
     }
