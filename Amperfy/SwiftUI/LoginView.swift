@@ -88,10 +88,10 @@ struct LoginView: View {
     private static let fieldHeight: CGFloat = 48
     private static let formAlignment = UnitPoint.top
   #endif
-  private static let titleFont = Font.title2
+  private static let titleFont = Font.title
   private static let fieldFont = Font.body
-  private static let secondaryButtonFont = Font.body
-  private static let loginButtonFont = Font.title3.weight(.semibold)
+  private static let secondaryButtonFont = Font.title3
+  private static let loginButtonFont = Font.title3
   private static let apiTypes: [BackenApiType] = [
     .notDetected,
     .ampache,
@@ -323,7 +323,6 @@ struct LoginView: View {
     } label: {
       Text("Custom HTTP Headers")
         .font(Self.secondaryButtonFont)
-        .fontWeight(.semibold)
         .foregroundStyle(.primary)
         .frame(maxWidth: .infinity)
         .frame(height: Self.fieldHeight)
