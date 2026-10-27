@@ -490,6 +490,50 @@ public struct AmperfySettings: Sendable, Codable {
     return e
   }()
 
+  /// Decodes stored settings. Settings stored by an older version lack the keys of settings added
+  /// since, so those are filled in from `defaults` instead of discarding all stored values.
+  static func decode<T: Codable>(
+    _ type: T.Type,
+    from data: Data,
+    defaults: T,
+    storeMergedForKey key: String? = nil
+  ) throws
+    -> T {
+    do {
+      return try decoder.decode(type, from: data)
+    } catch DecodingError.keyNotFound {
+      guard let defaultsObject = try JSONSerialization
+        .jsonObject(with: encoder.encode(defaults)) as? [String: Any],
+        let storedObject = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+      else { throw DecodingError.dataCorrupted(.init(
+        codingPath: [],
+        debugDescription: "Settings are not a JSON object"
+      )) }
+      let mergedData = try JSONSerialization.data(
+        withJSONObject: merge(stored: storedObject, into: defaultsObject)
+      )
+      let settings = try decoder.decode(type, from: mergedData)
+      if let key {
+        UserDefaults.standard.set(mergedData, forKey: key)
+      }
+      return settings
+    }
+  }
+
+  private static func merge(
+    stored: [String: Any],
+    into defaults: [String: Any]
+  )
+    -> [String: Any] {
+    defaults.merging(stored) { defaultValue, storedValue in
+      if let defaultObject = defaultValue as? [String: Any],
+         let storedObject = storedValue as? [String: Any] {
+        return merge(stored: storedObject, into: defaultObject)
+      }
+      return storedValue
+    }
+  }
+
   private var _appSettings: AppSettings = .init()
   public var app: AppSettings {
     get {
@@ -497,7 +541,12 @@ public struct AmperfySettings: Sendable, Codable {
         .data(forKey: PersistentStorage.UserDefaultsKey.SettingsApp.rawValue)
       else { return _appSettings }
       do {
-        return try Self.decoder.decode(AppSettings.self, from: data)
+        return try Self.decode(
+          AppSettings.self,
+          from: data,
+          defaults: _appSettings,
+          storeMergedForKey: PersistentStorage.UserDefaultsKey.SettingsApp.rawValue
+        )
       } catch {
         return _appSettings
       }
@@ -521,7 +570,12 @@ public struct AmperfySettings: Sendable, Codable {
         .data(forKey: PersistentStorage.UserDefaultsKey.SettingsUser.rawValue)
       else { return _userSettings }
       do {
-        return try Self.decoder.decode(UserSettings.self, from: data)
+        return try Self.decode(
+          UserSettings.self,
+          from: data,
+          defaults: _userSettings,
+          storeMergedForKey: PersistentStorage.UserDefaultsKey.SettingsUser.rawValue
+        )
       } catch {
         return _userSettings
       }
@@ -545,7 +599,12 @@ public struct AmperfySettings: Sendable, Codable {
         .data(forKey: PersistentStorage.UserDefaultsKey.SettingsAccount.rawValue)
       else { return _accountSettings }
       do {
-        return try Self.decoder.decode(AccountSettings.self, from: data)
+        return try Self.decode(
+          AccountSettings.self,
+          from: data,
+          defaults: _accountSettings,
+          storeMergedForKey: PersistentStorage.UserDefaultsKey.SettingsAccount.rawValue
+        )
       } catch {
         return _accountSettings
       }

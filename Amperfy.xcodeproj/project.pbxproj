@@ -532,6 +532,7 @@
 		7A1E0C0D2F0000000000A002 /* GenreGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1E0C0D2F0000000000A001 /* GenreGroup.swift */; };
 		A1B2C3D4E5F60718293A4B5D /* ArtworkBackgroundController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ArtworkBackgroundController.swift */; };
 		A1F0C0DE2A00000000000001 /* OfflineModeNotificationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F0C0DE2A00000000000002 /* OfflineModeNotificationTest.swift */; };
+		A1F0C0DE2A00000000000011 /* SettingsDecodingTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F0C0DE2A00000000000012 /* SettingsDecodingTest.swift */; };
 		A7C3D1E22F00000100A0B0C1 /* TranscodingFormatTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7C3D1E22F00000200A0B0C1 /* TranscodingFormatTest.swift */; };
 		A7C3D1E22F00000300A0B0C1 /* LibraryDisplaySettingsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7C3D1E22F00000400A0B0C1 /* LibraryDisplaySettingsTest.swift */; };
 		B5A5CE010000000000000001 /* ShareSongActionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A5CE010000000000000002 /* ShareSongActionTest.swift */; };
@@ -1160,6 +1161,7 @@
 		7A1E0C0D2F0000000000A001 /* GenreGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenreGroup.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B5C /* ArtworkBackgroundController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkBackgroundController.swift; sourceTree = "<group>"; };
 		A1F0C0DE2A00000000000002 /* OfflineModeNotificationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineModeNotificationTest.swift; sourceTree = "<group>"; };
+		A1F0C0DE2A00000000000012 /* SettingsDecodingTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsDecodingTest.swift; sourceTree = "<group>"; };
 		A7C3D1E22F00000200A0B0C1 /* TranscodingFormatTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscodingFormatTest.swift; sourceTree = "<group>"; };
 		A7C3D1E22F00000400A0B0C1 /* LibraryDisplaySettingsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryDisplaySettingsTest.swift; sourceTree = "<group>"; };
 		B5A5CE010000000000000002 /* ShareSongActionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSongActionTest.swift; sourceTree = "<group>"; };
@@ -1584,6 +1586,7 @@
 				A7C3D1E22F00000400A0B0C1 /* LibraryDisplaySettingsTest.swift */,
 				5090963726496A9500DD9826 /* UtilitiesTest.swift */,
 				A1F0C0DE2A00000000000002 /* OfflineModeNotificationTest.swift */,
+				A1F0C0DE2A00000000000012 /* SettingsDecodingTest.swift */,
 				B5A5CE010000000000000002 /* ShareSongActionTest.swift */,
 				B5A5CE010000000000000004 /* EventLoggerTest.swift */,
 			);
@@ -2864,6 +2867,7 @@
 				A7C3D1E22F00000300A0B0C1 /* LibraryDisplaySettingsTest.swift in Sources */,
 				50BE5D552850F4E700156FC6 /* UtilitiesTest.swift in Sources */,
 				A1F0C0DE2A00000000000001 /* OfflineModeNotificationTest.swift in Sources */,
+				A1F0C0DE2A00000000000011 /* SettingsDecodingTest.swift in Sources */,
 				B5A5CE010000000000000001 /* ShareSongActionTest.swift in Sources */,
 				B5A5CE010000000000000003 /* EventLoggerTest.swift in Sources */,
 				50BE5D6A2850F4FB00156FC6 /* SsAlbumParserTest.swift in Sources */,
