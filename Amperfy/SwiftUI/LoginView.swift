@@ -335,7 +335,7 @@ struct LoginView: View {
   private var loginButton: some View {
     Button(action: login) {
       ZStack {
-        Text("Login")
+        Text("Log In")
           .opacity(model.isLoggingIn ? 0 : 1)
         if model.isLoggingIn {
           ProgressView()
@@ -345,11 +345,11 @@ struct LoginView: View {
       .font(Self.loginButtonFont)
       .foregroundStyle(Color(uiColor: theme.contrastColor))
       .frame(maxWidth: .infinity)
-      .frame(minHeight: Self.fieldHeight)
-      .background(themeColor, in: Capsule())
-      .contentShape(Capsule())
     }
-    .buttonStyle(.plain)
+    .buttonStyle(.borderedProminent)
+    .buttonBorderShape(.capsule)
+    .controlSize(.large)
+    .tint(themeColor)
     .disabled(model.isLoggingIn)
     .keyboardShortcut(.defaultAction)
   }
