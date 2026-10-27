@@ -268,11 +268,9 @@ class PlayerUIHandler: NSObject {
       let isSelected = isSelected && !isLyricsShown
       var config = UIButton.Configuration.player(isSelected: isSelected)
       config.image = .playlistDisplayStyle
-      #if !targetEnvironment(macCatalyst)
-        if isSelected, let selectedForegroundColor {
-          config.baseForegroundColor = selectedForegroundColor
-        }
-      #endif
+      if isSelected, let selectedForegroundColor {
+        config.baseForegroundColor = selectedForegroundColor
+      }
       displayPlaylistButton.isSelected = isSelected
       displayPlaylistButton.configuration = config
     }
@@ -296,11 +294,9 @@ class PlayerUIHandler: NSObject {
       let isEnabled = hasLyrics || isLyricsShown
       var config = UIButton.Configuration.player(isSelected: isLyricsShown)
       config.image = isLyricsShown ? .lyricsFilled : .lyrics
-      #if !targetEnvironment(macCatalyst)
-        if isLyricsShown, let selectedForegroundColor {
-          config.baseForegroundColor = selectedForegroundColor
-        }
-      #endif
+      if isLyricsShown, let selectedForegroundColor {
+        config.baseForegroundColor = selectedForegroundColor
+      }
       if !isEnabled {
         config.baseForegroundColor = UIColor.label.withAlphaComponent(0.3)
         // the tinted style would otherwise draw its own gray fill for the disabled state
