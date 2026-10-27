@@ -58,24 +58,25 @@ class CommonScreenOperations {
 // MARK: - UIViewController
 
 extension UIViewController {
-  private func openSettings() {
-    #if targetEnvironment(macCatalyst)
-      appDelegate.showSettings(sender: "")
-    #else
+  #if !targetEnvironment(macCatalyst)
+    private func openSettings() {
       let nav = AppStoryboard.Main.segueToSettings()
       nav.modalPresentationStyle = .formSheet
       nav.sheetPresentationController?.prefersGrabberVisible = true
       present(nav, animated: true)
-    #endif
-  }
+    }
+  #endif
 
   public func setupUserNavButton() {
-    navigationItem.leftBarButtonItem = UIBarButtonItem(
-      image: .settingsFilled,
-      primaryAction: UIAction { [weak self] _ in
-        self?.openSettings()
-      }
-    )
+    // on Mac the settings are reachable via the main menu
+    #if !targetEnvironment(macCatalyst)
+      navigationItem.leftBarButtonItem = UIBarButtonItem(
+        image: .settingsFilled,
+        primaryAction: UIAction { [weak self] _ in
+          self?.openSettings()
+        }
+      )
+    #endif
     refreshOfflineBarButton()
   }
 
