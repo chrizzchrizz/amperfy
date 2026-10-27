@@ -636,10 +636,10 @@ class ArtistDetailVC: MultiSourceTableViewController {
     } else {
       if isStructuralChange {
         gridVC.reload()
+        tableView.performBatchUpdates(nil)
       } else {
         gridVC.reconfigure()
       }
-      tableView.performBatchUpdates(nil)
     }
   }
 
@@ -658,6 +658,12 @@ protocol ArtistGridReloadable: AnyObject {
   func reload()
   /// Refreshes the shown items without recreating them.
   func reconfigure()
+}
+
+extension ArtistGridReloadable {
+  func reconfigure() {
+    reload()
+  }
 }
 
 // MARK: - ArtistGridCell
@@ -921,10 +927,6 @@ final class ArtistTopSongsGridVC: UICollectionViewController, UICollectionViewDe
 
   func reload() {
     collectionView.reloadData()
-  }
-
-  func reconfigure() {
-    reload()
   }
 
   private var columnCount: Int {
