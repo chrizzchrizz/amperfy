@@ -46,6 +46,47 @@ struct SettingsView: View {
     appDelegate.configureLockScreenPrevention()
   }
 
+  func addAccountPressed() {
+    let loginVC = AppStoryboard.Main.segueToLogin()
+    loginVC.modalPresentationStyle = .formSheet
+    // present from the window the user is working in (Settings is its own window on Mac)
+    let keyWindow = UIApplication.shared.connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .flatMap(\.windows)
+      .first { $0.isKeyWindow }
+    AppDelegate.topViewController(base: keyWindow?.rootViewController)?
+      .present(loginVC, animated: true)
+  }
+
+  func accountRow(_ accountInfo: AccountInfo) -> some View {
+    let accounts = appDelegate.storage.settings.accounts
+    let credentials = accounts.getSetting(accountInfo).read.loginCredentials
+    let isActive = (accountInfo == settings.activeAccountInfo)
+    return Button {
+      guard !isActive else { return }
+      appDelegate.switchAccount(accountInfo: accountInfo)
+    } label: {
+      HStack {
+        Label {
+          VStack(alignment: .leading) {
+            Text(credentials?.username ?? "Unknown")
+            if let url = credentials?.displayServerUrl {
+              SecondaryText(url)
+            }
+          }
+        } icon: {
+          Image(systemName: "person.crop.circle")
+        }
+        Spacer()
+        if isActive {
+          Image(systemName: "checkmark")
+        }
+      }
+    }
+    .buttonStyle(.plain)
+    .contentShape(Rectangle())
+  }
+
   func navigationLink(_ item: NavigationTarget) -> some View {
     NavigationLink(value: item) {
       Text(item.displayName)
@@ -55,6 +96,15 @@ struct SettingsView: View {
   var body: some View {
     let list =
       SettingsList {
+        SettingsSection {
+          ForEach(settings.accounts, id: \.self) { accountInfo in
+            accountRow(accountInfo)
+          }
+          Button(action: addAccountPressed) {
+            Label("Add Account", systemImage: "person.crop.circle.fill.badge.plus")
+          }
+        }
+
         SettingsSection(
           content: {
             SettingsCheckBoxRow(title: "Offline Mode", isOn: $settings.isOfflineMode)
