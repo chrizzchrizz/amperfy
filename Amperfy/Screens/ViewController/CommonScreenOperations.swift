@@ -58,75 +58,23 @@ class CommonScreenOperations {
 // MARK: - UIViewController
 
 extension UIViewController {
-  private func createUserButtonMenu() -> UIMenu {
-    var accountActions = [UIMenuElement]()
-    for accountInfo in appDelegate.storage.settings.accounts.allAccounts {
-      let isActiveAccount = (accountInfo == appDelegate.storage.settings.accounts.active)
-      let action = UIAction(
-        title: appDelegate.storage.settings.accounts.getSetting(accountInfo).read
-          .loginCredentials?
-          .username ?? "Unknown",
-        subtitle: appDelegate.storage.settings.accounts.getSetting(accountInfo).read
-          .loginCredentials?
-          .displayServerUrl ?? "",
-        image: .userCircle(withConfiguration: UIImage.SymbolConfiguration(
-          pointSize: 30,
-          weight: .regular
-        )),
-        attributes: isActiveAccount ? [UIMenuElement.Attributes.disabled] : [],
-        state: isActiveAccount ? .on : .off,
-        handler: { [weak self] _ in
-          guard let self else { return }
-          appDelegate.switchAccount(accountInfo: accountInfo)
-        }
-      )
-      accountActions.append(action)
-    }
-
+  private func openSettings() {
     #if targetEnvironment(macCatalyst)
-      let addAccountImage = UIImage.plus
+      appDelegate.showSettings(sender: "")
     #else
-      let addAccountImage = UIImage.userCirclePlus
+      let nav = AppStoryboard.Main.segueToSettings()
+      nav.modalPresentationStyle = .formSheet
+      nav.sheetPresentationController?.prefersGrabberVisible = true
+      present(nav, animated: true)
     #endif
-    let openAddAccount = UIAction(
-      title: "Add Account",
-      image: addAccountImage,
-      handler: { [weak self] _ in
-        guard let self else { return }
-        let loginVC = AppStoryboard.Main.segueToLogin()
-        loginVC.modalPresentationStyle = .formSheet
-        present(loginVC, animated: true)
-      }
-    )
-    let openSettings = UIAction(
-      title: "Settings",
-      image: .settings,
-      handler: { [weak self] _ in
-        guard let self else { return }
-        #if targetEnvironment(macCatalyst)
-          appDelegate.showSettings(sender: "")
-        #else
-          let nav = AppStoryboard.Main.segueToSettings()
-          nav.modalPresentationStyle = .formSheet
-          present(nav, animated: true)
-        #endif
-      }
-    )
-    let settingsMenu = UIMenu(options: [.displayInline], children: [openAddAccount, openSettings])
-    accountActions.append(settingsMenu)
-
-    return UIMenu(
-      title: "",
-      image: nil,
-      options: [.displayInline],
-      children: accountActions
-    )
   }
 
   public func setupUserNavButton() {
     navigationItem.leftBarButtonItem = UIBarButtonItem(
-      image: .userCircle(),
-      menu: createUserButtonMenu()
+      image: .settingsFilled,
+      primaryAction: UIAction { [weak self] _ in
+        self?.openSettings()
+      }
     )
     refreshOfflineBarButton()
   }
