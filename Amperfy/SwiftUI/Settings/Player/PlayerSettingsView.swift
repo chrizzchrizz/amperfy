@@ -119,6 +119,18 @@ struct PlayerSettingsView: View {
           footer: "Keeps track of song progress so playback continues from the previously saved position."
         )
 
+        #if !targetEnvironment(macCatalyst) // ok
+          SettingsSection(
+            content: {
+              SettingsCheckBoxRow(
+                title: "Open Player When Returning",
+                isOn: $settings.isOpenPlayerOnForeground
+              )
+            },
+            footer: "While music is playing, the player opens when you return to the app, for example from the Lock Screen."
+          )
+        #endif
+
         SettingsSection(content: {
           SettingsCheckBoxRow(title: "Manual Playback", isOn: $settings.isPlaybackStartOnlyOnPlay)
         }, footer: "Enable to start playback only when the Play button is pressed.")

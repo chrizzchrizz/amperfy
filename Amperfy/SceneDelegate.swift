@@ -220,6 +220,21 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // Use this method to undo the changes made on entering the background.
     os_log("sceneWillEnterForeground", log: self.log, type: .info)
     AmperKit.shared.threadPerformanceMonitor.isInForeground = true
+    #if !targetEnvironment(macCatalyst)
+      openPlayerIfPlaying()
+    #endif
+  }
+
+  /// Opening the app from the Lock Screen Now Playing widget is indistinguishable from any other
+  /// way of returning to the app, so the player opens whenever the app returns while playing.
+  private func openPlayerIfPlaying() {
+    guard appDelegate.isNormalInteraction,
+          appDelegate.storage.settings.user.isOpenPlayerOnForeground,
+          appDelegate.player.isPlaying,
+          let hostVC = AppDelegate.mainWindowHostVC,
+          (hostVC as? UIViewController)?.presentedViewController == nil
+    else { return }
+    hostVC.miniPlayer?.openPlayerView()
   }
 
   func sceneDidEnterBackground(_ scene: UIScene) {

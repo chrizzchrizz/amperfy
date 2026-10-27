@@ -159,6 +159,12 @@ public struct UserSettings: Sendable, Codable {
     set { _isPlayerSongPlaybackResumeEnabled = newValue }
   }
 
+  private var _isOpenPlayerOnForeground: Bool = false
+  public var isOpenPlayerOnForeground: Bool {
+    get { _isOpenPlayerOnForeground }
+    set { _isOpenPlayerOnForeground = newValue }
+  }
+
   private var _isAutoplayEnabled: Bool = false
   public var isAutoplayEnabled: Bool {
     get { _isAutoplayEnabled }

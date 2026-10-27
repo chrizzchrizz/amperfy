@@ -221,6 +221,10 @@ class SettingsHostVC: UIViewController {
     changesAgent.append(settings.$isPlayerSongPlaybackResumeEnabled.sink(receiveValue: { newValue in
       self.appDelegate.storage.settings.user.isPlayerSongPlaybackResumeEnabled = newValue
     }))
+    settings.isOpenPlayerOnForeground = appDelegate.storage.settings.user.isOpenPlayerOnForeground
+    changesAgent.append(settings.$isOpenPlayerOnForeground.sink(receiveValue: { newValue in
+      self.appDelegate.storage.settings.user.isOpenPlayerOnForeground = newValue
+    }))
 
     settings.isAutoplayEnabled = appDelegate.storage.settings.user.isAutoplayEnabled
     changesAgent.append(settings.$isAutoplayEnabled.sink(receiveValue: { newValue in
