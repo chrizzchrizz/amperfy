@@ -118,6 +118,8 @@ final class SubsonicServerApi: URLCleanser, Sendable {
   private let eventLogger: EventLogger
   private let settings: AmperfySettings
   private let credentials = Atomic<LoginCredentials?>(wrappedValue: nil)
+  /// JWT of Navidrome's native API, which is not covered by the Subsonic authentication.
+  private let nativeApiToken = Atomic<String?>(wrappedValue: nil)
   private let openSubsonicExtensionsSupport =
     Atomic<OpenSubsonicExtensionsSupport?>(wrappedValue: nil)
   init(
@@ -265,6 +267,7 @@ final class SubsonicServerApi: URLCleanser, Sendable {
 
   public func provideCredentials(credentials: LoginCredentials) {
     self.credentials.wrappedValue = credentials
+    nativeApiToken.wrappedValue = nil
   }
 
   public func cleanse(url: URL?) -> CleansedURL {
@@ -986,6 +989,112 @@ final class SubsonicServerApi: URLCleanser, Sendable {
       urlComp.addQueryItem(name: "includeNotPresent", value: "false")
       return try self.createUrl(from: urlComp)
     }
+  }
+
+  /// Name of the server software; asks the server if it isn't known yet.
+  func determineServerType() async -> String? {
+    if serverType.wrappedValue == nil, let credentials = credentials.wrappedValue {
+      try? await isAuthenticationValid(credentials: credentials)
+    }
+    return serverType.wrappedValue
+  }
+
+  // MARK: Navidrome native API
+
+  private func createNativeApiUrl(path: String) throws -> URL {
+    guard let hostname = credentials.wrappedValue?.activeBackendServerUrl,
+          var url = URL(string: hostname)
+    else { throw BackendError.invalidUrl }
+    for component in path.split(separator: "/") {
+      url.appendPathComponent(String(component))
+    }
+    return url
+  }
+
+  private func loginNativeApi() async throws -> String {
+    guard let credentials = credentials.wrappedValue else { throw BackendError.noCredentials }
+    let url = try createNativeApiUrl(path: "auth/login")
+    let response = await AF.request(
+      url,
+      method: .post,
+      parameters: ["username": credentials.username, "password": credentials.password],
+      encoder: JSONParameterEncoder.default,
+      headers: buildHTTPHeaders()
+    ).serializingData().response
+    guard let statusCode = response.response?.statusCode, statusCode == 200,
+          let data = response.data,
+          let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+          let token = json["token"] as? String
+    else {
+      throw ResponseError(
+        type: .api,
+        statusCode: response.response?.statusCode ?? 0,
+        message: response.error?.localizedDescription ?? "Login to the server's native API failed.",
+        cleansedURL: cleanse(url: url),
+        data: response.data
+      )
+    }
+    nativeApiToken.wrappedValue = token
+    return token
+  }
+
+  /// Sends the request with the native API token, logs in again if the token is missing or expired.
+  private func requestNativeApi(
+    path: String,
+    method: HTTPMethod,
+    multipartFormData: (@Sendable (MultipartFormData) -> ())? = nil
+  ) async throws {
+    let url = try createNativeApiUrl(path: path)
+    for attempt in 0 ..< 2 {
+      let token: String
+      if let cachedToken = nativeApiToken.wrappedValue {
+        token = cachedToken
+      } else {
+        token = try await loginNativeApi()
+      }
+      var headers = buildHTTPHeaders() ?? HTTPHeaders()
+      headers.add(name: "X-ND-Authorization", value: "Bearer \(token)")
+      let dataRequest: DataRequest
+      if let multipartFormData {
+        dataRequest = AF.upload(
+          multipartFormData: multipartFormData,
+          to: url,
+          method: method,
+          headers: headers
+        )
+      } else {
+        dataRequest = AF.request(url, method: method, headers: headers)
+      }
+      let response = await dataRequest.serializingData().response
+      let statusCode = response.response?.statusCode ?? 0
+      if (200 ..< 300).contains(statusCode) { return }
+      if statusCode == 401, attempt == 0 {
+        nativeApiToken.wrappedValue = nil
+        continue
+      }
+      var message = response.error?.localizedDescription ?? "Request failed."
+      if statusCode == 403 {
+        message =
+          "Not allowed. Only the owner of the playlist may change its cover and the server must allow artwork uploads."
+      }
+      throw ResponseError(
+        type: .api,
+        statusCode: statusCode,
+        message: message,
+        cleansedURL: cleanse(url: url),
+        data: response.data
+      )
+    }
+  }
+
+  func requestNavidromePlaylistCoverUpload(id: String, jpegData: Data) async throws {
+    try await requestNativeApi(path: "api/playlist/\(id)/image", method: .post) { formData in
+      formData.append(jpegData, withName: "image", fileName: "cover.jpg", mimeType: "image/jpeg")
+    }
+  }
+
+  func requestNavidromePlaylistCoverRemoval(id: String) async throws {
+    try await requestNativeApi(path: "api/playlist/\(id)/image", method: .delete)
   }
 
   private func createUrl(from urlComp: URLComponents) throws -> URL {

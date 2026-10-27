@@ -1091,6 +1091,34 @@ class SubsonicLibrarySyncer: CommonLibrarySyncer, LibrarySyncer {
   }
 
   @MainActor
+  func isPlaylistCoverUploadSupported() async -> Bool {
+    // Only Navidrome offers an upload, the Subsonic API has none.
+    await subsonicServerApi.determineServerType()?.lowercased() == "navidrome"
+  }
+
+  @MainActor
+  func syncUpload(playlist: Playlist, coverJpegData: Data) async throws {
+    guard isSyncAllowed else { return }
+    os_log("Upload cover of playlist \"%s\"", log: log, type: .info, playlist.name)
+    try await validatePlaylistId(playlist: playlist)
+    try await subsonicServerApi.requestNavidromePlaylistCoverUpload(
+      id: playlist.id,
+      jpegData: coverJpegData
+    )
+    // the cover has a new id, the playlist list provides it
+    try await syncDownPlaylistsWithoutSongs()
+  }
+
+  @MainActor
+  func syncUpload(playlistToRemoveCover playlist: Playlist) async throws {
+    guard isSyncAllowed else { return }
+    os_log("Remove cover of playlist \"%s\"", log: log, type: .info, playlist.name)
+    try await validatePlaylistId(playlist: playlist)
+    try await subsonicServerApi.requestNavidromePlaylistCoverRemoval(id: playlist.id)
+    try await syncDownPlaylistsWithoutSongs()
+  }
+
+  @MainActor
   func syncUpload(playlistToAddSongs playlist: Playlist, songs: [Song]) async throws {
     guard isSyncAllowed, !songs.isEmpty else { return }
     os_log("Upload SongsAdded on playlist \"%s\"", log: log, type: .info, playlist.name)

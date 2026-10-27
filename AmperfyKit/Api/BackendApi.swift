@@ -171,6 +171,14 @@ public protocol LibrarySyncer: Sendable {
   func syncUpload(playlistToUpdateOrder playlist: Playlist) async throws
   @MainActor
   func syncUpload(playlistIdToDelete id: String) async throws
+  /// True if the server lets the user set a custom cover for playlists.
+  @MainActor
+  func isPlaylistCoverUploadSupported() async -> Bool
+  /// Uploads the cover, updates the playlist afterwards so it shows the cover of the server.
+  @MainActor
+  func syncUpload(playlist: Playlist, coverJpegData: Data) async throws
+  @MainActor
+  func syncUpload(playlistToRemoveCover playlist: Playlist) async throws
   @MainActor
   func syncDownPodcastsWithoutEpisodes() async throws
   @MainActor
@@ -219,6 +227,23 @@ public protocol LibrarySyncer: Sendable {
   func setFavorite(artist: Artist, isFavorite: Bool) async throws
   @MainActor
   func parseLyrics(relFilePath: URL) async throws -> LyricsList
+}
+
+// MARK: - AbstractBackgroundLibrarySyncer
+
+extension LibrarySyncer {
+  @MainActor
+  public func isPlaylistCoverUploadSupported() async -> Bool { false }
+
+  @MainActor
+  public func syncUpload(playlist: Playlist, coverJpegData: Data) async throws {
+    throw BackendError.notSupported
+  }
+
+  @MainActor
+  public func syncUpload(playlistToRemoveCover playlist: Playlist) async throws {
+    throw BackendError.notSupported
+  }
 }
 
 // MARK: - AbstractBackgroundLibrarySyncer

@@ -115,6 +115,21 @@ extension LibrarySyncerProxy: LibrarySyncer {
   }
 
   @MainActor
+  func isPlaylistCoverUploadSupported() async -> Bool {
+    await activeSyncer.isPlaylistCoverUploadSupported()
+  }
+
+  @MainActor
+  func syncUpload(playlist: Playlist, coverJpegData: Data) async throws {
+    try await activeSyncer.syncUpload(playlist: playlist, coverJpegData: coverJpegData)
+  }
+
+  @MainActor
+  func syncUpload(playlistToRemoveCover playlist: Playlist) async throws {
+    try await activeSyncer.syncUpload(playlistToRemoveCover: playlist)
+  }
+
+  @MainActor
   func syncUpload(playlistToAddSongs playlist: Playlist, songs: [Song]) async throws {
     try await activeSyncer.syncUpload(playlistToAddSongs: playlist, songs: songs)
   }
