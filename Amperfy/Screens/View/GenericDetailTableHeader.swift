@@ -348,6 +348,13 @@ class GenericDetailTableHeader: UIView {
       overlay.bottomAnchor.constraint(equalTo: entityImage.bottomAnchor),
     ])
     coverEditOverlay = overlay
+    applyThemeColorToCoverEditOverlay()
+  }
+
+  private func applyThemeColorToCoverEditOverlay() {
+    guard let overlay = coverEditOverlay else { return }
+    overlay.themeColor = appDelegate.storage.settings.accounts
+      .getSetting(config?.entityContainer.account?.info).read.themePreference.asColor
   }
 
   func startEditing() {
@@ -431,13 +438,16 @@ private final class CoverShadowView: UIView {
 
 // MARK: - CoverEditOverlayView
 
-/// Whole cover as a button, marked with a photo symbol in a white circle.
+/// Whole cover as a button, marked with a photo symbol in a circle in the theme color.
 private class CoverEditOverlayView: UIControl {
   /// Relative to the cover size.
   private static let circleRelativeSize: CGFloat = 0.36
   private static let symbolRelativeSize: CGFloat = 0.45
 
   var cornerRadiusProvider: (() -> CGFloat)?
+  var themeColor = UIColor.tintColor {
+    didSet { circleView.backgroundColor = themeColor }
+  }
 
   private let circleView = UIView()
   private let symbolView = UIImageView()
@@ -451,12 +461,12 @@ private class CoverEditOverlayView: UIControl {
     accessibilityTraits = .button
 
     circleView.isUserInteractionEnabled = false
-    circleView.backgroundColor = .white
+    circleView.backgroundColor = themeColor
     circleView.translatesAutoresizingMaskIntoConstraints = false
     addSubview(circleView)
 
     symbolView.image = UIImage.photo
-    symbolView.tintColor = .black
+    symbolView.tintColor = .white
     symbolView.contentMode = .scaleAspectFit
     symbolView.translatesAutoresizingMaskIntoConstraints = false
     circleView.addSubview(symbolView)
