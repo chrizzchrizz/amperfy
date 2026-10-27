@@ -60,6 +60,11 @@ class LibraryVC: KeyCommandCollectionViewController {
     super.viewDidLoad()
     navigationController?.navigationBar.prefersLargeTitles = true
     collectionView.topEdgeEffect.style = .soft
+    // hide the small inline title that fades in when the large title scrolls away
+    let inlineTitleAppearance = UINavigationBarAppearance()
+    inlineTitleAppearance.configureWithDefaultBackground()
+    inlineTitleAppearance.titleTextAttributes = [.foregroundColor: UIColor.clear]
+    navigationItem.standardAppearance = inlineTitleAppearance
     libraryItemConfigurator.viewDidLoad(
       navigationItem: navigationItem,
       collectionView: collectionView
