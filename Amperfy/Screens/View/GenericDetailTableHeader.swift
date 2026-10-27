@@ -438,7 +438,7 @@ private final class CoverShadowView: UIView {
 
 // MARK: - CoverEditOverlayView
 
-/// Whole cover as a button, marked with a photo symbol in a circle in the theme color.
+/// Whole cover as a button, marked with a photo symbol in the theme color on a circle in the background color.
 private class CoverEditOverlayView: UIControl {
   /// Relative to the cover size.
   private static let circleRelativeSize: CGFloat = 0.36
@@ -446,7 +446,7 @@ private class CoverEditOverlayView: UIControl {
 
   var cornerRadiusProvider: (() -> CGFloat)?
   var themeColor = UIColor.tintColor {
-    didSet { circleView.backgroundColor = themeColor }
+    didSet { symbolView.tintColor = themeColor }
   }
 
   private let circleView = UIView()
@@ -461,12 +461,12 @@ private class CoverEditOverlayView: UIControl {
     accessibilityTraits = .button
 
     circleView.isUserInteractionEnabled = false
-    circleView.backgroundColor = themeColor
+    circleView.backgroundColor = .systemBackground
     circleView.translatesAutoresizingMaskIntoConstraints = false
     addSubview(circleView)
 
     symbolView.image = UIImage.photo
-    symbolView.tintColor = .white
+    symbolView.tintColor = themeColor
     symbolView.contentMode = .scaleAspectFit
     symbolView.translatesAutoresizingMaskIntoConstraints = false
     circleView.addSubview(symbolView)
