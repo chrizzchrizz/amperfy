@@ -205,6 +205,13 @@ class PlaylistEditVC: SingleSnapshotFetchedResultsTableViewController<PlaylistIt
           self.appDelegate.getMeta(self.account.info).librarySyncer,
           self.playlist
         )
+        // the server keeps the id of the cover, so the cached image would stay
+        if let artwork = self.playlist.artwork {
+          artwork.resetCache()
+          self.appDelegate.storage.main.saveContext()
+          self.appDelegate.getMeta(self.account.info).artworkDownloadManager
+            .download(object: artwork)
+        }
       } catch {
         self.appDelegate.eventLogger.report(topic: topic, error: error)
       }

@@ -75,6 +75,13 @@ public class Artwork: NSObject {
     set { managedObject.status = newValue.rawValue }
   }
 
+  /// Forgets the cached file so the artwork is downloaded again, e.g. if the server replaced the
+  /// image but kept its id.
+  public func resetCache() {
+    status = .NotChecked
+    relFilePath = nil
+  }
+
   public func markErrorIfNeeded() {
     if status != .CustomImage {
       status = .FetchError
