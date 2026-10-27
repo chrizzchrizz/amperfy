@@ -166,6 +166,7 @@ struct SettingsView: View {
     #else
       NavigationStack {
         list
+          .contentMargins(.top, 16, for: .scrollContent)
           .navigationTitle("Settings")
           // All pushes in this stack must be value based. Mixing view based links
           // (NavigationLink(destination:)) with the value based links of the sub pages
