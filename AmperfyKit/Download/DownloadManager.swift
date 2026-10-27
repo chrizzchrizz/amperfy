@@ -247,6 +247,16 @@ actor DownloadManager: NSObject, DownloadManageable {
   }
 
   @MainActor
+  func redownload(object: Downloadable) {
+    let uniqueID = object.uniqueID
+    Task {
+      // a finished request of the object would be ignored
+      await requestManager.removeFinishedDownload(for: uniqueID)
+      download(object: object)
+    }
+  }
+
+  @MainActor
   func removeFinishedDownload(for object: Downloadable) {
     Task {
       await requestManager.removeFinishedDownload(for: object.uniqueID)

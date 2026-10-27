@@ -117,6 +117,7 @@ class MOCK_SongDownloader: DownloadManageable {
   func setBackgroundFetchCompletionHandler(_ newValue: AmperfyKit.CompleteHandlerBlock?) {}
   func download(object: Downloadable) { downloadables.append(object) }
   func download(objects: [Downloadable]) { downloadables.append(contentsOf: objects) }
+  func redownload(object: Downloadable) { downloadables.append(object) }
   func removeFinishedDownload(for object: Downloadable) {}
   func removeFinishedDownload(for objects: [Downloadable]) {}
   func clearFinishedDownloads() {}

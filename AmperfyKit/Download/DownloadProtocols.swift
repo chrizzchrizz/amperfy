@@ -44,6 +44,9 @@ public protocol DownloadManageable {
   func download(object: Downloadable)
   @MainActor
   func download(objects: [Downloadable])
+  /// Downloads the object again, even if it was downloaded before.
+  @MainActor
+  func redownload(object: Downloadable)
   @MainActor
   func removeFinishedDownload(for object: Downloadable)
   @MainActor
