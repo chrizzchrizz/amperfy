@@ -557,13 +557,12 @@ class ArtistDetailVC: MultiSourceTableViewController {
 
   override func updateSearchResults(for searchController: UISearchController) {
     guard let searchText = searchController.searchBar.text else { return }
-    isSearchingTopSongs = !searchText.isEmpty || searchController.searchBar
-      .selectedScopeButtonIndex == 1
-    if !searchText.isEmpty, searchController.searchBar.selectedScopeButtonIndex == 0 {
+    isSearchingTopSongs = !searchText.isEmpty || searchController.searchBar.isCachedScopeSelected
+    if !searchText.isEmpty, !searchController.searchBar.isCachedScopeSelected {
       albumsFetchedResultsController.search(searchText: searchText, onlyCached: false)
       compilationsFetchedResultsController.search(searchText: searchText, onlyCached: false)
       topSongsFetchedResultsController.search(searchText: searchText, onlyCachedSongs: false)
-    } else if searchController.searchBar.selectedScopeButtonIndex == 1 {
+    } else if searchController.searchBar.isCachedScopeSelected {
       albumsFetchedResultsController.search(searchText: searchText, onlyCached: true)
       compilationsFetchedResultsController.search(searchText: searchText, onlyCached: true)
       topSongsFetchedResultsController.search(searchText: searchText, onlyCachedSongs: true)
