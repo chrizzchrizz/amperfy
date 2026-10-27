@@ -36,33 +36,8 @@ struct AccountSettingsView: View {
   var isPwUpdateDialogVisible = false
   @State
   var isShowLogoutAlert = false
-  @State
-  var isShowResyncLibraryAlert = false
   @EnvironmentObject
   var settings: Settings
-
-  private func resyncLibrary(accountInfo: AccountInfo) {
-    appDelegate.closeAllButActiveMainTabs()
-    if appDelegate.storage.settings.accounts.allAccounts.count <= 1 {
-      appDelegate.stopForInit()
-    }
-
-    let meta = appDelegate.getMeta(accountInfo)
-    meta.stopManager()
-    appDelegate.resetMeta(accountInfo)
-
-    // reset quick actions
-    appDelegate.quickActionsManager.configureQuickActions()
-    appDelegate.configureMainMenu()
-
-    appDelegate.storage.settings.user.isOfflineMode = false
-    let account = appDelegate.storage.main.library.getAccount(info: accountInfo)
-    appDelegate.player.logout(account: account)
-    let syncVC = AppStoryboard.Main.segueToSync(account: account)
-    syncVC.modalPresentationStyle = .formSheet
-    AppDelegate.mainSceneDelegate?.window?.rootViewController?.dismiss(animated: false)
-    AppDelegate.mainSceneDelegate?.window?.rootViewController?.present(syncVC, animated: true)
-  }
 
   private func httpHeaders(accountInfo: AccountInfo) -> [String: String] {
     appDelegate.storage.settings.accounts.getSetting(accountInfo).read
@@ -202,20 +177,6 @@ struct AccountSettingsView: View {
           SettingsSection {
             SettingsButtonRow(title: "Update Password") {
               withPopupAnimation { isPwUpdateDialogVisible = true }
-            }
-            SettingsButtonRow(title: "Resync Library") {
-              isShowResyncLibraryAlert = true
-            }.alert(isPresented: $isShowResyncLibraryAlert) {
-              Alert(
-                title: Text("Resync Library"),
-                message: Text(
-                  "This will reset your local library and start syncing again from the server. Your downloaded files will remain on this device.\n\nDo you want to resync your library?"
-                ),
-                primaryButton: .destructive(Text("Resync")) {
-                  resyncLibrary(accountInfo: activeAccountInfo)
-                },
-                secondaryButton: .cancel()
-              )
             }
           }
 

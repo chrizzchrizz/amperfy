@@ -67,6 +67,8 @@ struct LibrarySettingsView: View {
   var isShowDeleteCacheAlert = false
   @State
   var isShowDownloadSongsAlert = false
+  @State
+  var isShowResyncLibraryAlert = false
 
   let byteValues = (
     stride(from: 0, through: 20, by: 1).map { $0.description } +
@@ -74,6 +76,29 @@ struct LibrarySettingsView: View {
       stride(from: 60, through: 100, by: 10).map { $0.description } +
       stride(from: 110, through: 975, by: 25).map { $0.description }
   )
+
+  private func resyncLibrary(accountInfo: AccountInfo) {
+    appDelegate.closeAllButActiveMainTabs()
+    if appDelegate.storage.settings.accounts.allAccounts.count <= 1 {
+      appDelegate.stopForInit()
+    }
+
+    let meta = appDelegate.getMeta(accountInfo)
+    meta.stopManager()
+    appDelegate.resetMeta(accountInfo)
+
+    // reset quick actions
+    appDelegate.quickActionsManager.configureQuickActions()
+    appDelegate.configureMainMenu()
+
+    appDelegate.storage.settings.user.isOfflineMode = false
+    let account = appDelegate.storage.main.library.getAccount(info: accountInfo)
+    appDelegate.player.logout(account: account)
+    let syncVC = AppStoryboard.Main.segueToSync(account: account)
+    syncVC.modalPresentationStyle = .formSheet
+    AppDelegate.mainSceneDelegate?.window?.rootViewController?.dismiss(animated: false)
+    AppDelegate.mainSceneDelegate?.window?.rootViewController?.present(syncVC, animated: true)
+  }
 
   private func updateValues() {
     Task { @MainActor in do {
@@ -266,6 +291,25 @@ struct LibrarySettingsView: View {
             }
           }
         }, header: "Cache")
+
+        if let activeAccountInfo = settings.activeAccountInfo {
+          SettingsSection {
+            SettingsButtonRow(title: "Resync Library") {
+              isShowResyncLibraryAlert = true
+            }.alert(isPresented: $isShowResyncLibraryAlert) {
+              Alert(
+                title: Text("Resync Library"),
+                message: Text(
+                  "This will reset your local library and start syncing again from the server. Your downloaded files will remain on this device.\n\nDo you want to resync your library?"
+                ),
+                primaryButton: .destructive(Text("Resync")) {
+                  resyncLibrary(accountInfo: activeAccountInfo)
+                },
+                secondaryButton: .cancel()
+              )
+            }
+          }
+        }
       }
     }
     .navigationTitle("Library")
