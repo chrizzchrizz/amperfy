@@ -39,6 +39,8 @@ class ArtistDetailVC: MultiSourceTableViewController {
 
   fileprivate let artist: Artist
   var albumToScrollTo: Album?
+  /// Fetched results controllers that inserted, deleted or moved items since the last content change.
+  private var controllersWithStructuralChange = Set<ObjectIdentifier>()
   private var albumsFetchedResultsController: ArtistAlbumsItemsFetchedResultsController!
   private var compilationsFetchedResultsController: ArtistAlbumsItemsFetchedResultsController!
   /// All songs of the artist, only used for the play and shuffle buttons of the header.
@@ -581,31 +583,39 @@ class ArtistDetailVC: MultiSourceTableViewController {
     for type: NSFetchedResultsChangeType,
     newIndexPath: IndexPath?
   ) {
-    // the grids are reloaded as a whole in controllerDidChangeContent
+    // the grids are updated as a whole in controllerDidChangeContent
+    if type != .update {
+      controllersWithStructuralChange.insert(ObjectIdentifier(controller))
+    }
   }
 
   override func controllerDidChangeContent(
     _ controller: NSFetchedResultsController<NSFetchRequestResult>
   ) {
     super.controllerDidChangeContent(controller)
+    // changed values keep the cells, so the artworks are not loaded again
+    let isStructuralChange = controllersWithStructuralChange.remove(ObjectIdentifier(controller)) != nil
     switch controller {
     case albumsFetchedResultsController.fetchResultsController:
       reloadGrid(
         albumsGridVC,
         in: .albums,
-        fetchedResultsController: albumsFetchedResultsController
+        fetchedResultsController: albumsFetchedResultsController,
+        isStructuralChange: isStructuralChange
       )
     case compilationsFetchedResultsController.fetchResultsController:
       reloadGrid(
         compilationsGridVC,
         in: .compilations,
-        fetchedResultsController: compilationsFetchedResultsController
+        fetchedResultsController: compilationsFetchedResultsController,
+        isStructuralChange: isStructuralChange
       )
     case topSongsFetchedResultsController.fetchResultsController:
       reloadGrid(
         topSongsGridVC,
         in: .topSongs,
-        fetchedResultsController: topSongsFetchedResultsController
+        fetchedResultsController: topSongsFetchedResultsController,
+        isStructuralChange: true
       )
     default:
       break
@@ -615,7 +625,8 @@ class ArtistDetailVC: MultiSourceTableViewController {
   private func reloadGrid<ResultType: NSFetchRequestResult>(
     _ gridVC: ArtistGridReloadable,
     in section: Section,
-    fetchedResultsController: BasicFetchedResultsController<ResultType>
+    fetchedResultsController: BasicFetchedResultsController<ResultType>,
+    isStructuralChange: Bool
   ) {
     let hasItems = section == .topSongs
       ? topSongCount > 0
@@ -623,7 +634,11 @@ class ArtistDetailVC: MultiSourceTableViewController {
     if hasItems != (tableView.numberOfRows(inSection: section.rawValue) > 0) {
       tableView.reloadSections([section.rawValue], with: .none)
     } else {
-      gridVC.reload()
+      if isStructuralChange {
+        gridVC.reload()
+      } else {
+        gridVC.reconfigure()
+      }
       tableView.performBatchUpdates(nil)
     }
   }
@@ -641,6 +656,8 @@ class ArtistDetailVC: MultiSourceTableViewController {
 @MainActor
 protocol ArtistGridReloadable: AnyObject {
   func reload()
+  /// Refreshes the shown items without recreating them.
+  func reconfigure()
 }
 
 // MARK: - ArtistGridCell
@@ -732,6 +749,10 @@ final class ArtistAlbumsGridVC: UICollectionViewController, UICollectionViewDele
 
   func reload() {
     collectionView.reloadData()
+  }
+
+  func reconfigure() {
+    collectionView.reconfigureItems(at: collectionView.indexPathsForVisibleItems)
   }
 
   func scrollToAlbum(at row: Int) {
@@ -900,6 +921,10 @@ final class ArtistTopSongsGridVC: UICollectionViewController, UICollectionViewDe
 
   func reload() {
     collectionView.reloadData()
+  }
+
+  func reconfigure() {
+    reload()
   }
 
   private var columnCount: Int {
