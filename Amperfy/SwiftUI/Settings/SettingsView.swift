@@ -47,7 +47,11 @@ struct SettingsView: View {
   }
 
   func addAccountPressed() {
-    let loginVC = AppStoryboard.Main.segueToLogin()
+    var loginVC = AppStoryboard.Main.segueToLogin()
+    #if targetEnvironment(macCatalyst)
+      // provides the bar button used to close the login on the Mac
+      loginVC = UINavigationController(rootViewController: loginVC)
+    #endif
     loginVC.modalPresentationStyle = .formSheet
     // present from the window the user is working in (Settings is its own window on Mac)
     let keyWindow = UIApplication.shared.connectedScenes

@@ -218,7 +218,18 @@ class LoginVC: UIViewController {
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     // Show close button only when presented as a sheet/modal
-    formModel.isModal = isModal
+    #if targetEnvironment(macCatalyst)
+      // the SwiftUI button gets no clicks inside the form sheet on the Mac: use a bar button
+      formModel.isModal = false
+      if isModal {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+          systemItem: .close,
+          primaryAction: UIAction { [weak self] _ in self?.closePressed() }
+        )
+      }
+    #else
+      formModel.isModal = isModal
+    #endif
   }
 
   override func viewDidAppear(_ animated: Bool) {
