@@ -283,7 +283,7 @@ extension AppDelegate {
       }),
     ]
 
-    let section4 = [
+    var section4: [UIMenuElement] = [
       UIAction(
         title: "Switch Music/Podcast mode",
         image: player.playerMode == .music ? .musicalNotes : .podcast
@@ -291,6 +291,9 @@ extension AppDelegate {
         self.player.setPlayerMode(self.player.playerMode.nextMode)
       },
     ]
+    if isContinuePlaybackAvailable {
+      section4.append(createContinuePlaybackAction())
+    }
 
     let sections: [[UIMenuElement]] = [section1, section2, section3, section4]
 

@@ -83,6 +83,7 @@ final class HomeVC: UICollectionViewController {
       guard let self else { return }
       setupUserNavButton()
       arrangeNavButtonsForMac()
+      refreshContinuePlaybackNavButton()
     }
 
     navigationController?.navigationBar.prefersLargeTitles = true
@@ -121,6 +122,26 @@ final class HomeVC: UICollectionViewController {
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     navigationController?.navigationBar.prefersLargeTitles = true
+    // the play queue sync may have been switched in the settings
+    refreshContinuePlaybackNavButton()
+  }
+
+  private lazy var continuePlaybackNavButton = UIBarButtonItem(
+    image: .continuePlayback,
+    primaryAction: UIAction { [weak self] _ in
+      guard let self else { return }
+      appDelegate.continuePlaybackFromOtherDevice(presentingVC: self)
+    }
+  )
+
+  /// Rightmost item, so the edit button stays the last one the Mac arrangement expects.
+  private func refreshContinuePlaybackNavButton() {
+    var items = navigationItem.rightBarButtonItems ?? []
+    items.removeAll { $0 === continuePlaybackNavButton }
+    if appDelegate.isContinuePlaybackAvailable {
+      items.insert(continuePlaybackNavButton, at: 0)
+    }
+    navigationItem.rightBarButtonItems = items
   }
 
   override func viewIsAppearing(_ animated: Bool) {
@@ -312,6 +333,7 @@ final class HomeVC: UICollectionViewController {
   private func refreshOfflineMode() {
     os_log("HomeVC: OfflineModeChanged", log: self.log, type: .info)
     sharedHome.createFetchController()
+    refreshContinuePlaybackNavButton()
   }
 
   @objc
