@@ -214,7 +214,8 @@ public protocol PlayerFacade {
 
   func play()
   func play(context: PlayContext)
-  /// Plays the context and continues its active playable at `startSecond`.
+  /// Plays the context and continues its active playable at `startSecond`; 0 starts it from the
+  /// beginning, without the resume of its last stopped play time.
   func play(context: PlayContext, startSecond: Double)
   func playShuffled(context: PlayContext)
   func play(playerIndex: PlayerIndex)
@@ -618,7 +619,7 @@ class PlayerFacadeImpl: PlayerFacade {
   }
 
   func play(context: PlayContext, startSecond: Double) {
-    if let activePlayable = context.getActivePlayable(), startSecond > 0 {
+    if let activePlayable = context.getActivePlayable() {
       musicPlayer.setStartPosition(second: startSecond, of: activePlayable)
     }
     play(context: context)

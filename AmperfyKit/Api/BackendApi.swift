@@ -227,9 +227,10 @@ public protocol LibrarySyncer: Sendable {
   func setFavorite(artist: Artist, isFavorite: Bool) async throws
   @MainActor
   func parseLyrics(relFilePath: URL) async throws -> LyricsList
-  /// True if the server stores a play queue per user to continue playback on another device.
+  /// True if the server stores a play queue per user to continue playback on another device;
+  /// throws if the server couldn't be asked.
   @MainActor
-  func isPlayQueueSyncSupported() async -> Bool
+  func isPlayQueueSyncSupported() async throws -> Bool
   /// `clientName` is reported by the server as the device that saved the queue.
   @MainActor
   func savePlayQueue(snapshot: PlayQueueSnapshot, clientName: String) async throws
@@ -245,7 +246,7 @@ public protocol LibrarySyncer: Sendable {
 
 extension LibrarySyncer {
   @MainActor
-  public func isPlayQueueSyncSupported() async -> Bool { false }
+  public func isPlayQueueSyncSupported() async throws -> Bool { false }
 
   @MainActor
   public func savePlayQueue(snapshot: PlayQueueSnapshot, clientName: String) async throws {

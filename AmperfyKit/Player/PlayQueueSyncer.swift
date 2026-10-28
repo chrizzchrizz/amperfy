@@ -60,8 +60,9 @@ struct PlayQueueSaveThrottle {
     lastSaveDate = now
   }
 
-  /// A failed save is retried with the next periodic save, not on every elapsed time change.
-  mutating func didFailToSave(now: Date) {
+  /// A failed or skipped save is retried with the next periodic save, not on every elapsed time
+  /// change.
+  mutating func didAttemptSave(now: Date) {
     lastSaveDate = now
   }
 
@@ -82,11 +83,16 @@ struct PlayQueueSaveThrottle {
     lastSaved = nil
   }
 
-  /// The queue on the server was saved by another device if its client name differs.
+  /// The queue on the server was saved by another device if its client name isn't one this device
+  /// used, the device name may have been changed since its last save.
   /// Devices with the same name, e.g. two iPhones without a device name set, can't be told apart.
-  static func isSavedByOtherDevice(_ info: ServerPlayQueueInfo, ownClientName: String) -> Bool {
+  static func isSavedByOtherDevice(
+    _ info: ServerPlayQueueInfo,
+    ownClientNames: Set<String>
+  )
+    -> Bool {
     guard let changedBy = info.changedBy, !changedBy.isEmpty else { return false }
-    return changedBy != ownClientName
+    return !ownClientNames.contains(changedBy)
   }
 }
 
@@ -135,8 +141,10 @@ public class PlayQueueSyncer {
   /// Another device saved its queue after this one, saving is stopped until playback starts here.
   private var isTakenOverByOtherDevice = false
   private var isPlaybackInterrupted = true
+  /// Client names of this device's saves in this session.
+  private var savedClientNames = Set<String>()
   private var scheduledSave: Task<(), Never>?
-  private var isSaving = false
+  private var runningSave: Task<(), Never>?
   private var isAnotherSaveRequested = false
 
   init(
@@ -160,21 +168,24 @@ public class PlayQueueSyncer {
       networkMonitor.isConnectedToNetwork
   }
 
-  public func isContinuePlaybackAvailable() async -> Bool {
+  /// Throws if the server couldn't be asked whether it stores a play queue.
+  public func isContinuePlaybackAvailable() async throws -> Bool {
     guard storage.settings.user.isPlayQueueSyncEnabled else { return false }
-    return await isServerSupportingSync()
+    return try await isServerSupportingSync()
   }
 
-  private func isServerSupportingSync() async -> Bool {
+  /// Only an answer of the server is kept, after an error it is asked again.
+  private func isServerSupportingSync() async throws -> Bool {
     if let isSupported { return isSupported }
-    let supported = await librarySyncer.isPlayQueueSyncSupported()
+    let supported = try await librarySyncer.isPlayQueueSyncSupported()
     isSupported = supported
     return supported
   }
 
   // MARK: Save
 
-  /// Saves the queue right away, e.g. before the app moves to the background.
+  /// Saves the queue right away, e.g. before the app moves to the background; returns once the
+  /// latest state is saved, also if a save was running already.
   public func saveNow() async {
     scheduledSave?.cancel()
     scheduledSave = nil
@@ -194,26 +205,37 @@ public class PlayQueueSyncer {
 
   private func save() async {
     guard isSyncActive, !isTakenOverByOtherDevice else { return }
-    guard !isSaving else {
+    if let runningSave {
+      // the running save repeats with the latest state
       isAnotherSaveRequested = true
+      await runningSave.value
       return
     }
-    isSaving = true
-    defer { isSaving = false }
-    repeat {
-      isAnotherSaveRequested = false
-      await saveIfNeeded()
-    } while isAnotherSaveRequested && !isTakenOverByOtherDevice
+    let saveTask = Task { @MainActor in
+      repeat {
+        isAnotherSaveRequested = false
+        await saveIfNeeded()
+      } while isAnotherSaveRequested && !isTakenOverByOtherDevice
+    }
+    runningSave = saveTask
+    await saveTask.value
+    runningSave = nil
   }
 
   private func saveIfNeeded() async {
-    guard await isServerSupportingSync(), let snapshot = createSnapshot(),
-          throttle.isSaveNeeded(for: snapshot)
-    else { return }
+    // the cheap checks first, every account's syncer is asked to save
+    guard let snapshot = createSnapshot(), throttle.isSaveNeeded(for: snapshot) else {
+      throttle.didAttemptSave(now: Date())
+      return
+    }
     do {
+      guard try await isServerSupportingSync() else { return }
       if throttle.shouldCheckForTakeover(now: Date()),
          let info = try await librarySyncer.requestPlayQueueInfo(),
-         PlayQueueSaveThrottle.isSavedByOtherDevice(info, ownClientName: clientName) {
+         PlayQueueSaveThrottle.isSavedByOtherDevice(
+           info,
+           ownClientNames: savedClientNames.union([clientName])
+         ) {
         os_log(
           "Play queue saved by %s, stop saving until playback starts here",
           log: log,
@@ -223,10 +245,12 @@ public class PlayQueueSyncer {
         isTakenOverByOtherDevice = true
         return
       }
+      let clientName = clientName
       try await librarySyncer.savePlayQueue(snapshot: snapshot, clientName: clientName)
+      savedClientNames.insert(clientName)
       throttle.didSave(snapshot, now: Date())
     } catch {
-      throttle.didFailToSave(now: Date())
+      throttle.didAttemptSave(now: Date())
       eventLogger.report(topic: "Play Queue Sync", error: error, displayPopup: false)
     }
   }
@@ -279,7 +303,8 @@ public class PlayQueueSyncer {
     try await librarySyncer.requestPlayQueue()
   }
 
-  /// Replaces the player's queue with the saved one and plays it from the saved position.
+  /// Replaces the player's queue, including the user queue, with the saved one and plays it from
+  /// the saved position.
   public func continuePlayback(of playQueue: ServerPlayQueue) {
     guard !playQueue.songs.isEmpty else { return }
     os_log(
@@ -290,6 +315,8 @@ public class PlayQueueSyncer {
       playQueue.songs.count
     )
     didStartLocally()
+    // the saved queue already contains the user queue of the device that saved it
+    player.clearUserQueue()
     player.play(
       context: PlayContext(
         name: "Continued Playback",
@@ -333,8 +360,8 @@ extension PlayQueueSyncer: MusicPlayable {
 
   public func didElapsedTimeChange() {
     // called several times per second, cheap checks first
-    guard player.isPlaying, scheduledSave == nil, !isSaving,
-          throttle.isPeriodicSaveDue(now: Date()),
+    guard player.isPlaying, scheduledSave == nil, runningSave == nil,
+          throttle.isPeriodicSaveDue(now: Date()), player.playerMode == .music,
           player.currentMusicItem?.asSong?.account == account
     else { return }
     scheduleSave(after: .zero)

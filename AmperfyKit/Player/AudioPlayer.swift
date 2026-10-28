@@ -282,7 +282,9 @@ public class AudioPlayer: NSObject, BackendAudioPlayerNotifiable {
       self.startPosition = nil
       // the user may have skipped before the playable was prepared
       if let playable = currentlyPlaying, playable == startPosition.playable {
-        backendAudioPlayer.seek(toSecond: startPosition.second)
+        if startPosition.second > 0 {
+          backendAudioPlayer.seek(toSecond: startPosition.second)
+        }
         return
       }
     }

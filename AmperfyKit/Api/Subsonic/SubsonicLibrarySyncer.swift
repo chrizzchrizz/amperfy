@@ -1214,8 +1214,8 @@ class SubsonicLibrarySyncer: CommonLibrarySyncer, LibrarySyncer {
   }
 
   @MainActor
-  func isPlayQueueSyncSupported() async -> Bool {
-    (try? await subsonicServerApi.requestServerPlayQueueSupport()) ?? false
+  func isPlayQueueSyncSupported() async throws -> Bool {
+    try await subsonicServerApi.requestServerPlayQueueSupport()
   }
 
   /// Without the OpenSubsonic extension "formPost" the ids are part of the URL,

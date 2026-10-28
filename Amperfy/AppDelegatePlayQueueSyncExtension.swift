@@ -69,16 +69,25 @@ extension AppDelegate {
   /// Loads the play queue another device saved and asks before it replaces the current queue.
   func continuePlaybackFromOtherDevice(presentingVC: UIViewController? = nil) {
     guard let syncer = activePlayQueueSyncer else { return }
+    // without a connection the server would seem to have no saved queue
+    guard networkMonitor.isConnectedToNetwork else {
+      presentContinuePlaybackAlert(
+        title: "No Connection",
+        message: "The saved play queue can only be loaded from the server with a network connection.",
+        presentingVC: presentingVC
+      )
+      return
+    }
     Task { @MainActor in
-      guard await syncer.isContinuePlaybackAvailable() else {
-        presentContinuePlaybackAlert(
-          title: "Not Supported",
-          message: "The server doesn't store a play queue.",
-          presentingVC: presentingVC
-        )
-        return
-      }
       do {
+        guard try await syncer.isContinuePlaybackAvailable() else {
+          presentContinuePlaybackAlert(
+            title: "Not Supported",
+            message: "The server doesn't store a play queue.",
+            presentingVC: presentingVC
+          )
+          return
+        }
         guard let playQueue = try await syncer.requestServerPlayQueue(),
               !playQueue.songs.isEmpty
         else {

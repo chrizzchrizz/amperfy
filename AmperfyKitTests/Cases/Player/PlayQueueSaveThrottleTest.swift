@@ -36,9 +36,9 @@ class PlayQueueSaveThrottleTest: XCTestCase {
     XCTAssertTrue(throttle.isPeriodicSaveDue(now: start.addingTimeInterval(30)))
   }
 
-  func testFailedSaveIsRetriedWithNextPeriodicSave() {
+  func testFailedOrSkippedSaveIsRetriedWithNextPeriodicSave() {
     var throttle = PlayQueueSaveThrottle()
-    throttle.didFailToSave(now: start)
+    throttle.didAttemptSave(now: start)
     XCTAssertFalse(throttle.isPeriodicSaveDue(now: start.addingTimeInterval(10)))
     XCTAssertTrue(throttle.isPeriodicSaveDue(now: start.addingTimeInterval(30)))
     XCTAssertTrue(throttle.isSaveNeeded(for: snapshot))
@@ -94,17 +94,22 @@ class PlayQueueSaveThrottleTest: XCTestCase {
       changed: start,
       changedBy: "Amperfy (iPhone)"
     )
-    XCTAssertTrue(PlayQueueSaveThrottle.isSavedByOtherDevice(byPhone, ownClientName: own))
+    XCTAssertTrue(PlayQueueSaveThrottle.isSavedByOtherDevice(byPhone, ownClientNames: [own]))
 
     var bySelf = byPhone
     bySelf.changedBy = own
-    XCTAssertFalse(PlayQueueSaveThrottle.isSavedByOtherDevice(bySelf, ownClientName: own))
+    XCTAssertFalse(PlayQueueSaveThrottle.isSavedByOtherDevice(bySelf, ownClientNames: [own]))
+    // saved by this device before its name was changed
+    XCTAssertFalse(PlayQueueSaveThrottle.isSavedByOtherDevice(
+      bySelf,
+      ownClientNames: ["Amperfy (iPad von Chrizz)", own]
+    ))
 
     var byUnknown = byPhone
     byUnknown.changedBy = nil
-    XCTAssertFalse(PlayQueueSaveThrottle.isSavedByOtherDevice(byUnknown, ownClientName: own))
+    XCTAssertFalse(PlayQueueSaveThrottle.isSavedByOtherDevice(byUnknown, ownClientNames: [own]))
     byUnknown.changedBy = ""
-    XCTAssertFalse(PlayQueueSaveThrottle.isSavedByOtherDevice(byUnknown, ownClientName: own))
+    XCTAssertFalse(PlayQueueSaveThrottle.isSavedByOtherDevice(byUnknown, ownClientNames: [own]))
   }
 }
 

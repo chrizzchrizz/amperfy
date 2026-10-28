@@ -190,6 +190,14 @@ final class MOCK_LibrarySyncer: LibrarySyncer {
   func setFavorite(album: Album, isFavorite: Bool) async throws {}
   func setFavorite(artist: Artist, isFavorite: Bool) async throws {}
   func parseLyrics(relFilePath: URL) async throws -> LyricsList { LyricsList() }
+
+  nonisolated(unsafe) var playQueueSyncSupportResults = [Result<Bool, Error>]()
+  nonisolated(unsafe) var playQueueSyncSupportRequestCount = 0
+  func isPlayQueueSyncSupported() async throws -> Bool {
+    playQueueSyncSupportRequestCount += 1
+    guard !playQueueSyncSupportResults.isEmpty else { return false }
+    return try playQueueSyncSupportResults.removeFirst().get()
+  }
 }
 
 // MARK: - MOCK_DownloadManagerDelegate
@@ -2906,5 +2914,87 @@ class MusicPlayerTest: XCTestCase {
     backendPlayer.responder?.didItemFinishedPlaying()
     XCTAssertTrue(testPlayer.isPlaying)
     XCTAssertEqual(testPlayer.currentlyPlaying?.id, playlistAllCached.playables[0].id)
+  }
+}
+
+// MARK: - Continue Playback
+
+extension MusicPlayerTest {
+  private func createPlayQueueSyncer(librarySyncer: MOCK_LibrarySyncer = MOCK_LibrarySyncer())
+    -> PlayQueueSyncer {
+    PlayQueueSyncer(
+      player: testPlayer,
+      networkMonitor: networkMonitor,
+      account: account,
+      storage: storage,
+      librarySyncer: librarySyncer,
+      eventLogger: eventLogger
+    )
+  }
+
+  func testContinuePlayback_ReplacesUserQueue() {
+    let playables = playlistAllCached.playables
+    testPlayer.play(context: PlayContext(name: "Local", playables: [songCached]))
+    testPlayer.appendUserQueue(playables: [songToDownload, songCached])
+    XCTAssertEqual(testPlayer.userQueueCount, 2)
+
+    createPlayQueueSyncer().continuePlayback(of: ServerPlayQueue(
+      info: ServerPlayQueueInfo(
+        currentId: playables[2].id,
+        positionInMs: 0,
+        changed: nil,
+        changedBy: nil
+      ),
+      songs: playables.compactMap { $0.asSong }
+    ))
+    XCTAssertEqual(testPlayer.userQueueCount, 0)
+    XCTAssertEqual(testPlayer.currentlyPlaying, playables[2])
+    XCTAssertEqual(testPlayer.prevQueueCount, 2)
+    XCTAssertEqual(testPlayer.nextQueueCount, playables.count - 3)
+  }
+
+  func testContinuePlayback_StartsAtZeroWithoutResume() async throws {
+    let wasResumeEnabled = storage.settings.user.isPlayerSongPlaybackResumeEnabled
+    storage.settings.user.isPlayerSongPlaybackResumeEnabled = true
+    defer { storage.settings.user.isPlayerSongPlaybackResumeEnabled = wasResumeEnabled }
+    let songs = playlistAllCached.playables.compactMap { $0.asSong }
+    songs[0].playProgress = 130
+
+    // the saved current song is gone, playback starts with the first song at 0
+    createPlayQueueSyncer().continuePlayback(of: ServerPlayQueue(
+      info: ServerPlayQueueInfo(
+        currentId: "removed",
+        positionInMs: 83000,
+        changed: nil,
+        changedBy: nil
+      ),
+      songs: songs
+    ))
+    try await Task.sleep(for: .milliseconds(200))
+    XCTAssertEqual(testPlayer.currentlyPlaying, songs[0])
+    XCTAssertEqual(testPlayer.elapsedTime, 0.0)
+  }
+
+  func testContinuePlaybackAvailable_ServerErrorIsNotKept() async throws {
+    let wasSyncEnabled = storage.settings.user.isPlayQueueSyncEnabled
+    storage.settings.user.isPlayQueueSyncEnabled = true
+    defer { storage.settings.user.isPlayQueueSyncEnabled = wasSyncEnabled }
+    let librarySyncer = MOCK_LibrarySyncer()
+    librarySyncer.playQueueSyncSupportResults = [
+      .failure(BackendError.noCredentials),
+      .success(true),
+    ]
+    let syncer = createPlayQueueSyncer(librarySyncer: librarySyncer)
+
+    do {
+      _ = try await syncer.isContinuePlaybackAvailable()
+      XCTFail("the server error must be thrown")
+    } catch {}
+    let isAvailable = try await syncer.isContinuePlaybackAvailable()
+    XCTAssertTrue(isAvailable)
+    // the answer of the server is kept
+    let isStillAvailable = try await syncer.isContinuePlaybackAvailable()
+    XCTAssertTrue(isStillAvailable)
+    XCTAssertEqual(librarySyncer.playQueueSyncSupportRequestCount, 2)
   }
 }

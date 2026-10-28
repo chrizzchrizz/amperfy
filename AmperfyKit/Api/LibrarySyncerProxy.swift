@@ -120,8 +120,8 @@ extension LibrarySyncerProxy: LibrarySyncer {
   }
 
   @MainActor
-  func isPlayQueueSyncSupported() async -> Bool {
-    await activeSyncer.isPlayQueueSyncSupported()
+  func isPlayQueueSyncSupported() async throws -> Bool {
+    try await activeSyncer.isPlayQueueSyncSupported()
   }
 
   @MainActor
