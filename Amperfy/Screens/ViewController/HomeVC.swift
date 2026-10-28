@@ -135,6 +135,8 @@ final class HomeVC: UICollectionViewController {
       }
     )
     button.accessibilityLabel = "Continue Playback"
+    // own glass background, it has nothing to do with the edit button next to it
+    button.sharesBackground = false
     return button
   }()
 
