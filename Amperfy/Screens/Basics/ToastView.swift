@@ -58,8 +58,8 @@ final class ToastView: UIView {
   private let textStack = UIStackView()
   private let titleLabel = UILabel()
   private let subtitleLabel = UILabel()
-  private var onTap: (() -> Void)?
-  private var dismissTask: Task<Void, Never>?
+  private var onTap: (() -> ())?
+  private var dismissTask: Task<(), Never>?
   private var isDismissing = false
 
   static func show(
@@ -68,7 +68,7 @@ final class ToastView: UIView {
     style: LogEntryType,
     in window: UIWindow,
     placement: ToastPlacement,
-    onTap: (() -> Void)? = nil
+    onTap: (() -> ())? = nil
   ) {
     guard current == nil else { return }
     let toast = ToastView(title: title, subtitle: subtitle, color: style.toastColor)
@@ -166,7 +166,7 @@ final class ToastView: UIView {
   }
 
   /// Hides the text and returns a closure that reveals it from blurred to sharp.
-  private func prepareTextReveal() -> (() -> Void)? {
+  private func prepareTextReveal() -> (() -> ())? {
     let padding = Self.textBlurPadding
     let size = CGSize(
       width: textStack.bounds.width + 2 * padding,
@@ -225,7 +225,7 @@ final class ToastView: UIView {
     }
   }
 
-  private func dismiss(completion: (() -> Void)? = nil) {
+  private func dismiss(completion: (() -> ())? = nil) {
     guard !isDismissing else { return }
     isDismissing = true
     dismissTask?.cancel()
@@ -260,7 +260,7 @@ extension LogEntryType {
   fileprivate var toastColor: UIColor {
     switch self {
     case .apiError, .error: return UIColor(named: "ToastError") ?? .systemRed
-    case .info, .debug: return UIColor(named: "ToastInfo") ?? .defaultBlue
+    case .debug, .info: return UIColor(named: "ToastInfo") ?? .defaultBlue
     }
   }
 }

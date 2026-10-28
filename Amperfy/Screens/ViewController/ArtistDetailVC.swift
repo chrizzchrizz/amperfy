@@ -594,7 +594,8 @@ class ArtistDetailVC: MultiSourceTableViewController {
   ) {
     super.controllerDidChangeContent(controller)
     // changed values keep the cells, so the artworks are not loaded again
-    let isStructuralChange = controllersWithStructuralChange.remove(ObjectIdentifier(controller)) != nil
+    let isStructuralChange = controllersWithStructuralChange
+      .remove(ObjectIdentifier(controller)) != nil
     switch controller {
     case albumsFetchedResultsController.fetchResultsController:
       reloadGrid(

@@ -139,7 +139,11 @@ extension AppDelegate: AlertDisplayable {
   /// The toast floats above the mini player and is centered on it. In a split view the mini
   /// player keeps its slot while no title is loaded, so the toast stays where it will be later.
   /// Without a mini player slot it sits above the tab bar or the bottom safe area.
-  private static func toastPlacement(in window: UIWindow, host: UIViewController) -> ToastPlacement {
+  private static func toastPlacement(
+    in window: UIWindow,
+    host: UIViewController
+  )
+    -> ToastPlacement {
     // frames in the upper half belong to a top tab bar (iPad), not to a bottom bar
     func bottomFrame(of view: UIView, requiresVisible: Bool = true) -> CGRect? {
       guard view.window === window else { return nil }
