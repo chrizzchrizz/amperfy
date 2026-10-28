@@ -107,20 +107,21 @@ extension AppDelegate {
   ) {
     let startSong = playQueue.songs[playQueue.startIndex]
     var lines = [startSong.displayString]
-    if playQueue.startPositionInSeconds > 0 {
-      lines.append("at \(Int(playQueue.startPositionInSeconds).asColonDurationString)")
-    } else if playQueue.info.currentId != nil {
-      lines.append("The saved song is no longer available, playback starts with the first song.")
-    }
-    lines.append(playQueue.songs.count == 1 ? "1 song" : "\(playQueue.songs.count) songs")
-    var savedBy = "Saved"
+    var savedBy = [String]()
     if let changedBy = playQueue.info.changedBy, !changedBy.isEmpty {
-      savedBy += " by \(changedBy)"
+      savedBy.append(Self.deviceName(clientName: changedBy))
     }
     if let changed = playQueue.info.changed {
-      savedBy += " " + RelativeDateTimeFormatter().localizedString(for: changed, relativeTo: Date())
+      let formatter = DateFormatter()
+      formatter.dateStyle = .short
+      formatter.timeStyle = .short
+      formatter.doesRelativeDateFormatting = true
+      savedBy.append(formatter.string(from: changed))
     }
-    lines.append(savedBy)
+    if !savedBy.isEmpty {
+      lines.append(savedBy.joined(separator: " - "))
+    }
+    lines.append(playQueue.songs.count == 1 ? "1 Song" : "\(playQueue.songs.count) Songs")
 
     let alert = UIAlertController(
       title: "Continue Playback?",
@@ -132,6 +133,12 @@ extension AppDelegate {
     })
     alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
     present(alert: alert, on: presentingVC)
+  }
+
+  /// "Amperfy (iPhone)" -> "iPhone", other clients are shown as they are.
+  private static func deviceName(clientName: String) -> String {
+    guard clientName.hasPrefix("Amperfy ("), clientName.hasSuffix(")") else { return clientName }
+    return String(clientName.dropFirst("Amperfy (".count).dropLast())
   }
 
   private func presentContinuePlaybackAlert(
