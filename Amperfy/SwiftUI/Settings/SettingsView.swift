@@ -54,8 +54,13 @@ struct SettingsView: View {
       .compactMap { $0 as? UIWindowScene }
       .flatMap(\.windows)
       .first { $0.isKeyWindow }
-    AppDelegate.topViewController(base: keyWindow?.rootViewController)?
-      .present(loginVC, animated: true)
+    // topViewController stops at the tab bar / split view, but on iPad and iPhone Settings is
+    // presented on top of it: follow the presented chain, otherwise the presentation is rejected
+    var presenter = AppDelegate.topViewController(base: keyWindow?.rootViewController)
+    while let presented = presenter?.presentedViewController, !presented.isBeingDismissed {
+      presenter = presented
+    }
+    presenter?.present(loginVC, animated: true)
   }
 
   func accountRow(_ accountInfo: AccountInfo) -> some View {
