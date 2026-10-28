@@ -137,6 +137,7 @@
 		508FDE4C21F58AFC005A0724 /* AppStoryboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508FDE4B21F58AFC005A0724 /* AppStoryboard.swift */; };
 		508FDE5021F64ED6005A0724 /* TabBarVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508FDE4F21F64ED6005A0724 /* TabBarVC.swift */; };
 		509001B62716C7F600A8056D /* AppDelegateAlertExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 509001B52716C7F600A8056D /* AppDelegateAlertExtensions.swift */; };
+		E288B5BE979258AD039A9772 /* AppDelegatePlayQueueSyncExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = E188B5BE979258AD039A9772 /* AppDelegatePlayQueueSyncExtension.swift */; };
 		509001B82716C8F400A8056D /* AppDelegateNotificationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 509001B72716C8F400A8056D /* AppDelegateNotificationExtensions.swift */; };
 		509357522E3BF48900CD4075 /* MiniPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 509357512E3BF47800CD4075 /* MiniPlayerView.swift */; };
 		509D55F8281274F500E0E0B5 /* VYPlayIndicator in Frameworks */ = {isa = PBXBuildFile; productRef = 509D55F7281274F500E0E0B5 /* VYPlayIndicator */; };
@@ -849,6 +850,7 @@
 		508FDE4B21F58AFC005A0724 /* AppStoryboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoryboard.swift; sourceTree = "<group>"; };
 		508FDE4F21F64ED6005A0724 /* TabBarVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarVC.swift; sourceTree = "<group>"; };
 		509001B52716C7F600A8056D /* AppDelegateAlertExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegateAlertExtensions.swift; sourceTree = "<group>"; };
+		E188B5BE979258AD039A9772 /* AppDelegatePlayQueueSyncExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegatePlayQueueSyncExtension.swift; sourceTree = "<group>"; };
 		509001B72716C8F400A8056D /* AppDelegateNotificationExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegateNotificationExtensions.swift; sourceTree = "<group>"; };
 		509001BD2717120900A8056D /* Amperfy v14.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Amperfy v14.xcdatamodel"; sourceTree = "<group>"; };
 		509001BE271829E200A8056D /* catalogs.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = catalogs.xml; sourceTree = "<group>"; };
@@ -1500,6 +1502,7 @@
 				50CFBC532E464EDE00EAA7BC /* AppDelegateMainMenuExtension.swift */,
 				509001B72716C8F400A8056D /* AppDelegateNotificationExtensions.swift */,
 				509001B52716C7F600A8056D /* AppDelegateAlertExtensions.swift */,
+				E188B5BE979258AD039A9772 /* AppDelegatePlayQueueSyncExtension.swift */,
 				50722746286794FC00910574 /* AppDelegateKeyboardCommands.swift */,
 				50C9D716285075E3007F18D0 /* UtilitiesExtensions.swift */,
 				50DE29EC2B8FCFC500ABA78E /* LibraryDisplayType+Extension.swift */,
@@ -2626,6 +2629,7 @@
 				508AA57D2B6A3E1D00BE8117 /* CarPlayFetchControllerExtension.swift in Sources */,
 				5055AA5726835A9000096B8D /* PodcastEpisodeTableCell.swift in Sources */,
 				509001B62716C7F600A8056D /* AppDelegateAlertExtensions.swift in Sources */,
+				E288B5BE979258AD039A9772 /* AppDelegatePlayQueueSyncExtension.swift in Sources */,
 				5007CE4421EF639200BC5CBA /* PlaylistTableCell.swift in Sources */,
 				50C9D7142850759B007F18D0 /* Corners.swift in Sources */,
 				50AAB9FB2F016071004A39C6 /* SeekTimeUnitAppEnum.swift in Sources */,

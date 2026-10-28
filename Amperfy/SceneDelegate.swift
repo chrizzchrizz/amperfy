@@ -249,6 +249,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       return
     }
     appDelegate.scheduleAppRefresh()
+    appDelegate.savePlayQueueBeforeBackground()
   }
 
   func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {

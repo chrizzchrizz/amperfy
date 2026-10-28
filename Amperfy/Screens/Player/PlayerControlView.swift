@@ -464,6 +464,9 @@ class PlayerControlView: UIView {
         )
         menuActions.append(addContextToPlaylist)
       }
+      if appDelegate.isContinuePlaybackAvailable {
+        menuActions.append(appDelegate.createContinuePlaybackAction(presentingVC: rootView))
+      }
     case .podcast: break
     }
 
