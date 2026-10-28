@@ -225,6 +225,10 @@ class SettingsHostVC: UIViewController {
     changesAgent.append(settings.$isOpenPlayerOnForeground.sink(receiveValue: { newValue in
       self.appDelegate.storage.settings.user.isOpenPlayerOnForeground = newValue
     }))
+    settings.isPlayQueueSyncEnabled = appDelegate.storage.settings.user.isPlayQueueSyncEnabled
+    changesAgent.append(settings.$isPlayQueueSyncEnabled.sink(receiveValue: { newValue in
+      self.appDelegate.storage.settings.user.isPlayQueueSyncEnabled = newValue
+    }))
 
     settings.isAutoplayEnabled = appDelegate.storage.settings.user.isAutoplayEnabled
     changesAgent.append(settings.$isAutoplayEnabled.sink(receiveValue: { newValue in

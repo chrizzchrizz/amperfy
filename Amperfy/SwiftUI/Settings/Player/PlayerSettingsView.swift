@@ -131,6 +131,16 @@ struct PlayerSettingsView: View {
           )
         #endif
 
+        SettingsSection(
+          content: {
+            SettingsCheckBoxRow(
+              title: "Sync Play Queue",
+              isOn: $settings.isPlayQueueSyncEnabled
+            )
+          },
+          footer: "Saves the play queue and position on the server, so another device can continue playback. Requires a Subsonic server."
+        )
+
         SettingsSection(content: {
           SettingsCheckBoxRow(title: "Manual Playback", isOn: $settings.isPlaybackStartOnlyOnPlay)
         }, footer: "Enable to start playback only when the Play button is pressed.")

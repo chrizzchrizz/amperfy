@@ -65,6 +65,8 @@ final class Settings: ObservableObject {
   @Published
   var isOpenPlayerOnForeground = false
   @Published
+  var isPlayQueueSyncEnabled = false
+  @Published
   var isShowMusicPlayerSkipButtons = false
   @Published
   var isLyricsSmoothScrolling = true

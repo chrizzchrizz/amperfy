@@ -165,6 +165,13 @@ public struct UserSettings: Sendable, Codable {
     set { _isOpenPlayerOnForeground = newValue }
   }
 
+  private var _isPlayQueueSyncEnabled: Bool = false
+  /// Saves the play queue to the server so another device can continue playback.
+  public var isPlayQueueSyncEnabled: Bool {
+    get { _isPlayQueueSyncEnabled }
+    set { _isPlayQueueSyncEnabled = newValue }
+  }
+
   private var _isAutoplayEnabled: Bool = false
   public var isAutoplayEnabled: Bool {
     get { _isAutoplayEnabled }
