@@ -126,13 +126,17 @@ final class HomeVC: UICollectionViewController {
     refreshContinuePlaybackNavButton()
   }
 
-  private lazy var continuePlaybackNavButton = UIBarButtonItem(
-    image: .continuePlayback,
-    primaryAction: UIAction { [weak self] _ in
-      guard let self else { return }
-      appDelegate.continuePlaybackFromOtherDevice(presentingVC: self)
-    }
-  )
+  private lazy var continuePlaybackNavButton = {
+    let button = UIBarButtonItem(
+      image: .continuePlayback,
+      primaryAction: UIAction { [weak self] _ in
+        guard let self else { return }
+        appDelegate.continuePlaybackFromOtherDevice(presentingVC: self)
+      }
+    )
+    button.accessibilityLabel = "Continue Playback"
+    return button
+  }()
 
   /// Rightmost item, so the edit button stays the last one the Mac arrangement expects.
   private func refreshContinuePlaybackNavButton() {
