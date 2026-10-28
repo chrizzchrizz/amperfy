@@ -692,6 +692,33 @@ class MusicPlayerTest: XCTestCase {
     XCTAssertTrue(songDownloader.isNoDownloadRequested())
   }
 
+  func testPlayContextAtStartSecond() async throws {
+    let playables = playlistAllCached.playables
+    testPlayer.play(
+      context: PlayContext(name: "Test", index: 2, playables: playables),
+      startSecond: 42.5
+    )
+    XCTAssertEqual(testPlayer.currentlyPlaying, playables[2])
+    XCTAssertEqual(testPlayer.prevQueueCount, 2)
+    XCTAssertEqual(testPlayer.nextQueueCount, playables.count - 3)
+    // the seek is applied once the stream has started
+    try await Task.sleep(for: .milliseconds(200))
+    XCTAssertEqual(testPlayer.elapsedTime, 42.5)
+  }
+
+  func testPlayContextAtStartSecond_NotAppliedToNextPlayable() async throws {
+    let playables = playlistAllCached.playables
+    testPlayer.play(
+      context: PlayContext(name: "Test", index: 0, playables: playables),
+      startSecond: 42.5
+    )
+    try await Task.sleep(for: .milliseconds(200))
+    testPlayer.playNext()
+    try await Task.sleep(for: .milliseconds(200))
+    XCTAssertEqual(testPlayer.currentlyPlaying, playables[1])
+    XCTAssertEqual(testPlayer.elapsedTime, 0.0)
+  }
+
   func testPlay_OneSongToDownload_IsPlayingFalse_UntilDownloadfinishes() {
     mockMusicPlayable.expectationDidStartPlaying = expectation(description: "download is triggered")
     testPlayer.appendContextQueue(playables: [songToDownload])

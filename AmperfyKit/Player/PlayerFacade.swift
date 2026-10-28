@@ -214,6 +214,8 @@ public protocol PlayerFacade {
 
   func play()
   func play(context: PlayContext)
+  /// Plays the context and continues its active playable at `startSecond`.
+  func play(context: PlayContext, startSecond: Double)
   func playShuffled(context: PlayContext)
   func play(playerIndex: PlayerIndex)
   func pause()
@@ -613,6 +615,13 @@ class PlayerFacadeImpl: PlayerFacade {
     }
     musicPlayer.play(context: context)
     musicPlayer.notifyPlaylistUpdated()
+  }
+
+  func play(context: PlayContext, startSecond: Double) {
+    if let activePlayable = context.getActivePlayable(), startSecond > 0 {
+      musicPlayer.setStartPosition(second: startSecond, of: activePlayable)
+    }
+    play(context: context)
   }
 
   private func setPlayerModeForContextPlay(_ newValue: PlayerMode) {

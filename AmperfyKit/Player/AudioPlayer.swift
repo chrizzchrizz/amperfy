@@ -62,6 +62,8 @@ public class AudioPlayer: NSObject, BackendAudioPlayerNotifiable {
   private let settings: AmperfySettings
   private let userStatistics: UserStatistics
   private var notifierList: [WeakMusicPlayable] = []
+  /// Position to seek to once the playable is prepared, instead of its last stopped play time.
+  private var startPosition: (playable: AbstractPlayable, second: Double)?
   public private(set) var currentRadioNowPlaying: RadioNowPlayingInfo?
   private var lastRadioStreamTitle: String?
 
@@ -271,7 +273,19 @@ public class AudioPlayer: NSObject, BackendAudioPlayerNotifiable {
     }
   }
 
+  func setStartPosition(second: Double, of playable: AbstractPlayable) {
+    startPosition = (playable, second)
+  }
+
   private func seekToLastStoppedPlayTime() {
+    if let startPosition {
+      self.startPosition = nil
+      // the user may have skipped before the playable was prepared
+      if let playable = currentlyPlaying, playable == startPosition.playable {
+        backendAudioPlayer.seek(toSecond: startPosition.second)
+        return
+      }
+    }
     if let playable = currentlyPlaying,
        playable.playProgress > 0,
        playable
