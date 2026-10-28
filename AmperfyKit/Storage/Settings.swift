@@ -172,6 +172,13 @@ public struct UserSettings: Sendable, Codable {
     set { _isPlayQueueSyncEnabled = newValue }
   }
 
+  private var _playQueueDeviceName: String = ""
+  /// Name the server shows as the device that saved the play queue; empty uses the device type.
+  public var playQueueDeviceName: String {
+    get { _playQueueDeviceName }
+    set { _playQueueDeviceName = newValue }
+  }
+
   private var _isAutoplayEnabled: Bool = false
   public var isAutoplayEnabled: Bool {
     get { _isAutoplayEnabled }

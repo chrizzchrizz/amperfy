@@ -229,6 +229,10 @@ class SettingsHostVC: UIViewController {
     changesAgent.append(settings.$isPlayQueueSyncEnabled.sink(receiveValue: { newValue in
       self.appDelegate.storage.settings.user.isPlayQueueSyncEnabled = newValue
     }))
+    settings.playQueueDeviceName = appDelegate.storage.settings.user.playQueueDeviceName
+    changesAgent.append(settings.$playQueueDeviceName.sink(receiveValue: { newValue in
+      self.appDelegate.storage.settings.user.playQueueDeviceName = newValue
+    }))
 
     settings.isAutoplayEnabled = appDelegate.storage.settings.user.isAutoplayEnabled
     changesAgent.append(settings.$isAutoplayEnabled.sink(receiveValue: { newValue in

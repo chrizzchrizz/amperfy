@@ -137,8 +137,14 @@ struct PlayerSettingsView: View {
               title: "Sync Play Queue",
               isOn: $settings.isPlayQueueSyncEnabled
             )
+            if settings.isPlayQueueSyncEnabled {
+              SettingsRow(title: "Device Name") {
+                TextField(PlayQueueSyncer.defaultDeviceName, text: $settings.playQueueDeviceName)
+                  .multilineTextAlignment(.trailing)
+              }
+            }
           },
-          footer: "Saves the play queue and position on the server, so another device can continue playback. Requires a Subsonic server."
+          footer: "Saves the play queue and position on the server, so another device can continue playback. The device name tells your devices apart, give each one its own. Requires a Subsonic server."
         )
 
         SettingsSection(content: {

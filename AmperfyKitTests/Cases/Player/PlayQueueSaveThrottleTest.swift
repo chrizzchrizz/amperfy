@@ -175,4 +175,15 @@ class PlayQueueSnapshotCreationTest: XCTestCase {
       account: account, current: radio, prev: [song("p1")], user: [], next: [], elapsedTime: 0
     ))
   }
+
+  func testClientName() {
+    XCTAssertEqual(
+      PlayQueueSyncer.clientName(deviceName: "iPhone von Chrizz"),
+      "Amperfy (iPhone von Chrizz)"
+    )
+    XCTAssertEqual(PlayQueueSyncer.clientName(deviceName: "  iPad  "), "Amperfy (iPad)")
+    let defaultName = "Amperfy (\(PlayQueueSyncer.defaultDeviceName))"
+    XCTAssertEqual(PlayQueueSyncer.clientName(deviceName: ""), defaultName)
+    XCTAssertEqual(PlayQueueSyncer.clientName(deviceName: " \n"), defaultName)
+  }
 }

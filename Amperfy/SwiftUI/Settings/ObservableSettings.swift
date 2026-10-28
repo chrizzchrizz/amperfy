@@ -67,6 +67,8 @@ final class Settings: ObservableObject {
   @Published
   var isPlayQueueSyncEnabled = false
   @Published
+  var playQueueDeviceName = ""
+  @Published
   var isShowMusicPlayerSkipButtons = false
   @Published
   var isLyricsSmoothScrolling = true

@@ -83,7 +83,7 @@ struct PlayQueueSaveThrottle {
   }
 
   /// The queue on the server was saved by another device if its client name differs.
-  /// Two devices of the same type share their client name and can't be told apart.
+  /// Devices with the same name, e.g. two iPhones without a device name set, can't be told apart.
   static func isSavedByOtherDevice(_ info: ServerPlayQueueInfo, ownClientName: String) -> Bool {
     guard let changedBy = info.changedBy, !changedBy.isEmpty else { return false }
     return changedBy != ownClientName
@@ -103,12 +103,23 @@ public class PlayQueueSyncer {
   private static let songChangeSaveDelay: Duration = .seconds(2)
   private static let queueChangeSaveDelay: Duration = .seconds(5)
 
-  public static var clientName: String {
+  /// iOS only reveals the device type, the user assigned name needs an entitlement.
+  public static var defaultDeviceName: String {
     #if targetEnvironment(macCatalyst)
-      return "Amperfy (Mac)"
+      return "Mac"
     #else
-      return "Amperfy (\(UIDevice.current.model))"
+      return UIDevice.current.model
     #endif
+  }
+
+  /// Different names let the server tell the devices apart, also two of the same type.
+  static func clientName(deviceName: String) -> String {
+    let name = deviceName.trimmingCharacters(in: .whitespacesAndNewlines)
+    return "Amperfy (\(name.isEmpty ? defaultDeviceName : name))"
+  }
+
+  private var clientName: String {
+    Self.clientName(deviceName: storage.settings.user.playQueueDeviceName)
   }
 
   private let log = OSLog(subsystem: "Amperfy", category: "PlayQueueSyncer")
@@ -202,7 +213,7 @@ public class PlayQueueSyncer {
     do {
       if throttle.shouldCheckForTakeover(now: Date()),
          let info = try await librarySyncer.requestPlayQueueInfo(),
-         PlayQueueSaveThrottle.isSavedByOtherDevice(info, ownClientName: Self.clientName) {
+         PlayQueueSaveThrottle.isSavedByOtherDevice(info, ownClientName: clientName) {
         os_log(
           "Play queue saved by %s, stop saving until playback starts here",
           log: log,
@@ -212,7 +223,7 @@ public class PlayQueueSyncer {
         isTakenOverByOtherDevice = true
         return
       }
-      try await librarySyncer.savePlayQueue(snapshot: snapshot, clientName: Self.clientName)
+      try await librarySyncer.savePlayQueue(snapshot: snapshot, clientName: clientName)
       throttle.didSave(snapshot, now: Date())
     } catch {
       throttle.didFailToSave(now: Date())
