@@ -287,6 +287,10 @@ public class PlayQueueSyncer {
       ),
       startSecond: playQueue.startPositionInSeconds
     )
+    // the pause before the context starts schedules a save, the position isn't applied by then;
+    // the save after the song started has it
+    scheduledSave?.cancel()
+    scheduledSave = nil
   }
 }
 
