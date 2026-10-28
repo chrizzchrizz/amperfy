@@ -21,7 +21,6 @@ Eigenton is not affiliated with the Amperfy project. Please report issues [here]
 - Sleep timer
 - 5 star song rating
 - Favorite song
-- Sleep Timer
 - Scrobbling
 - Continue playback on another device (play queue sync, Subsonic/Navidrome)
 
