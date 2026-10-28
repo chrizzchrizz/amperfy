@@ -23,6 +23,26 @@ Eigenton is not affiliated with the Amperfy project. Please report issues [here]
 - Favorite song
 - Sleep Timer
 - Scrobbling
+- Continue playback on another device (play queue sync, Subsonic/Navidrome)
+
+## Continue Playback
+
+Start listening on one device and continue on another one: the play queue, the current song and its position are saved on the server and can be loaded on another device.
+
+**Setup** (on every device): Settings > Player > enable "Sync Play Queue" and give the device a name under "Device Name", e.g. "iPhone von Chrizz". Without a name the device type ("iPhone", "iPad", "Mac") is used.
+
+**Usage**: tap the devices button on Home, choose "Continue Playback" in the player menu, or on Mac in the Controls menu. A confirmation shows the song, the device that saved the queue, the song count and when it was saved. Continuing replaces the current queue and starts at the saved position.
+
+**Behavior**
+- The queue is saved after a song change, on pause or stop, after the queue changed, every 30 seconds while playing and when the app moves to the background.
+- The device you continue from keeps playing, it doesn't pause. Once it notices the queue was saved by another device (within about 2 minutes), it stops saving until you start playback on it again, so it doesn't overwrite the queue of the device you continued on.
+- If both devices save, the last save wins.
+
+**Limitations**
+- Only Subsonic servers that store a play queue (API 1.12 or newer, e.g. Navidrome); not available for Ampache.
+- Devices with the same name can't be told apart, give each device its own name.
+- Only songs are saved, no podcasts or radios. A song queued twice continues at its first occurrence.
+- Without the OpenSubsonic extension `formPost`, at most 200 songs around the current one are saved.
 
 ## Requirements
 
