@@ -38,7 +38,6 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDataSourcePrefe
   private let lineStartTolerance = CMTime(value: 250, timescale: 1_000)
   /// Start of the line the user tapped, the tolerance only applies until playback reaches it.
   private var selectedLineStart: CMTime?
-  private var scrollAnimation = true
   private var suppressAutoScrollUntil: Date?
   private let autoScrollSuppressionInterval: TimeInterval = 5.0
 
@@ -96,9 +95,8 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDataSourcePrefe
     CATransaction.commit()
   }
 
-  public func display(lyrics: StructuredLyrics, scrollAnimation: Bool) {
+  public func display(lyrics: StructuredLyrics) {
     self.lyrics = lyrics
-    self.scrollAnimation = scrollAnimation
     reloadViewModels()
   }
 
@@ -300,7 +298,7 @@ class LyricsView: UITableView, UITableViewDataSource, UITableViewDataSourcePrefe
       scrollToRow(
         at: IndexPath(row: indexOfCurrentLine, section: 0),
         at: .middle,
-        animated: scrollAnimation
+        animated: true
       )
     }
   }

@@ -324,10 +324,7 @@ class LargeCurrentlyPlayingPlayerView: UIView, UIGestureRecognizerDelegate {
   }
 
   private func showLyrics(structuredLyrics: StructuredLyrics) {
-    lyricsView?.display(
-      lyrics: structuredLyrics,
-      scrollAnimation: appDelegate.storage.settings.user.isLyricsSmoothScrolling
-    )
+    lyricsView?.display(lyrics: structuredLyrics)
     lyricsView?.isHidden = false
   }
 

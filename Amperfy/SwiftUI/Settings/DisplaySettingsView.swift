@@ -133,22 +133,6 @@ struct DisplaySettingsView: View {
           "Add skip forward and skip backward buttons to the music player, along with the previous/next buttons."
         )
 
-        if let activeAccountInfo = settings.activeAccountInfo,
-           let credentials = appDelegate.storage.settings.accounts.getSetting(activeAccountInfo)
-           .read.loginCredentials,
-           credentials.backendApi.asServerApiType != .ampache {
-          SettingsSection(
-            content: {
-              SettingsCheckBoxRow(
-                title: "Lyrics Smooth Scrolling",
-                isOn: $settings.isLyricsSmoothScrolling
-              )
-            },
-            footer:
-            "Lyrics are smoothly scrolled to next line. Deactivating will result in jumping from line to line."
-          )
-        }
-
         SettingsSection(
           content: {
             SettingsCheckBoxRow(

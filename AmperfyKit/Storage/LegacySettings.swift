@@ -237,17 +237,6 @@ extension PersistentStorage {
       ) }
     }
 
-    public var isLyricsSmoothScrolling: Bool {
-      get {
-        UserDefaults.standard
-          .object(forKey: UserDefaultsKey.IsLyricsSmoothScrolling.rawValue) as? Bool ?? true
-      }
-      set { UserDefaults.standard.set(
-        newValue,
-        forKey: UserDefaultsKey.IsLyricsSmoothScrolling.rawValue
-      ) }
-    }
-
     public var cacheLimit: Int {
       get {
         UserDefaults.standard.object(forKey: UserDefaultsKey.CacheLimit.rawValue) as? Int ?? 0
@@ -788,7 +777,6 @@ extension PersistentStorage {
     settings.user.isShowArtistDuration = legacySettings.isShowArtistDuration
     settings.user.isPlayerShuffleButtonEnabled = legacySettings.isPlayerShuffleButtonEnabled
     settings.user.isShowMusicPlayerSkipButtons = legacySettings.isShowMusicPlayerSkipButtons
-    settings.user.isLyricsSmoothScrolling = legacySettings.isLyricsSmoothScrolling
     settings.user.cacheLimit = legacySettings.cacheLimit
     settings.user.isPlayerLyricsDisplayed = legacySettings.isPlayerLyricsDisplayed
     settings.user.isOfflineMode = legacySettings.isOfflineMode

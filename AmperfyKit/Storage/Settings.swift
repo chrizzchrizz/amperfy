@@ -118,12 +118,6 @@ public struct UserSettings: Sendable, Codable {
     set { _isShowMusicPlayerSkipButtons = newValue }
   }
 
-  private var _isLyricsSmoothScrolling: Bool = true
-  public var isLyricsSmoothScrolling: Bool {
-    get { _isLyricsSmoothScrolling }
-    set { _isLyricsSmoothScrolling = newValue }
-  }
-
   // limit in byte
   private var _cacheLimit: Int = 0
   public var cacheLimit: Int {

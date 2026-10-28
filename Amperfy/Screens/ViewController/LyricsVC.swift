@@ -90,10 +90,7 @@ class LyricsVC: UIViewController {
   }
 
   private func showLyrics(structuredLyrics: StructuredLyrics) {
-    lyricsView?.display(
-      lyrics: structuredLyrics,
-      scrollAnimation: appDelegate.storage.settings.user.isLyricsSmoothScrolling
-    )
+    lyricsView?.display(lyrics: structuredLyrics)
   }
 
   private func showLyricsAreNotAvailable() {
