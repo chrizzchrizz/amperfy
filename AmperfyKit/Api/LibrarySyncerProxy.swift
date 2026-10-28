@@ -120,6 +120,26 @@ extension LibrarySyncerProxy: LibrarySyncer {
   }
 
   @MainActor
+  func isPlayQueueSyncSupported() async -> Bool {
+    await activeSyncer.isPlayQueueSyncSupported()
+  }
+
+  @MainActor
+  func savePlayQueue(snapshot: PlayQueueSnapshot, clientName: String) async throws {
+    try await activeSyncer.savePlayQueue(snapshot: snapshot, clientName: clientName)
+  }
+
+  @MainActor
+  func requestPlayQueueInfo() async throws -> ServerPlayQueueInfo? {
+    try await activeSyncer.requestPlayQueueInfo()
+  }
+
+  @MainActor
+  func requestPlayQueue() async throws -> ServerPlayQueue? {
+    try await activeSyncer.requestPlayQueue()
+  }
+
+  @MainActor
   func syncUpload(playlist: Playlist, coverJpegData: Data) async throws {
     try await activeSyncer.syncUpload(playlist: playlist, coverJpegData: coverJpegData)
   }

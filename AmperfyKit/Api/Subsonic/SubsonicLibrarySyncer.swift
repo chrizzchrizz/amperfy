@@ -1214,6 +1214,99 @@ class SubsonicLibrarySyncer: CommonLibrarySyncer, LibrarySyncer {
   }
 
   @MainActor
+  func isPlayQueueSyncSupported() async -> Bool {
+    (try? await subsonicServerApi.requestServerPlayQueueSupport()) ?? false
+  }
+
+  /// Without the OpenSubsonic extension "formPost" the ids are part of the URL,
+  /// which a reverse proxy may reject above about 8 KB.
+  private static let playQueueMaxSongCountInUrl = 200
+
+  @MainActor
+  func savePlayQueue(snapshot: PlayQueueSnapshot, clientName: String) async throws {
+    guard isSyncAllowed else { return }
+    var snapshotToSave = snapshot
+    if await !subsonicServerApi.isOpenSubsonicExtensionSupported(extension: .formPost) {
+      snapshotToSave = snapshot.limited(to: Self.playQueueMaxSongCountInUrl)
+    }
+    os_log(
+      "Save play queue: %i songs, current %s at %i ms",
+      log: log,
+      type: .info,
+      snapshotToSave.songIds.count,
+      snapshotToSave.currentId ?? "-",
+      snapshotToSave.positionInMs
+    )
+    let response = try await subsonicServerApi.requestSavePlayQueue(
+      songIds: snapshotToSave.songIds,
+      currentId: snapshotToSave.currentId,
+      positionInMs: snapshotToSave.positionInMs,
+      clientName: clientName
+    )
+    try parseForError(response: response)
+  }
+
+  @MainActor
+  func requestPlayQueueInfo() async throws -> ServerPlayQueueInfo? {
+    guard isSyncAllowed else { return nil }
+    let response = try await subsonicServerApi.requestPlayQueue()
+    let parserDelegate = SsPlayQueueInfoParserDelegate(performanceMonitor: performanceMonitor)
+    try parsePlayQueue(response: response, delegate: parserDelegate)
+    return parserDelegate.playQueueInfo
+  }
+
+  @MainActor
+  func requestPlayQueue() async throws -> ServerPlayQueue? {
+    guard isSyncAllowed else { return nil }
+    let response = try await subsonicServerApi.requestPlayQueue()
+    let parsed: (info: ServerPlayQueueInfo, songObjectIds: [NSManagedObjectID])? = try await storage
+      .async.performAndGet { asyncCompanion in
+        let accountAsync = asyncCompanion.library.getAccount(managedObjectId: self.accountObjectId)
+        let idParserDelegate = SsIDsParserDelegate(performanceMonitor: self.performanceMonitor)
+        try self.parse(
+          response: response,
+          delegate: idParserDelegate,
+          isThrowingErrorsAllowed: false
+        )
+        let prefetch = asyncCompanion.library.getElements(
+          account: accountAsync,
+          prefetchIDs: idParserDelegate.prefetchIDs
+        )
+        let parserDelegate = SsPlayQueueParserDelegate(
+          performanceMonitor: self.performanceMonitor,
+          prefetch: prefetch,
+          account: accountAsync,
+          library: asyncCompanion.library
+        )
+        try self.parsePlayQueue(response: response, delegate: parserDelegate)
+        guard let info = parserDelegate.playQueueInfo else { return nil }
+        // newly created songs only have temporary IDs, which the main context can't resolve after the save
+        let songMOs = parserDelegate.parsedSongs.map { $0.managedObject }
+        try asyncCompanion.context.obtainPermanentIDs(for: songMOs)
+        return (info, songMOs.map { $0.objectID })
+      }
+    guard let parsed else { return nil }
+    let songs = try parsed.songObjectIds.map {
+      Song(managedObject: try storage.main.context.existingObject(with: $0) as! SongMO)
+    }
+    return ServerPlayQueue(info: parsed.info, songs: songs)
+  }
+
+  /// A user who never saved a queue gets error 70 (not found) from some servers, an empty response
+  /// from others; both mean there is no queue.
+  nonisolated private func parsePlayQueue(response: APIDataResponse, delegate: SsXmlParser) throws {
+    try parse(response: response, delegate: delegate, isThrowingErrorsAllowed: false)
+    if let error = delegate.error, let subsonicError = error.subsonicError,
+       subsonicError != .requestedDataNotFound {
+      throw ResponseError.createFromSubsonicError(
+        cleansedURL: response.url?.asCleansedURL(cleanser: subsonicServerApi),
+        error: error,
+        data: response.data
+      )
+    }
+  }
+
+  @MainActor
   func syncNowPlaying(song: Song, songPosition: NowPlayingSongPosition) async throws {
     guard isSyncAllowed else { return }
     switch songPosition {

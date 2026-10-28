@@ -67,6 +67,8 @@ extension ResponseError {
 enum OpenSubsonicExtension: String {
   case songLyrics
   case transcodeOffset
+  case formPost
+  case indexBasedQueue
 }
 
 // MARK: - OpenSubsonicExtensionsSupport
@@ -454,6 +456,15 @@ final class SubsonicServerApi: URLCleanser, Sendable {
         return false
       }
     }
+  }
+
+  /// savePlayQueue and getPlayQueue exist since API version 1.12.0.
+  public func requestServerPlayQueueSupport() async throws -> Bool {
+    let _ = try await determineApiVersionToUse()
+    guard let serverApi = serverApiVersion.wrappedValue else { return false }
+    // not used yet, only logged: the index based variant keeps a song that is queued twice apart
+    _ = await isOpenSubsonicExtensionSupported(extension: .indexBasedQueue)
+    return serverApi >= SubsonicVersion(major: 1, minor: 12, patch: 0)
   }
 
   private func requestOpenSubsonicExtensions() async throws -> APIDataResponse {
@@ -978,6 +989,45 @@ final class SubsonicServerApi: URLCleanser, Sendable {
     }
   }
 
+  public func requestPlayQueue() async throws -> APIDataResponse {
+    try await request { version in
+      let urlComp = try self.createAuthApiUrlComponent(version: version, forAction: "getPlayQueue")
+      return try self.createUrl(from: urlComp)
+    }
+  }
+
+  /// `clientName` replaces the client parameter, the server reports it as `changedBy` of the queue.
+  /// Servers with the OpenSubsonic extension "formPost" get the ids in the body, as a long queue
+  /// can exceed the URL length a reverse proxy accepts.
+  public func requestSavePlayQueue(
+    songIds: [String],
+    currentId: String?,
+    positionInMs: Int,
+    clientName: String
+  ) async throws
+    -> APIDataResponse {
+    let version = try await determineApiVersionToUse()
+    var urlComp = try createAuthApiUrlComponent(version: version, forAction: "savePlayQueue")
+    urlComp.queryItems = urlComp.queryItems?.map {
+      $0.name == "c" ? URLQueryItem(name: "c", value: clientName) : $0
+    }
+    for songId in songIds {
+      urlComp.addQueryItem(name: "id", value: songId)
+    }
+    if let currentId {
+      urlComp.addQueryItem(name: "current", value: currentId)
+      urlComp.addQueryItem(name: "position", value: positionInMs)
+    }
+    guard await isOpenSubsonicExtensionSupported(extension: .formPost) else {
+      return try await request(url: createUrl(from: urlComp), headers: buildHTTPHeaders())
+    }
+    // a form body decodes "+" as space, URLComponents leaves it unencoded
+    let formBody = (urlComp.percentEncodedQuery ?? "").replacingOccurrences(of: "+", with: "%2B")
+    let body = Data(formBody.utf8)
+    urlComp.queryItems = nil
+    return try await request(url: createUrl(from: urlComp), headers: buildHTTPHeaders(), body: body)
+  }
+
   public func requestArtistInfo(id: String, count: Int = 20) async throws -> APIDataResponse {
     try await request { version in
       var urlComp = try self.createAuthApiUrlComponent(
@@ -1112,9 +1162,28 @@ final class SubsonicServerApi: URLCleanser, Sendable {
     return try await request(url: url, headers: buildHTTPHeaders())
   }
 
-  private func request(url: URL, headers: HTTPHeaders? = nil) async throws -> APIDataResponse {
+  /// With a `body` the request is a form POST, otherwise a GET.
+  private func request(
+    url: URL,
+    headers: HTTPHeaders? = nil,
+    body: Data? = nil
+  ) async throws
+    -> APIDataResponse {
     try await withUnsafeThrowingContinuation { continuation in
-      let afRequest = AF.request(url, method: .get, headers: headers)
+      let afRequest: DataRequest
+      if let body {
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = HTTPMethod.post.rawValue
+        urlRequest.headers = headers ?? HTTPHeaders()
+        urlRequest.setValue(
+          "application/x-www-form-urlencoded",
+          forHTTPHeaderField: "Content-Type"
+        )
+        urlRequest.httpBody = body
+        afRequest = AF.request(urlRequest)
+      } else {
+        afRequest = AF.request(url, method: .get, headers: headers)
+      }
       afRequest.validate().responseData { response in
         if response.response?.statusCode == 404 {
           let cleanedURL = self.cleanse(url: response.request?.url)

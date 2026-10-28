@@ -227,11 +227,41 @@ public protocol LibrarySyncer: Sendable {
   func setFavorite(artist: Artist, isFavorite: Bool) async throws
   @MainActor
   func parseLyrics(relFilePath: URL) async throws -> LyricsList
+  /// True if the server stores a play queue per user to continue playback on another device.
+  @MainActor
+  func isPlayQueueSyncSupported() async -> Bool
+  /// `clientName` is reported by the server as the device that saved the queue.
+  @MainActor
+  func savePlayQueue(snapshot: PlayQueueSnapshot, clientName: String) async throws
+  /// Attributes of the saved play queue without loading its songs; nil if the server has none.
+  @MainActor
+  func requestPlayQueueInfo() async throws -> ServerPlayQueueInfo?
+  /// The saved play queue, its songs are created or updated in the library; nil if the server has none.
+  @MainActor
+  func requestPlayQueue() async throws -> ServerPlayQueue?
 }
 
 // MARK: - AbstractBackgroundLibrarySyncer
 
 extension LibrarySyncer {
+  @MainActor
+  public func isPlayQueueSyncSupported() async -> Bool { false }
+
+  @MainActor
+  public func savePlayQueue(snapshot: PlayQueueSnapshot, clientName: String) async throws {
+    throw BackendError.notSupported
+  }
+
+  @MainActor
+  public func requestPlayQueueInfo() async throws -> ServerPlayQueueInfo? {
+    throw BackendError.notSupported
+  }
+
+  @MainActor
+  public func requestPlayQueue() async throws -> ServerPlayQueue? {
+    throw BackendError.notSupported
+  }
+
   @MainActor
   public func isPlaylistCoverUploadSupported() async -> Bool { false }
 
