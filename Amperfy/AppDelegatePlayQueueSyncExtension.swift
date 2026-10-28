@@ -107,21 +107,18 @@ extension AppDelegate {
   ) {
     let startSong = playQueue.songs[playQueue.startIndex]
     var lines = [startSong.displayString]
-    var savedBy = [String]()
     if let changedBy = playQueue.info.changedBy, !changedBy.isEmpty {
-      savedBy.append(Self.deviceName(clientName: changedBy))
+      lines.append(Self.deviceName(clientName: changedBy))
     }
+    var countAndDate = [playQueue.songs.count == 1 ? "1 Song" : "\(playQueue.songs.count) Songs"]
     if let changed = playQueue.info.changed {
       let formatter = DateFormatter()
       formatter.dateStyle = .short
       formatter.timeStyle = .short
       formatter.doesRelativeDateFormatting = true
-      savedBy.append(formatter.string(from: changed))
+      countAndDate.append(formatter.string(from: changed))
     }
-    if !savedBy.isEmpty {
-      lines.append(savedBy.joined(separator: " - "))
-    }
-    lines.append(playQueue.songs.count == 1 ? "1 Song" : "\(playQueue.songs.count) Songs")
+    lines.append(countAndDate.joined(separator: " - "))
 
     let alert = UIAlertController(
       title: "Continue Playback?",
