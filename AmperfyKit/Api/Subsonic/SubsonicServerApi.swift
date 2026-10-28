@@ -1008,16 +1008,16 @@ final class SubsonicServerApi: URLCleanser, Sendable {
     -> APIDataResponse {
     let version = try await determineApiVersionToUse()
     var urlComp = try createAuthApiUrlComponent(version: version, forAction: "savePlayQueue")
-    urlComp.queryItems = urlComp.queryItems?.map {
+    // set at once, adding them one by one copies all items for every song of a long queue
+    var queryItems = (urlComp.queryItems ?? []).map {
       $0.name == "c" ? URLQueryItem(name: "c", value: clientName) : $0
     }
-    for songId in songIds {
-      urlComp.addQueryItem(name: "id", value: songId)
-    }
+    queryItems += songIds.map { URLQueryItem(name: "id", value: $0) }
     if let currentId {
-      urlComp.addQueryItem(name: "current", value: currentId)
-      urlComp.addQueryItem(name: "position", value: positionInMs)
+      queryItems.append(URLQueryItem(name: "current", value: currentId))
+      queryItems.append(URLQueryItem(name: "position", value: String(positionInMs)))
     }
+    urlComp.queryItems = queryItems
     guard await isOpenSubsonicExtensionSupported(extension: .formPost) else {
       return try await request(url: createUrl(from: urlComp), headers: buildHTTPHeaders())
     }
