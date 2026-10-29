@@ -87,6 +87,7 @@
 		505CA2112B88ECC700AA81CD /* SingleFetchedResultsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505CA2102B88ECC700AA81CD /* SingleFetchedResultsTableViewController.swift */; };
 		505CA2142B88ED6100AA81CD /* SingleSnapshotFetchedResultsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505CA2132B88ED6100AA81CD /* SingleSnapshotFetchedResultsTableViewController.swift */; };
 		5064F3982B96FBAE00DE61C1 /* NotificationDetailVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5064F3972B96FBAE00DE61C1 /* NotificationDetailVC.swift */; };
+		E288B5BE979258AD039A9773 /* ContinuePlaybackSheetVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = E188B5BE979258AD039A9773 /* ContinuePlaybackSheetVC.swift */; };
 		5064F3992B96FBD600DE61C1 /* NotificationDetailVC.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5064F3962B96FBAE00DE61C1 /* NotificationDetailVC.xib */; };
 		50699C822ED859B20039BECD /* AudioStreaming in Frameworks */ = {isa = PBXBuildFile; productRef = 50699C812ED859B20039BECD /* AudioStreaming */; };
 		507148AD2B767FE200557904 /* ContextQueuePrevSectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507148AC2B767FE200557904 /* ContextQueuePrevSectionHeader.swift */; };
@@ -764,6 +765,7 @@
 		505CA2132B88ED6100AA81CD /* SingleSnapshotFetchedResultsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleSnapshotFetchedResultsTableViewController.swift; sourceTree = "<group>"; };
 		5064F3962B96FBAE00DE61C1 /* NotificationDetailVC.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NotificationDetailVC.xib; sourceTree = "<group>"; };
 		5064F3972B96FBAE00DE61C1 /* NotificationDetailVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDetailVC.swift; sourceTree = "<group>"; };
+		E188B5BE979258AD039A9773 /* ContinuePlaybackSheetVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuePlaybackSheetVC.swift; sourceTree = "<group>"; };
 		506640D12B683AAF007434A8 /* Amperfy v33.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Amperfy v33.xcdatamodel"; sourceTree = "<group>"; };
 		5067016125E3ADA200A3EF89 /* Amperfy v5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Amperfy v5.xcdatamodel"; sourceTree = "<group>"; };
 		50675E6C25F61163005737FD /* BasicTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BasicTableCell.swift; sourceTree = "<group>"; };
@@ -1828,6 +1830,7 @@
 				500B97CC2B7BC67F005554BF /* EntityPreviewVC.swift */,
 				5064F3962B96FBAE00DE61C1 /* NotificationDetailVC.xib */,
 				5064F3972B96FBAE00DE61C1 /* NotificationDetailVC.swift */,
+				E188B5BE979258AD039A9773 /* ContinuePlaybackSheetVC.swift */,
 				50DEEE03265E25A40073FF20 /* MusicFoldersVC.swift */,
 				50DEEE09265E392C0073FF20 /* IndexesVC.swift */,
 				50DEEE0B265E3F9D0073FF20 /* DirectoriesVC.swift */,
@@ -2485,6 +2488,7 @@
 				505CA2092B88E8F400AA81CD /* BasicCollectionViewController.swift in Sources */,
 				50AAB9F12F013F68004A39C6 /* NextPreviousTrackAppEnum.swift in Sources */,
 				5064F3982B96FBAE00DE61C1 /* NotificationDetailVC.swift in Sources */,
+				E288B5BE979258AD039A9773 /* ContinuePlaybackSheetVC.swift in Sources */,
 				50C171462D0F809600C0C53A /* PlaylistAddAlbumsVC.swift in Sources */,
 				5003D8FB267B3390006946BF /* LibrarySyncPopupVC.swift in Sources */,
 				501944182B78F97F00082D2E /* LargeCurrentlyPlayingPlayerView.swift in Sources */,

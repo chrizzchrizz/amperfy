@@ -71,9 +71,12 @@ extension AppDelegate {
     guard let syncer = activePlayQueueSyncer else { return }
     // without a connection the server would seem to have no saved queue
     guard networkMonitor.isConnectedToNetwork else {
-      presentContinuePlaybackAlert(
-        title: "No Connection",
-        message: "The saved play queue can only be loaded from the server with a network connection.",
+      presentContinuePlayback(
+        .message(
+          title: "No Connection",
+          message: "The saved play queue can only be loaded from the server with a network connection.",
+          systemImage: "wifi.slash"
+        ),
         presentingVC: presentingVC
       )
       return
@@ -81,9 +84,12 @@ extension AppDelegate {
     Task { @MainActor in
       do {
         guard try await syncer.isContinuePlaybackAvailable() else {
-          presentContinuePlaybackAlert(
-            title: "Not Supported",
-            message: "The server doesn't store a play queue.",
+          presentContinuePlayback(
+            .message(
+              title: "Not Supported",
+              message: "The server doesn't store a play queue.",
+              systemImage: "xmark.icloud"
+            ),
             presentingVC: presentingVC
           )
           return
@@ -91,24 +97,35 @@ extension AppDelegate {
         guard let playQueue = try await syncer.requestServerPlayQueue(),
               !playQueue.songs.isEmpty
         else {
-          presentContinuePlaybackAlert(
-            title: "No Saved Play Queue",
-            message: "No device has saved a play queue on the server yet.",
+          presentContinuePlayback(
+            .message(
+              title: "No Saved Play Queue",
+              message: "No device has saved a play queue on the server yet.",
+              systemImage: "music.note.list"
+            ),
             presentingVC: presentingVC
           )
           return
         }
         guard !syncer.isSavedByThisDevice(playQueue) else {
-          presentContinuePlaybackAlert(
-            title: "No Other Device",
-            message: "The saved play queue is the one of this device. Play something on the other device first.",
+          presentContinuePlayback(
+            .message(
+              title: "No Other Device",
+              message: "The saved play queue is the one of this device. Play something on the other device first.",
+              systemImage: "laptopcomputer.and.iphone"
+            ),
             presentingVC: presentingVC
           )
           return
         }
-        presentContinuePlaybackConfirmation(
-          playQueue: playQueue,
-          syncer: syncer,
+        var deviceName: String?
+        if let changedBy = playQueue.info.changedBy, !changedBy.isEmpty {
+          deviceName = Self.deviceName(clientName: changedBy)
+        }
+        presentContinuePlayback(
+          .playQueue(playQueue, deviceName: deviceName) {
+            syncer.continuePlayback(of: playQueue)
+          },
           presentingVC: presentingVC
         )
       } catch {
@@ -117,61 +134,26 @@ extension AppDelegate {
     }
   }
 
-  private func presentContinuePlaybackConfirmation(
-    playQueue: ServerPlayQueue,
-    syncer: PlayQueueSyncer,
-    presentingVC: UIViewController?
-  ) {
-    let startSong = playQueue.songs[playQueue.startIndex]
-    var lines = [startSong.displayString]
-    if let changedBy = playQueue.info.changedBy, !changedBy.isEmpty {
-      lines.append(Self.deviceName(clientName: changedBy))
-    }
-    var countAndDate = [playQueue.songs.count == 1 ? "1 Song" : "\(playQueue.songs.count) Songs"]
-    if let changed = playQueue.info.changed {
-      let formatter = DateFormatter()
-      formatter.dateStyle = .short
-      formatter.timeStyle = .short
-      formatter.doesRelativeDateFormatting = true
-      countAndDate.append(formatter.string(from: changed))
-    }
-    lines.append(countAndDate.joined(separator: " - "))
-
-    let alert = UIAlertController(
-      title: "Continue Playback?",
-      message: lines.joined(separator: "\n"),
-      preferredStyle: .alert
-    )
-    alert.addAction(UIAlertAction(title: "Continue", style: .default) { _ in
-      syncer.continuePlayback(of: playQueue)
-    })
-    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-    present(alert: alert, on: presentingVC)
-  }
-
   /// "Amperfy (iPhone)" -> "iPhone", other clients are shown as they are.
   private static func deviceName(clientName: String) -> String {
     guard clientName.hasPrefix("Amperfy ("), clientName.hasSuffix(")") else { return clientName }
     return String(clientName.dropFirst("Amperfy (".count).dropLast())
   }
 
-  private func presentContinuePlaybackAlert(
-    title: String,
-    message: String,
+  private func presentContinuePlayback(
+    _ content: ContinuePlaybackSheetVC.Content,
     presentingVC: UIViewController?
   ) {
-    let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-    alert.addAction(UIAlertAction(title: "OK", style: .default))
-    present(alert: alert, on: presentingVC)
+    present(sheet: ContinuePlaybackSheetVC(content: content), on: presentingVC)
   }
 
   /// The view controller of the menu may be gone after the request.
-  private func present(alert: UIAlertController, on presentingVC: UIViewController?) {
+  private func present(sheet: UIViewController, on presentingVC: UIViewController?) {
     if let presentingVC, presentingVC.viewIfLoaded?.window != nil,
        presentingVC.presentedViewController == nil {
-      presentingVC.present(alert, animated: true)
+      presentingVC.present(sheet, animated: true)
     } else {
-      Self.topViewController()?.present(alert, animated: true)
+      Self.topViewController()?.present(sheet, animated: true)
     }
   }
 }
