@@ -151,10 +151,11 @@ class PlaylistEditVC: SingleSnapshotFetchedResultsTableViewController<PlaylistIt
 
   private func enableCoverEditingIfSupported() {
     guard appDelegate.storage.settings.user.isOnlineMode, !playlist.isSmartPlaylist else { return }
-    Task { @MainActor in
-      let librarySyncer = self.appDelegate.getMeta(self.account.info).librarySyncer
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      let librarySyncer = appDelegate.getMeta(account.info).librarySyncer
       guard await librarySyncer.isPlaylistCoverUploadSupported() else { return }
-      self.detailOperationsView?.onCoverEditTap = { [weak self] sourceView in
+      detailOperationsView?.onCoverEditTap = { [weak self] sourceView in
         self?.presentCoverSourceSelection(sourceView: sourceView)
       }
     }

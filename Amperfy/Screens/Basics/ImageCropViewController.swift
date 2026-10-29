@@ -67,7 +67,7 @@ class ImageCropViewController: UIViewController {
     )
     navigationItem.rightBarButtonItem = UIBarButtonItem(
       image: .check,
-      style: .done,
+      style: .prominent,
       target: self,
       action: #selector(donePressed)
     )

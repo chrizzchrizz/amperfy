@@ -76,9 +76,8 @@ extension CoverImagePicker: PHPickerViewControllerDelegate {
           provider.canLoadObject(ofClass: UIImage.self) else { return }
     provider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
       guard let image = object as? UIImage else { return }
-      nonisolated(unsafe) let unsafeImage = image
       Task { @MainActor in
-        self?.crop(unsafeImage)
+        self?.crop(image)
       }
     }
   }
