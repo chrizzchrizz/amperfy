@@ -209,8 +209,8 @@ extension PopupPlayerVC {
         viewToDisapper.alpha = 0.0
       }),
       completion: { _ in
-        // a faded out view must not swallow touches
-        if self.currentLayout != previous {
+        // a faded out view must not swallow touches; side by side the views are managed there
+        if self.currentLayout != previous, !self.isSideBySide {
           viewToDisapper.isHidden = true
         }
       }

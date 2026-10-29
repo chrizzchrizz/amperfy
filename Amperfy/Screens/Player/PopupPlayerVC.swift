@@ -224,8 +224,19 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
     switch gesture.state {
     case .changed:
       view.transform = CGAffineTransform(translationX: 0, y: translationY)
-    case .ended where translationY > view.bounds.height / 4 || gesture.velocity(in: view).y > 1000:
-      dismiss(animated: true)
+    case .ended where isDismissPanFinished(gesture, translationY: translationY):
+      // the system dismissal can't continue from a transformed view, so the player slides out itself
+      UIView.animate(
+        withDuration: 0.25,
+        delay: 0,
+        options: .curveEaseOut,
+        animations: {
+          self.view.transform = CGAffineTransform(translationX: 0, y: self.view.bounds.height)
+        },
+        completion: { _ in
+          self.dismiss(animated: false)
+        }
+      )
     case .cancelled, .ended, .failed:
       UIView.animate(
         withDuration: 0.3,
@@ -237,6 +248,20 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
     default:
       break
     }
+  }
+
+  /// A flick back up cancels the dismissal, also if the player was already dragged far down.
+  private func isDismissPanFinished(_ gesture: UIPanGestureRecognizer, translationY: CGFloat)
+    -> Bool {
+    let velocityY = gesture.velocity(in: view).y
+    return velocityY > 1000 || (translationY > view.bounds.height / 4 && velocityY >= 0)
+  }
+
+  /// Full screen the sheet's VoiceOver escape gesture is gone, the player closes itself.
+  override func accessibilityPerformEscape() -> Bool {
+    guard modalPresentationStyle == .overFullScreen else { return false }
+    dismiss(animated: true)
+    return true
   }
 
   override func viewDidLayoutSubviews() {
@@ -326,8 +351,13 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
       .constraint(equalTo: view.centerXAnchor)
   }
 
+  /// Below this height artwork, title and controls don't fit into the player column.
+  private static let sideBySideMinHeight: CGFloat = 600.0
+
   private var shouldDisplaySideBySide: Bool {
-    traitCollection.horizontalSizeClass == .regular && view.bounds.width > view.bounds.height
+    traitCollection.horizontalSizeClass == .regular &&
+      view.bounds.width > view.bounds.height &&
+      view.bounds.height >= Self.sideBySideMinHeight
   }
 
   private func refreshSideBySideMode() {
@@ -657,9 +687,22 @@ extension PopupPlayerVC: UIGestureRecognizerDelegate {
     guard velocity.y > abs(velocity.x) else { return false }
     // queue and lyrics scroll by themselves
     let location = pan.location(in: view)
-    return ![tableView, lyricsLayoutView].contains { listView in
+    let isInList = [tableView, lyricsLayoutView].contains { listView in
       !listView.isHidden && listView.frame.contains(location)
     }
+    return !isInList && !isControl(at: location)
+  }
+
+  /// Sliders, buttons and the rating keep their touches, also if the finger drifts downwards.
+  private func isControl(at location: CGPoint) -> Bool {
+    var hitView = view.hitTest(location, with: nil)
+    while let current = hitView, current !== view {
+      if current is UIControl || current is RatingView {
+        return true
+      }
+      hitView = current.superview
+    }
+    return false
   }
 }
 
