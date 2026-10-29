@@ -187,9 +187,10 @@ struct PlayerSettingsView: View {
                   }
                 }
               }
+              .disabled(settings.streamingFormatCellularPreference == .raw)
             }
           },
-          footer: "Set the maximum streaming bitrate for Cellular."
+          footer: "Set the maximum streaming bitrate for Cellular. Not available for Original, which is streamed unchanged."
         )
 
         SettingsSection(
@@ -217,9 +218,10 @@ struct PlayerSettingsView: View {
                   }
                 }
               }
+              .disabled(settings.streamingFormatWifiPreference == .raw)
             }
           },
-          footer: "Set the maximum streaming bitrate for WiFi."
+          footer: "Set the maximum streaming bitrate for WiFi. Not available for Original, which is streamed unchanged."
         )
 
         // Cache Format Settings
