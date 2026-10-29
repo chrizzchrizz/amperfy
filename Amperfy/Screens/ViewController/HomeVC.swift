@@ -137,7 +137,7 @@ final class HomeVC: UICollectionViewController {
         appDelegate.continuePlaybackFromOtherDevice(presentingVC: self)
       }
     )
-    button.accessibilityLabel = "Continue Playback"
+    button.accessibilityLabel = "Take Over Queue"
     // own glass background, it has nothing to do with the edit button next to it
     button.sharesBackground = false
     return button

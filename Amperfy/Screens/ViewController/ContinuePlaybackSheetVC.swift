@@ -22,8 +22,8 @@
 import AmperfyKit
 import UIKit
 
-/// Bottom sheet of Continue Playback: shows the play queue another device saved with a button to
-/// continue it, or a message why there is nothing to continue.
+/// Bottom sheet of Take Over Queue: shows the play queue another device saved with a button to
+/// take it over, or a message why there is nothing to take over.
 /// Built in UIKit, buttons of SwiftUI views in a sheet don't receive clicks on Mac Catalyst.
 class ContinuePlaybackSheetVC: UIViewController {
   enum Content {
@@ -52,7 +52,10 @@ class ContinuePlaybackSheetVC: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    view.backgroundColor = .systemBackground
+    // opaque, the default sheet background lets the content behind it shine through
+    view.backgroundColor = UIColor {
+      $0.userInterfaceStyle == .dark ? .systemGray5.resolvedColor(with: $0) : .white
+    }
 
     contentStack.axis = .vertical
     contentStack.alignment = .fill
@@ -163,7 +166,7 @@ class ContinuePlaybackSheetVC: UIViewController {
     contentStack.setCustomSpacing(24, after: contentStack.arrangedSubviews.last ?? artworkContainer)
 
     var configuration = UIButton.Configuration.tinted()
-    configuration.title = "Continue Playback"
+    configuration.title = "Take Over Queue"
     configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
       var attributes = $0
       attributes.font = UIFont.systemFont(
@@ -179,7 +182,7 @@ class ContinuePlaybackSheetVC: UIViewController {
     let button = UIButton(
       configuration: configuration,
       primaryAction: UIAction { [weak self] action in
-        // a second tap during the dismiss animation must not continue twice
+        // a second tap during the dismiss animation must not take over twice
         (action.sender as? UIButton)?.isEnabled = false
         self?.dismiss(animated: true) { onContinue() }
       }

@@ -39,7 +39,7 @@ extension AppDelegate {
   }
 
   func createContinuePlaybackAction(presentingVC: UIViewController? = nil) -> UIAction {
-    UIAction(title: "Continue Playback", image: .continuePlayback) { _ in
+    UIAction(title: "Take Over Queue", image: .continuePlayback) { _ in
       self.continuePlaybackFromOtherDevice(presentingVC: presentingVC)
     }
   }
@@ -129,10 +129,10 @@ extension AppDelegate {
           presentingVC: presentingVC
         )
       } catch {
-        eventLogger.report(topic: "Continue Playback", error: error, displayPopup: false)
+        eventLogger.report(topic: "Take Over Queue", error: error, displayPopup: false)
         presentContinuePlayback(
           .message(
-            title: "Continue Playback Failed",
+            title: "Take Over Queue Failed",
             message: error.localizedDescription,
             systemImage: "exclamationmark.triangle"
           ),
