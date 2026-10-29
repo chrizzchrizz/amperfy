@@ -813,7 +813,10 @@ final class AmpacheXmlServerApi: URLCleanser, Sendable {
     case .noLimit:
       break
     default:
-      urlComp.addQueryItem(name: "bitrate", value: maxBitrate.rawValue)
+      // the original file is sent unchanged, a bitrate limit does not apply
+      if formatPreference != .raw {
+        urlComp.addQueryItem(name: "bitrate", value: maxBitrate.rawValue)
+      }
     }
     urlComp.addQueryItem(name: "length", value: 1)
     let url = try createUrl(from: urlComp)

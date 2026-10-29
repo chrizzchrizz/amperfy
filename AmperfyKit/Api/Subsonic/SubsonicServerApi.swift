@@ -383,7 +383,10 @@ final class SubsonicServerApi: URLCleanser, Sendable {
     case .noLimit:
       break
     default:
-      urlComp.addQueryItem(name: "maxBitRate", value: maxBitrate.rawValue)
+      // the original file is sent unchanged, a bitrate limit does not apply
+      if formatPreference != .raw {
+        urlComp.addQueryItem(name: "maxBitRate", value: maxBitrate.rawValue)
+      }
     }
     if timeOffset > 0 {
       urlComp.addQueryItem(name: "timeOffset", value: timeOffset)
