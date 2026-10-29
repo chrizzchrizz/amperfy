@@ -221,7 +221,7 @@ struct PlayerSettingsView: View {
           header: "WiFi Streaming"
         )
 
-        // Cache Format Settings
+        // Download Format Settings
         SettingsSection(
           content: {
             SettingsRow(title: "Format") {
@@ -234,8 +234,8 @@ struct PlayerSettingsView: View {
               }
             }
           },
-          footer: "Format for cached songs. Changes will not apply to already downloaded songs; clear cache and redownload if needed.",
-          header: "Download Format"
+          footer: "Format for downloaded songs. Changes do not apply to songs that are already downloaded; clear the cache and redownload if needed.",
+          header: "Download"
         )
       }
     }
