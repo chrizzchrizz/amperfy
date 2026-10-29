@@ -159,7 +159,29 @@ public class AudioPlayer: NSObject, BackendAudioPlayerNotifiable {
   }
 
   public func play(context: PlayContext) {
-    guard let activePlayable = context.getActivePlayable() else { return }
+    guard context.getActivePlayable() != nil else { return }
+    guard let playable = replaceActiveQueue(with: context) else {
+      stop()
+      return
+    }
+    insertIntoPlayer(playable: playable)
+  }
+
+  /// Replaces the queue like `play(context:)` but leaves the player stopped at the context's
+  /// active playable; `play()` starts it.
+  public func load(context: PlayContext) {
+    guard context.getActivePlayable() != nil else { return }
+    guard replaceActiveQueue(with: context) != nil else {
+      stop()
+      return
+    }
+    // a paused previous item would otherwise be continued by play()
+    stopButRemainIndex()
+  }
+
+  /// Replaces the active queue with the context and marks its active playable as playing.
+  private func replaceActiveQueue(with context: PlayContext) -> AbstractPlayable? {
+    guard let activePlayable = context.getActivePlayable() else { return nil }
     let topUserQueueItem = queueHandler.getUserQueueItem(at: 0)
     let wasUserQueuePlaying = queueHandler.isUserQueuePlaying
     queueHandler.clearActiveQueue()
@@ -169,14 +191,19 @@ public class AudioPlayer: NSObject, BackendAudioPlayerNotifiable {
     }
 
     if queueHandler.isUserQueuePlaying {
-      play(playerIndex: PlayerIndex(queueType: .next, index: context.index))
+      let playable = queueHandler.markAndGetPlayableAsPlaying(
+        at: PlayerIndex(queueType: .next, index: context.index)
+      )
       if !wasUserQueuePlaying, let topUserQueueItem = topUserQueueItem {
         queueHandler.insertUserQueue(playables: [topUserQueueItem])
       }
+      return playable
     } else if context.index == 0 {
-      insertIntoPlayer(playable: activePlayable)
+      return activePlayable
     } else {
-      play(playerIndex: PlayerIndex(queueType: .next, index: context.index - 1))
+      return queueHandler.markAndGetPlayableAsPlaying(
+        at: PlayerIndex(queueType: .next, index: context.index - 1)
+      )
     }
   }
 

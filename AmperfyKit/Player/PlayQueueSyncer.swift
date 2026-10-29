@@ -309,12 +309,12 @@ public class PlayQueueSyncer {
     return savedClientNames.union([clientName]).contains(changedBy)
   }
 
-  /// Replaces the player's queue, including the user queue, with the saved one and plays it from
-  /// the saved position.
+  /// Replaces the player's queue, including the user queue, with the saved one without starting
+  /// playback; play continues it from the saved position.
   public func continuePlayback(of playQueue: ServerPlayQueue) {
     guard !playQueue.songs.isEmpty else { return }
     os_log(
-      "Continue playback of the play queue of %s: %i songs",
+      "Take over the play queue of %s: %i songs",
       log: log,
       type: .info,
       playQueue.info.changedBy ?? "-",
@@ -323,16 +323,16 @@ public class PlayQueueSyncer {
     didStartLocally()
     // the saved queue already contains the user queue of the device that saved it
     player.clearUserQueue()
-    player.play(
+    player.load(
       context: PlayContext(
-        name: "Continued Playback",
+        name: "Taken Over Queue",
         index: playQueue.startIndex,
         playables: playQueue.songs
       ),
       startSecond: playQueue.startPositionInSeconds
     )
-    // the pause before the context starts schedules a save, the position isn't applied by then;
-    // the save after the song started has it
+    // the stop schedules a save, the position isn't applied before playback; the save after
+    // the user started playback has it
     scheduledSave?.cancel()
     scheduledSave = nil
   }
