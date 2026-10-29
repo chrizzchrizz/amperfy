@@ -689,11 +689,6 @@ class BackendAudioPlayer: NSObject {
   ) async throws {
     let streamingMaxBitrate = streamingMaxBitrates.getActive(networkMonitor: networkMonitor)
     let streamingTranscodingFormat = streamingTranscodings.getActive(networkMonitor: networkMonitor)
-      .resolved(
-        contentType: playable.contentType,
-        bitrate: playable.bitrate,
-        maxBitrate: streamingMaxBitrate
-      )
     var httpHeaders: [String: String] = [:]
     @MainActor
     func provideUrl() async throws -> URL {

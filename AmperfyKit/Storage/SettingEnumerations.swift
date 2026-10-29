@@ -121,12 +121,11 @@ public enum StreamingMaxBitratePreference: Int, CaseIterable, Sendable, Codable 
 // MARK: - StreamingFormatPreference
 
 public enum StreamingFormatPreference: Int, CaseIterable, Sendable, Codable {
-  case auto = 3 // raw if playable on iOS and within the bitrate limit, else mp3
   case mp3 = 0
   case raw = 1
   case serverConfig = 2 // omit the format to let the server decide which codec should be used
 
-  public static let defaultValue: StreamingFormatPreference = .auto
+  public static let defaultValue: StreamingFormatPreference = .mp3
 
   public var shortInfo: String {
     switch self {
@@ -134,39 +133,20 @@ public enum StreamingFormatPreference: Int, CaseIterable, Sendable, Codable {
       return "MP3"
     case .raw:
       return "RAW"
-    case .auto, .serverConfig:
+    case .serverConfig:
       return ""
     }
   }
 
   public var description: String {
     switch self {
-    case .auto:
-      return "Auto (default)"
     case .mp3:
-      return "mp3"
+      return "mp3 (default)"
     case .raw:
       return "Raw/Original"
     case .serverConfig:
       return "Server chooses Codec"
     }
-  }
-
-  /// Resolves `.auto` to `.raw` or `.mp3` for the given playable; other values are returned unchanged.
-  public func resolved(
-    contentType: String?,
-    bitrate: Int,
-    maxBitrate: StreamingMaxBitratePreference
-  )
-    -> StreamingFormatPreference {
-    guard self == .auto else { return self }
-    guard MimeFileConverter.isMimeTypeNativelyStreamable(mimeType: contentType)
-    else { return .mp3 }
-    // the server only applies the bitrate limit when transcoding
-    guard maxBitrate == .noLimit ||
-      (bitrate > 0 && bitrate <= Int(maxBitrate.asBitsPerSecondAV))
-    else { return .mp3 }
-    return .raw
   }
 }
 
@@ -363,30 +343,21 @@ public enum ThemePreference: Int, CaseIterable, Sendable, Codable {
 // MARK: - CacheTranscodingFormatPreference
 
 public enum CacheTranscodingFormatPreference: Int, CaseIterable, Sendable, Codable {
-  case auto = 3 // raw if the original format is playable on iOS, else mp3
   case raw = 0
   case mp3 = 1
   case serverConfig = 2 // omit the format to let the server decide which codec should be used
 
-  public static let defaultValue: CacheTranscodingFormatPreference = .auto
+  public static let defaultValue: CacheTranscodingFormatPreference = .mp3
 
   public var description: String {
     switch self {
-    case .auto:
-      return "Auto (default)"
     case .mp3:
-      return "mp3"
+      return "mp3 (default)"
     case .raw:
       return "Raw/Original"
     case .serverConfig:
       return "Server chooses Codec"
     }
-  }
-
-  /// Resolves `.auto` to `.raw` or `.mp3` for the given content type; other values are returned unchanged.
-  public func resolved(contentType: String?) -> CacheTranscodingFormatPreference {
-    guard self == .auto else { return self }
-    return MimeFileConverter.isMimeTypeNativelyStreamable(mimeType: contentType) ? .raw : .mp3
   }
 }
 

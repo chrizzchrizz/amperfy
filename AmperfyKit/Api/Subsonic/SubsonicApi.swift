@@ -82,10 +82,7 @@ extension SubsonicApi: BackendApi {
   func generateUrl(forDownloadingPlayable playableInfo: AbstractPlayableInfo) async throws
     -> URL {
     let apiId = playableInfo.streamId ?? playableInfo.id
-    return try await subsonicServerApi.generateUrl(
-      forDownloadingPlayableId: apiId,
-      contentType: playableInfo.contentType
-    )
+    return try await subsonicServerApi.generateUrl(forDownloadingPlayableId: apiId)
   }
 
   func generateUrl(
