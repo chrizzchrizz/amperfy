@@ -94,6 +94,8 @@ class SideBarVC: KeyCommandCollectionViewController {
   }
 
   public func pushedOn(selectedItem: LibraryNavigatorItem) {
+    // selection changed -> the keyboard focus is no longer relevant
+    collectionViewKeyCommandsController.removeFocus()
     guard let splitVC = splitViewController as? SplitVC,
           !splitVC.isCollapsed
     else { return }

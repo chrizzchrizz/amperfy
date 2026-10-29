@@ -106,9 +106,12 @@ final class TableSectionHeaderView: UIView {
   // A plain view: UIKit applies the title of `titleForHeaderInSection` to the default label of
   // UITableViewHeaderFooterView, which would be displayed in addition to this title.
   private let listContentView = UIListContentView(configuration: .header())
+  /// Shown at the trailing end of the title, e.g. a button
+  private let accessoryView: UIView?
   private var isPinnedToTable = false
 
-  init(title: String) {
+  init(title: String, accessoryView: UIView? = nil) {
+    self.accessoryView = accessoryView
     super.init(frame: .zero)
     var configuration = UIListContentConfiguration.header()
     configuration.text = title
@@ -119,7 +122,8 @@ final class TableSectionHeaderView: UIView {
     addSubview(listContentView)
     // fallback until the header is part of the table view, replaced by the table margins
     let fallbackLeading = listContentView.leadingAnchor.constraint(equalTo: leadingAnchor)
-    let fallbackTrailing = listContentView.trailingAnchor.constraint(equalTo: trailingAnchor)
+    let fallbackTrailing = (accessoryView ?? listContentView).trailingAnchor
+      .constraint(equalTo: trailingAnchor)
     fallbackLeading.priority = .defaultLow
     fallbackTrailing.priority = .defaultLow
     NSLayoutConstraint.activate([
@@ -128,6 +132,17 @@ final class TableSectionHeaderView: UIView {
       fallbackLeading,
       fallbackTrailing,
     ])
+    if let accessoryView {
+      accessoryView.translatesAutoresizingMaskIntoConstraints = false
+      addSubview(accessoryView)
+      NSLayoutConstraint.activate([
+        accessoryView.leadingAnchor.constraint(
+          equalToSystemSpacingAfter: listContentView.trailingAnchor,
+          multiplier: 1
+        ),
+        accessoryView.centerYAnchor.constraint(equalTo: listContentView.centerYAnchor),
+      ])
+    }
   }
 
   required init?(coder: NSCoder) {
@@ -143,7 +158,7 @@ final class TableSectionHeaderView: UIView {
     isPinnedToTable = true
     NSLayoutConstraint.activate([
       listContentView.leadingAnchor.constraint(equalTo: tableView.layoutMarginsGuide.leadingAnchor),
-      listContentView.trailingAnchor
+      (accessoryView ?? listContentView).trailingAnchor
         .constraint(equalTo: tableView.layoutMarginsGuide.trailingAnchor),
     ])
   }
