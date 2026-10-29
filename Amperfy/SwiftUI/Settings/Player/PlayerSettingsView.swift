@@ -161,10 +161,9 @@ struct PlayerSettingsView: View {
           footer: "When the queue ends, automatically continue playback using Instant Mix to find similar songs."
         )
 
-        // Streaming Format Settings
         SettingsSection(
           content: {
-            SettingsRow(title: "Cellular Streaming\nFormat") {
+            SettingsRow(title: "Format") {
               Menu(settings.streamingFormatCellularPreference.description) {
                 ForEach(StreamingFormatPreference.allCases, id: \.self) { format in
                   Button(format.description) {
@@ -173,13 +172,7 @@ struct PlayerSettingsView: View {
                 }
               }
             }
-          },
-          footer: "Format for streaming while using Cellular. MP3 is transcoded by the server. Original streams the file unchanged. Server default sends no format, so codec and quality depend on your server's transcoding settings."
-        )
-
-        SettingsSection(
-          content: {
-            SettingsRow(title: "Cellular Streaming\nBitrate Limit") {
+            SettingsRow(title: "Bitrate Limit") {
               Menu(settings.streamingMaxBitrateCellularPreference.description) {
                 ForEach(StreamingMaxBitratePreference.allCases, id: \.self) { bitrate in
                   Button(bitrate.description) {
@@ -190,12 +183,13 @@ struct PlayerSettingsView: View {
               .disabled(settings.streamingFormatCellularPreference == .raw)
             }
           },
-          footer: "Set the maximum streaming bitrate for Cellular. Not available for Original, which is streamed unchanged."
+          footer: "Format and maximum bitrate for streaming while using Cellular. MP3 is transcoded by the server. Original streams the file unchanged, so the bitrate limit does not apply. Server default sends no format, so codec and quality depend on your server's transcoding settings.",
+          header: "Cellular Streaming"
         )
 
         SettingsSection(
           content: {
-            SettingsRow(title: "WiFi Streaming\nFormat") {
+            SettingsRow(title: "Format") {
               Menu(settings.streamingFormatWifiPreference.description) {
                 ForEach(StreamingFormatPreference.allCases, id: \.self) { format in
                   Button(format.description) {
@@ -204,13 +198,7 @@ struct PlayerSettingsView: View {
                 }
               }
             }
-          },
-          footer: "Format for streaming while on WiFi. MP3 is transcoded by the server. Original streams the file unchanged. Server default sends no format, so codec and quality depend on your server's transcoding settings."
-        )
-        // Streaming Bitrate Settings
-        SettingsSection(
-          content: {
-            SettingsRow(title: "WiFi Streaming\nBitrate Limit") {
+            SettingsRow(title: "Bitrate Limit") {
               Menu(settings.streamingMaxBitrateWifiPreference.description) {
                 ForEach(StreamingMaxBitratePreference.allCases, id: \.self) { bitrate in
                   Button(bitrate.description) {
@@ -221,12 +209,13 @@ struct PlayerSettingsView: View {
               .disabled(settings.streamingFormatWifiPreference == .raw)
             }
           },
-          footer: "Set the maximum streaming bitrate for WiFi. Not available for Original, which is streamed unchanged."
+          footer: "Format and maximum bitrate for streaming while on WiFi. MP3 is transcoded by the server. Original streams the file unchanged, so the bitrate limit does not apply. Server default sends no format, so codec and quality depend on your server's transcoding settings.",
+          header: "WiFi Streaming"
         )
 
         // Cache Format Settings
         SettingsSection(content: {
-          SettingsRow(title: "Cache\nFormat") {
+          SettingsRow(title: "Format") {
             Menu(settings.cacheTranscodingFormatPreference.description) {
               ForEach(CacheTranscodingFormatPreference.allCases, id: \.self) { format in
                 Button(format.description) {
@@ -245,7 +234,7 @@ struct PlayerSettingsView: View {
             For 'raw', Amperfy uses the Subsonic API's 'download' action, which skips transcoding. Other formats use the 'stream' action, which requires proper server configuration for transcoding.
             """
         )
-        """)
+        """, header: "Cache Format")
       }
     }
     .navigationTitle("Player, Stream & Scrobble")
