@@ -127,6 +127,13 @@ public enum StreamingFormatPreference: Int, CaseIterable, Sendable, Codable {
 
   public static let defaultValue: StreamingFormatPreference = .mp3
 
+  /// Stored values of removed cases (e.g. the former `auto` = 3) fall back to the default
+  /// instead of failing to decode all stored settings.
+  public init(from decoder: Decoder) throws {
+    let rawValue = try decoder.singleValueContainer().decode(Int.self)
+    self = Self(rawValue: rawValue) ?? Self.defaultValue
+  }
+
   public var shortInfo: String {
     switch self {
     case .mp3:
@@ -348,6 +355,13 @@ public enum CacheTranscodingFormatPreference: Int, CaseIterable, Sendable, Codab
   case serverConfig = 2 // omit the format to let the server decide which codec should be used
 
   public static let defaultValue: CacheTranscodingFormatPreference = .mp3
+
+  /// Stored values of removed cases (e.g. the former `auto` = 3) fall back to the default
+  /// instead of failing to decode all stored settings.
+  public init(from decoder: Decoder) throws {
+    let rawValue = try decoder.singleValueContainer().decode(Int.self)
+    self = Self(rawValue: rawValue) ?? Self.defaultValue
+  }
 
   public var description: String {
     switch self {

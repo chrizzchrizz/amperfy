@@ -96,4 +96,23 @@ class SettingsDecodingTest: XCTestCase {
       try AmperfySettings.decode(TestSettings.self, from: data, defaults: TestSettings())
     )
   }
+
+  func testDecodeRemovedEnumCaseFallsBackToDefault() throws {
+    let removedAutoRawValue = Data("3".utf8)
+    XCTAssertEqual(
+      try JSONDecoder().decode(StreamingFormatPreference.self, from: removedAutoRawValue),
+      .defaultValue
+    )
+    XCTAssertEqual(
+      try JSONDecoder().decode(
+        CacheTranscodingFormatPreference.self,
+        from: removedAutoRawValue
+      ),
+      .defaultValue
+    )
+    XCTAssertEqual(
+      try JSONDecoder().decode(StreamingFormatPreference.self, from: Data("1".utf8)),
+      .raw
+    )
+  }
 }
