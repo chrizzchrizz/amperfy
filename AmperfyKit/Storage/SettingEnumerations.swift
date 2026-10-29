@@ -141,11 +141,11 @@ public enum StreamingFormatPreference: Int, CaseIterable, Sendable, Codable {
   public var description: String {
     switch self {
     case .mp3:
-      return "mp3 (default)"
+      return "MP3 (transcoded, default)"
     case .raw:
-      return "Raw/Original"
+      return "Original (no transcoding)"
     case .serverConfig:
-      return "Server chooses Codec"
+      return "Server default"
     }
   }
 }
@@ -352,11 +352,11 @@ public enum CacheTranscodingFormatPreference: Int, CaseIterable, Sendable, Codab
   public var description: String {
     switch self {
     case .mp3:
-      return "mp3 (default)"
+      return "MP3 (transcoded, default)"
     case .raw:
-      return "Raw/Original"
+      return "Original (no transcoding)"
     case .serverConfig:
-      return "Server chooses Codec"
+      return "Server default"
     }
   }
 }

@@ -164,7 +164,7 @@ struct PlayerSettingsView: View {
         // Streaming Format Settings
         SettingsSection(
           content: {
-            SettingsRow(title: "Cellular Streaming\nFormat (Transcoding)") {
+            SettingsRow(title: "Cellular Streaming\nFormat") {
               Menu(settings.streamingFormatCellularPreference.description) {
                 ForEach(StreamingFormatPreference.allCases, id: \.self) { format in
                   Button(format.description) {
@@ -174,7 +174,7 @@ struct PlayerSettingsView: View {
               }
             }
           },
-          footer: "Select a transcoding format for streaming while using Cellular. Transcoding is recommended for better compatibility."
+          footer: "Format for streaming while using Cellular. MP3 is transcoded by the server. Original streams the file unchanged. Server default sends no format, so codec and quality depend on your server's transcoding settings."
         )
 
         SettingsSection(
@@ -194,7 +194,7 @@ struct PlayerSettingsView: View {
 
         SettingsSection(
           content: {
-            SettingsRow(title: "WiFi Streaming\nFormat (Transcoding)") {
+            SettingsRow(title: "WiFi Streaming\nFormat") {
               Menu(settings.streamingFormatWifiPreference.description) {
                 ForEach(StreamingFormatPreference.allCases, id: \.self) { format in
                   Button(format.description) {
@@ -204,7 +204,7 @@ struct PlayerSettingsView: View {
               }
             }
           },
-          footer: "Select a transcoding format for streaming while on WiFi. Transcoding is recommended for better compatibility."
+          footer: "Format for streaming while on WiFi. MP3 is transcoded by the server. Original streams the file unchanged. Server default sends no format, so codec and quality depend on your server's transcoding settings."
         )
         // Streaming Bitrate Settings
         SettingsSection(
@@ -224,7 +224,7 @@ struct PlayerSettingsView: View {
 
         // Cache Format Settings
         SettingsSection(content: {
-          SettingsRow(title: "Cache\nFormat (Transcoding)") {
+          SettingsRow(title: "Cache\nFormat") {
             Menu(settings.cacheTranscodingFormatPreference.description) {
               ForEach(CacheTranscodingFormatPreference.allCases, id: \.self) { format in
                 Button(format.description) {
@@ -234,7 +234,7 @@ struct PlayerSettingsView: View {
             }
           }
         }, footer: """
-        Select a transcoding format for cached songs. Changes will not apply to already downloaded songs; clear cache and redownload if needed.
+        Format for cached songs. Changes will not apply to already downloaded songs; clear cache and redownload if needed.
         \(
           appDelegate.storage.settings.accounts.getSetting(settings.activeAccountInfo).read
             .loginCredentials?.backendApi
