@@ -98,6 +98,14 @@ extension AppDelegate {
           )
           return
         }
+        guard !syncer.isSavedByThisDevice(playQueue) else {
+          presentContinuePlaybackAlert(
+            title: "No Other Device",
+            message: "The saved play queue is the one of this device. Play something on the other device first.",
+            presentingVC: presentingVC
+          )
+          return
+        }
         presentContinuePlaybackConfirmation(
           playQueue: playQueue,
           syncer: syncer,

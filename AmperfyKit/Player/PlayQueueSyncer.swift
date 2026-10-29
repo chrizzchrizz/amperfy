@@ -303,6 +303,12 @@ public class PlayQueueSyncer {
     try await librarySyncer.requestPlayQueue()
   }
 
+  /// The saved queue is the one of this device, there is nothing to continue.
+  public func isSavedByThisDevice(_ playQueue: ServerPlayQueue) -> Bool {
+    guard let changedBy = playQueue.info.changedBy, !changedBy.isEmpty else { return false }
+    return savedClientNames.union([clientName]).contains(changedBy)
+  }
+
   /// Replaces the player's queue, including the user queue, with the saved one and plays it from
   /// the saved position.
   public func continuePlayback(of playQueue: ServerPlayQueue) {
