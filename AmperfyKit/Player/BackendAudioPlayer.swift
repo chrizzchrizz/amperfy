@@ -141,6 +141,7 @@ class BackendAudioPlayer: NSObject {
   // ReplayGain Settings
   private var isReplayGainEnabled: Bool = true
   private var currentReplayGainValue: Float = 0.0 // ReplayGain in dB
+  private var currentReplayGainPeak: Float = 0.0 // linear track peak, 0 = unknown
   // EQ Settings
   private var equalizerVolumeCompensation: Float = 1.0
   private var isEqualizerEnabled: Bool = true
@@ -543,6 +544,7 @@ class BackendAudioPlayer: NSObject {
       preloadTranscodingFormat = nil
       isPreviousPlaylableFinshed = false
       currentReplayGainValue = nextPreloadedPlayable.replayGainTrackGain
+      currentReplayGainPeak = nextPreloadedPlayable.replayGainTrackPeak
       applyReplayGain()
       self.nextPreloadedPlayable = nil
       nextPreloadedUrl = ""
@@ -564,6 +566,7 @@ class BackendAudioPlayer: NSObject {
         return
       }
       currentReplayGainValue = playable.replayGainTrackGain
+      currentReplayGainPeak = playable.replayGainTrackPeak
       applyReplayGain()
       insertCachedPlayable(playable: playable)
       isPlaying = shouldPlaybackStart
@@ -597,6 +600,7 @@ class BackendAudioPlayer: NSObject {
       Task { @MainActor in
         do {
           currentReplayGainValue = playable.replayGainTrackGain
+          currentReplayGainPeak = playable.replayGainTrackPeak
           applyReplayGain()
           try await insertStreamPlayable(playable: playable)
           isPlaying = shouldPlaybackStart
@@ -895,12 +899,17 @@ class BackendAudioPlayer: NSObject {
 
     if isReplayGainEnabled, currentReplayGainValue != 0.0 {
       // Convert dB to linear scale: gain = pow(10, dB / 20)
-      let linearGain = pow(10.0, currentReplayGainValue / 20.0)
+      var linearGain = pow(10.0, currentReplayGainValue / 20.0)
+      // Prevent clipping: the amplified track peak must not exceed full scale
+      if currentReplayGainPeak > 0.0 {
+        linearGain = min(linearGain, 1.0 / currentReplayGainPeak)
+      }
       replayGain.outputVolume = linearGain * eqCompensation
       os_log(
         .debug,
-        "ReplayGain: %.2f dB → %.3f linear gain (EQ Compensation: %.2f)",
+        "ReplayGain: %.2f dB (peak %.3f) → %.3f linear gain (EQ Compensation: %.2f)",
         currentReplayGainValue,
+        currentReplayGainPeak,
         linearGain,
         eqCompensation
       )
