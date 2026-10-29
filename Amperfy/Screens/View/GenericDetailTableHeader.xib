@@ -220,12 +220,14 @@
                                                     </variation>
                                                 </view>
                                             </subviews>
-                                            <variation key="widthClass=regular" alignment="fill" axis="horizontal" distribution="fill" spacing="24"/>
+                                            <variation key="widthClass=regular" alignment="fill" axis="horizontal" distribution="fill" spacing="32"/>
                                         </stackView>
                                     </subviews>
                                     <constraints>
                                         <constraint firstAttribute="trailing" secondItem="msp-9G-tOz" secondAttribute="trailing" id="2nb-nG-cA6"/>
-                                        <constraint firstAttribute="bottom" secondItem="msp-9G-tOz" secondAttribute="bottom" constant="20" id="5ta-OT-dmF"/>
+                                        <constraint firstAttribute="bottom" secondItem="msp-9G-tOz" secondAttribute="bottom" constant="20" id="5ta-OT-dmF">
+                                            <variation key="widthClass=regular" constant="32"/>
+                                        </constraint>
                                         <constraint firstItem="msp-9G-tOz" firstAttribute="leading" secondItem="IRW-3q-GDh" secondAttribute="leading" id="6WR-2D-RRd"/>
                                         <constraint firstItem="msp-9G-tOz" firstAttribute="top" secondItem="IRW-3q-GDh" secondAttribute="top" id="NUk-PC-JVY"/>
                                     </constraints>
@@ -261,7 +263,7 @@
                     </subviews>
                     <constraints>
                         <constraint firstItem="vkt-Vq-5Zo" firstAttribute="top" secondItem="F5C-7T-v2k" secondAttribute="top" constant="20" id="OpF-Ba-JGg">
-                            <variation key="widthClass=regular" constant="0.0"/>
+                            <variation key="widthClass=regular" constant="10"/>
                         </constraint>
                         <constraint firstItem="vkt-Vq-5Zo" firstAttribute="leading" secondItem="F5C-7T-v2k" secondAttribute="leading" id="eNW-Eo-Rbz"/>
                         <constraint firstAttribute="bottom" secondItem="vkt-Vq-5Zo" secondAttribute="bottom" id="hKS-cM-jyY"/>
@@ -289,7 +291,7 @@
                 <outlet property="titleLabel" destination="XhW-hw-pIz" id="ick-V4-fQl"/>
                 <outlet property="titlePlayButtonContainerHeightConstraint" destination="qb1-LU-seD" id="9j2-7e-laW"/>
             </connections>
-            <point key="canvasLocation" x="89.165446559297209" y="-82.32421875"/>
+            <point key="canvasLocation" x="89.165446559297209" y="-29.882812499999996"/>
         </view>
     </objects>
     <resources>
