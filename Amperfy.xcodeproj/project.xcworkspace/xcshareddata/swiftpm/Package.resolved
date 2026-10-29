@@ -1,5 +1,5 @@
 {
-  "originHash" : "953f0860ea59bff50a038d71d78afa93e1711c440f7c3b040388a85d59204361",
+  "originHash" : "cb094a25ac4fdfb5bd98c5da29d4762ec296bfd9b255f032849241f2e68ef199",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/chrizzchrizz/AudioStreaming.git",
       "state" : {
         "branch" : "preview",
-        "revision" : "21d7d1c3e3394d8bf5d40c2ec27787b87588c688"
+        "revision" : "208dc49840ae811e1bcbc83722c7f702db09148e"
       }
     },
     {
