@@ -11,26 +11,26 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
         <view contentMode="scaleToFill" id="iN0-l3-epB" userLabel="Genre Detail Table Header" customClass="GenericDetailTableHeader" customModule="Amperfy" customModuleProvider="target">
-            <rect key="frame" x="0.0" y="0.0" width="1202" height="585"/>
+            <rect key="frame" x="0.0" y="0.0" width="1202" height="780"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="F5C-7T-v2k">
-                    <rect key="frame" x="20" y="24" width="1162" height="541"/>
+                    <rect key="frame" x="20" y="24" width="1162" height="731"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="vkt-Vq-5Zo">
-                            <rect key="frame" x="0.0" y="0.0" width="1162" height="541"/>
+                            <rect key="frame" x="0.0" y="10" width="1162" height="721"/>
                             <subviews>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="IRW-3q-GDh">
-                                    <rect key="frame" x="0.0" y="0.0" width="1162" height="456"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="1162" height="636"/>
                                     <subviews>
                                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="msp-9G-tOz">
-                                            <rect key="frame" x="0.0" y="0.0" width="1162" height="436"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="1162" height="604"/>
                                             <subviews>
                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="rst-3T-hzJ">
-                                                    <rect key="frame" x="0.0" y="0.0" width="436" height="436"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="604" height="604"/>
                                                     <subviews>
                                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="3rO-9J-GXf" customClass="EntityImageView" customModule="AmperfyKit">
-                                                            <rect key="frame" x="0.0" y="0.0" width="436" height="436"/>
+                                                            <rect key="frame" x="0.0" y="0.0" width="604" height="604"/>
                                                             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                             <constraints>
                                                                 <constraint firstAttribute="width" constant="240" id="Fxe-8b-UHb"/>
@@ -80,19 +80,19 @@
                                                     </variation>
                                                 </view>
                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ulT-f1-D2c">
-                                                    <rect key="frame" x="460" y="0.0" width="702" height="436"/>
+                                                    <rect key="frame" x="636" y="0.0" width="526" height="604"/>
                                                     <subviews>
                                                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="hN4-ai-kZb">
-                                                            <rect key="frame" x="0.0" y="0.0" width="702" height="436"/>
+                                                            <rect key="frame" x="0.0" y="0.0" width="526" height="604"/>
                                                             <subviews>
                                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ecX-JW-F45">
-                                                                    <rect key="frame" x="0.0" y="0.0" width="702" height="396"/>
+                                                                    <rect key="frame" x="0.0" y="0.0" width="526" height="554"/>
                                                                     <subviews>
                                                                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="7J5-ll-b5d">
-                                                                            <rect key="frame" x="0.0" y="148" width="682" height="100.5"/>
+                                                                            <rect key="frame" x="0.0" y="218" width="526" height="118"/>
                                                                             <subviews>
                                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" usesAttributedText="YES" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="XhW-hw-pIz" userLabel="Title Label">
-                                                                                    <rect key="frame" x="0.0" y="0.0" width="682" height="26.5"/>
+                                                                                    <rect key="frame" x="0.0" y="0.0" width="526" height="26.5"/>
                                                                                     <attributedString key="attributedText">
                                                                                         <fragment content="Title">
                                                                                             <attributes>
@@ -104,15 +104,15 @@
                                                                                     <nil key="highlightedColor"/>
                                                                                 </label>
                                                                                 <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="PlaylistName" adjustsFontSizeToFit="NO" minimumFontSize="19" translatesAutoresizingMaskIntoConstraints="NO" id="5tB-lt-aqS" userLabel="Playlist Name Text Field">
-                                                                                    <rect key="frame" x="0.0" y="26.5" width="682" height="27"/>
+                                                                                    <rect key="frame" x="0.0" y="26.5" width="526" height="28"/>
                                                                                     <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="22"/>
                                                                                     <textInputTraits key="textInputTraits"/>
                                                                                 </textField>
                                                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Qob-Cu-9TI" userLabel="Subtitle View">
-                                                                                    <rect key="frame" x="0.0" y="53.5" width="682" height="30"/>
+                                                                                    <rect key="frame" x="0.0" y="54.5" width="526" height="50"/>
                                                                                     <subviews>
                                                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" usesAttributedText="YES" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Mie-tL-VVX" userLabel="Subtitle Label">
-                                                                                            <rect key="frame" x="0.0" y="0.0" width="682" height="30"/>
+                                                                                            <rect key="frame" x="0.0" y="0.0" width="526" height="50"/>
                                                                                             <attributedString key="attributedText">
                                                                                                 <fragment content="Subtitle">
                                                                                                     <attributes>
@@ -125,7 +125,7 @@
                                                                                             <nil key="highlightedColor"/>
                                                                                         </label>
                                                                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" preferredBehavioralStyle="pad" translatesAutoresizingMaskIntoConstraints="NO" id="875-8v-N94">
-                                                                                            <rect key="frame" x="0.0" y="0.0" width="682" height="30"/>
+                                                                                            <rect key="frame" x="0.0" y="0.0" width="526" height="50"/>
                                                                                             <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                                                             <connections>
                                                                                                 <action selector="subtitleButtonPressed:" destination="iN0-l3-epB" eventType="touchUpInside" id="QLk-th-AbQ"/>
@@ -145,7 +145,7 @@
                                                                                     </constraints>
                                                                                 </view>
                                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" usesAttributedText="YES" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iPX-Fa-tH3" userLabel="Info Label">
-                                                                                    <rect key="frame" x="0.0" y="83.5" width="682" height="17"/>
+                                                                                    <rect key="frame" x="0.0" y="104.5" width="526" height="13.5"/>
                                                                                     <attributedString key="attributedText">
                                                                                         <fragment content="3 Artists 4 Albums 152 Songs">
                                                                                             <attributes>
@@ -179,10 +179,10 @@
                                                                     </constraints>
                                                                 </view>
                                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="qxL-Fz-Vwm">
-                                                                    <rect key="frame" x="0.0" y="396" width="702" height="40"/>
+                                                                    <rect key="frame" x="0.0" y="554" width="526" height="50"/>
                                                                     <subviews>
                                                                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="3ks-ab-Tsv">
-                                                                            <rect key="frame" x="0.0" y="0.0" width="702" height="40"/>
+                                                                            <rect key="frame" x="0.0" y="0.0" width="526" height="50"/>
                                                                         </stackView>
                                                                     </subviews>
                                                                     <constraints>
@@ -233,7 +233,7 @@
                                     </constraints>
                                 </view>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" usesAttributedText="YES" lineBreakMode="tailTruncation" numberOfLines="20" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8nb-oR-6Rc" userLabel="Description Label">
-                                    <rect key="frame" x="0.0" y="456" width="1162" height="85"/>
+                                    <rect key="frame" x="0.0" y="636" width="1162" height="85"/>
                                     <constraints>
                                         <constraint firstAttribute="height" constant="85" id="Lzz-bx-O49"/>
                                     </constraints>
