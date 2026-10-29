@@ -187,7 +187,7 @@ struct PlayerSettingsView: View {
               .disabled(settings.streamingFormatCellularPreference == .raw)
             }
           },
-          footer: "Format and maximum bitrate for streaming while using Cellular. MP3 is transcoded by the server. Original streams the file unchanged, so the bitrate limit does not apply. Server default sends no format, so codec and quality depend on your server's transcoding settings.",
+          footer: "MP3 is transcoded by the server. “Original” streams the file unchanged, so the bitrate limit does not apply. With “Server default”, the codec and quality depend on your server's transcoding settings.",
           header: "Cellular Streaming"
         )
 
@@ -217,7 +217,7 @@ struct PlayerSettingsView: View {
               .disabled(settings.streamingFormatWifiPreference == .raw)
             }
           },
-          footer: "Format and maximum bitrate for streaming while on WiFi. MP3 is transcoded by the server. Original streams the file unchanged, so the bitrate limit does not apply. Server default sends no format, so codec and quality depend on your server's transcoding settings.",
+          footer: "MP3 is transcoded by the server. “Original” streams the file unchanged, so the bitrate limit does not apply. With “Server default”, the codec and quality depend on your server's transcoding settings.",
           header: "WiFi Streaming"
         )
 
@@ -234,7 +234,7 @@ struct PlayerSettingsView: View {
               }
             }
           },
-          footer: "Format for downloaded songs. Changes do not apply to songs that are already downloaded; clear the cache and redownload if needed.",
+          footer: "Changes do not apply to songs that are already downloaded. Remove the download and redownload if needed.",
           header: "Download"
         )
       }
