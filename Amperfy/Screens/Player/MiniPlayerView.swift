@@ -722,6 +722,15 @@ class MiniPlayerView: UIView {
   public func openPlayerView(completion: (() -> ())? = nil) {
     guard let hostVC = AppDelegate.mainWindowHostVC as? UIViewController else { return }
     let popupPlayer = PopupPlayerVC()
+    #if !targetEnvironment(macCatalyst)
+      if hostVC.traitCollection.horizontalSizeClass == .regular {
+        // a sheet would only be a card in the middle of the screen
+        popupPlayer.modalPresentationStyle = .overFullScreen
+        popupPlayer.modalPresentationCapturesStatusBarAppearance = true
+        hostVC.present(popupPlayer, animated: true, completion: completion)
+        return
+      }
+    #endif
     popupPlayer.modalPresentationStyle = .pageSheet
     if let sheet = popupPlayer.sheetPresentationController {
       sheet.detents = [.large()]

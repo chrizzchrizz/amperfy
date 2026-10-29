@@ -153,6 +153,8 @@ extension PopupPlayerVC {
     backgroundColorView.backgroundColor = backgroundColor
     // light style renders labels and icons dark, dark style renders them white
     overrideUserInterfaceStyle = backgroundColor.prefersDarkContent ? .light : .dark
+    // full screen the status bar is drawn on top of the player background
+    setNeedsStatusBarAppearanceUpdate()
     // the active display buttons use the background color for their icon
     controlView?.refreshDisplayLyricsButton()
     controlView?.refreshDisplayPlaylistButton()

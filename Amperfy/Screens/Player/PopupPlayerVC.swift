@@ -189,6 +189,54 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
         self.refresh()
       }
     )
+    if modalPresentationStyle == .overFullScreen {
+      setupFullScreenDismissal()
+    }
+  }
+
+  override var preferredStatusBarStyle: UIStatusBarStyle {
+    overrideUserInterfaceStyle == .light ? .darkContent : .lightContent
+  }
+
+  /// Full screen there is no sheet: grabber and swipe down to close are provided by the player.
+  private func setupFullScreenDismissal() {
+    let grabber = UIView()
+    grabber.translatesAutoresizingMaskIntoConstraints = false
+    grabber.backgroundColor = .tertiaryLabel
+    grabber.layer.cornerRadius = 2.5
+    grabber.isUserInteractionEnabled = false
+    view.addSubview(grabber)
+    NSLayoutConstraint.activate([
+      grabber.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
+      grabber.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+      grabber.widthAnchor.constraint(equalToConstant: 36),
+      grabber.heightAnchor.constraint(equalToConstant: 5),
+    ])
+
+    let pan = UIPanGestureRecognizer(target: self, action: #selector(handleDismissPan(_:)))
+    pan.delegate = self
+    view.addGestureRecognizer(pan)
+  }
+
+  @objc
+  private func handleDismissPan(_ gesture: UIPanGestureRecognizer) {
+    let translationY = max(gesture.translation(in: view).y, 0)
+    switch gesture.state {
+    case .changed:
+      view.transform = CGAffineTransform(translationX: 0, y: translationY)
+    case .ended where translationY > view.bounds.height / 4 || gesture.velocity(in: view).y > 1000:
+      dismiss(animated: true)
+    case .cancelled, .ended, .failed:
+      UIView.animate(
+        withDuration: 0.3,
+        delay: 0,
+        usingSpringWithDamping: 0.8,
+        initialSpringVelocity: 0,
+        animations: { self.view.transform = .identity }
+      )
+    default:
+      break
+    }
   }
 
   override func viewDidLayoutSubviews() {
@@ -595,6 +643,22 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
     for cell in tableView.visibleCells {
       guard let playableCell = cell as? PlayableTableCell else { continue }
       playableCell.refresh()
+    }
+  }
+}
+
+// MARK: UIGestureRecognizerDelegate
+
+extension PopupPlayerVC: UIGestureRecognizerDelegate {
+  func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+    guard let pan = gestureRecognizer as? UIPanGestureRecognizer else { return true }
+    let velocity = pan.velocity(in: view)
+    // horizontal drags belong to the sliders
+    guard velocity.y > abs(velocity.x) else { return false }
+    // queue and lyrics scroll by themselves
+    let location = pan.location(in: view)
+    return ![tableView, lyricsLayoutView].contains { listView in
+      !listView.isHidden && listView.frame.contains(location)
     }
   }
 }
