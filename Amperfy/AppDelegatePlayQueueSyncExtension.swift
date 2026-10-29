@@ -129,7 +129,15 @@ extension AppDelegate {
           presentingVC: presentingVC
         )
       } catch {
-        eventLogger.report(topic: "Continue Playback", error: error, displayPopup: true)
+        eventLogger.report(topic: "Continue Playback", error: error, displayPopup: false)
+        presentContinuePlayback(
+          .message(
+            title: "Continue Playback Failed",
+            message: error.localizedDescription,
+            systemImage: "exclamationmark.triangle"
+          ),
+          presentingVC: presentingVC
+        )
       }
     }
   }
@@ -144,6 +152,8 @@ extension AppDelegate {
     _ content: ContinuePlaybackSheetVC.Content,
     presentingVC: UIViewController?
   ) {
+    // a repeated tap while the request ran must not stack a second sheet
+    guard !(Self.topViewController() is ContinuePlaybackSheetVC) else { return }
     present(sheet: ContinuePlaybackSheetVC(content: content), on: presentingVC)
   }
 

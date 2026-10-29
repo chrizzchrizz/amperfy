@@ -176,9 +176,14 @@ class ContinuePlaybackSheetVC: UIViewController {
     configuration.buttonSize = .large
     configuration.baseBackgroundColor = .systemGreen
     configuration.baseForegroundColor = .systemGreen
-    let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in
-      self?.dismiss(animated: true) { onContinue() }
-    })
+    let button = UIButton(
+      configuration: configuration,
+      primaryAction: UIAction { [weak self] action in
+        // a second tap during the dismiss animation must not continue twice
+        (action.sender as? UIButton)?.isEnabled = false
+        self?.dismiss(animated: true) { onContinue() }
+      }
+    )
     // Mac would draw its own button style without the tinted background
     button.preferredBehavioralStyle = .pad
     contentStack.addArrangedSubview(button)
@@ -197,7 +202,8 @@ class ContinuePlaybackSheetVC: UIViewController {
   private func addHeader(title: String, subtitle: String) {
     // keeps the title clear of the close button
     let titleLabel = makeLabel(title, style: .title1, color: .label)
-    titleLabel.font = .systemFont(ofSize: 28, weight: .bold)
+    titleLabel.font = UIFontMetrics(forTextStyle: .title1)
+      .scaledFont(for: .systemFont(ofSize: 28, weight: .bold))
     let titleContainer = UIView()
     titleLabel.translatesAutoresizingMaskIntoConstraints = false
     titleContainer.addSubview(titleLabel)
