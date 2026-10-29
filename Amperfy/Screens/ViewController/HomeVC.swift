@@ -87,12 +87,15 @@ final class HomeVC: UICollectionViewController {
     }
 
     navigationController?.navigationBar.prefersLargeTitles = true
-    navigationItem.rightBarButtonItem = UIBarButtonItem(
+    let editButton = UIBarButtonItem(
       image: UIImage.pencil,
       style: .plain,
       target: self,
       action: #selector(editSectionsTapped)
     )
+    // both neighbours need their own background, Mac otherwise joins them
+    editButton.sharesBackground = false
+    navigationItem.rightBarButtonItem = editButton
     arrangeNavButtonsForMac()
     configureCollectionView()
     configureDataSource()
