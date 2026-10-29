@@ -39,8 +39,8 @@
                         <constraint firstAttribute="bottom" secondItem="4sr-YU-gYi" secondAttribute="bottom" priority="750" id="AQW-tz-8of"/>
                         <constraint firstItem="BiX-ge-9XM" firstAttribute="bottom" secondItem="4sr-YU-gYi" secondAttribute="bottom" id="B6c-oA-2gs"/>
                         <constraint firstItem="4sr-YU-gYi" firstAttribute="centerX" secondItem="ia9-ph-a9C" secondAttribute="centerX" id="QAU-Hs-QvW"/>
-                        <constraint firstItem="4sr-YU-gYi" firstAttribute="top" relation="greaterThanOrEqual" secondItem="ia9-ph-a9C" secondAttribute="top" id="Rq1-Tp-Fit"/>
-                        <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="4sr-YU-gYi" secondAttribute="bottom" id="Rq2-Bt-Fit"/>
+                        <constraint firstItem="4sr-YU-gYi" firstAttribute="top" relation="greaterThanOrEqual" secondItem="ia9-ph-a9C" secondAttribute="top" constant="16" id="Rq1-Tp-Fit"/>
+                        <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="4sr-YU-gYi" secondAttribute="bottom" constant="16" id="Rq2-Bt-Fit"/>
                         <constraint firstItem="4sr-YU-gYi" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="ia9-ph-a9C" secondAttribute="leading" id="Rq3-Lm-Fit"/>
                         <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="4sr-YU-gYi" secondAttribute="trailing" id="Rq4-Tm-Fit"/>
                         <constraint firstItem="4sr-YU-gYi" firstAttribute="leading" secondItem="ia9-ph-a9C" secondAttribute="leading" priority="750" constant="25" id="T6t-e0-8me"/>
