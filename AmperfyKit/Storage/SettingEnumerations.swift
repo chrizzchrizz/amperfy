@@ -194,7 +194,7 @@ public struct EqualizerSetting: Hashable, Sendable, Codable {
   // Compensated output volume (1.0 = normal, <1.0 = reduced to compensate for EQ boost)
   public var compensatedVolume: Float {
     // Convert dB compensation to linear scale
-    let volume = 1.0 + (gainCompensation / 20.0)
+    let volume = pow(10.0, gainCompensation / 20.0)
     // Ensure safe range (0.1 to 2.0)
     return max(0.1, min(2.0, volume))
   }
