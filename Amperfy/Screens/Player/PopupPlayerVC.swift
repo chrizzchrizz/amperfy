@@ -66,7 +66,8 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
   let lyricsLayoutView = UIView()
   let lyricsContainerView = UIView()
   var lyricsHeaderCell: CurrentlyPlayingTableCell?
-  private var lyricsHeaderHeightConstraint: NSLayoutConstraint?
+  private var lyricsBelowHeaderConstraint: NSLayoutConstraint?
+  private var lyricsWithoutHeaderConstraint: NSLayoutConstraint?
   /// Regular width in landscape: the player stays on the left, queue and lyrics are shown on the right.
   private(set) var isSideBySide = false
   private var stackedConstraints = [NSLayoutConstraint]()
@@ -114,6 +115,8 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
           .constraint(equalTo: controlPlaceholderView.trailingAnchor),
       ])
     }
+    // collects the xib constraints of the table view: before the lyrics layout is attached to it
+    setupSideBySideLayout()
     setupLyricsLayout()
     if let createdLargeCurrentlyPlayingView = ViewCreator<LargeCurrentlyPlayingPlayerView>
       .createFromNib(withinFixedFrame: CGRect(
@@ -126,7 +129,6 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
       createdLargeCurrentlyPlayingView.prepare(toWorkOnRootView: self)
       largePlayerPlaceholderView.addSubview(createdLargeCurrentlyPlayingView)
     }
-    setupSideBySideLayout()
 
     setupTableView()
     fetchSongInfoAndUpdateViews()
@@ -295,8 +297,14 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
     }
     // the player column already shows title and artwork, queue and lyrics don't need their header
     lyricsHeaderCell?.isHidden = isSideBySide
-    lyricsHeaderHeightConstraint?.constant = isSideBySide ? 0.0 : CurrentlyPlayingTableCell
-      .rowHeight
+    // the header row can't shrink below its artwork, the lyrics start above it instead
+    if isSideBySide {
+      lyricsBelowHeaderConstraint?.isActive = false
+      lyricsWithoutHeaderConstraint?.isActive = true
+    } else {
+      lyricsWithoutHeaderConstraint?.isActive = false
+      lyricsBelowHeaderConstraint?.isActive = true
+    }
     tableView.reloadData()
     applyDisplayLayout(animated: false)
   }
@@ -339,15 +347,17 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
     header.backgroundColor = .clear
     header.translatesAutoresizingMaskIntoConstraints = false
     lyricsLayoutView.addSubview(header)
-    let headerHeightConstraint = header.heightAnchor
-      .constraint(equalToConstant: CurrentlyPlayingTableCell.rowHeight)
-    lyricsHeaderHeightConstraint = headerHeightConstraint
+    let lyricsBelowHeaderConstraint = lyricsContainerView.topAnchor
+      .constraint(equalTo: header.bottomAnchor)
+    self.lyricsBelowHeaderConstraint = lyricsBelowHeaderConstraint
+    lyricsWithoutHeaderConstraint = lyricsContainerView.topAnchor
+      .constraint(equalTo: lyricsLayoutView.topAnchor)
     NSLayoutConstraint.activate([
       header.topAnchor.constraint(equalTo: lyricsLayoutView.topAnchor),
       header.leadingAnchor.constraint(equalTo: lyricsLayoutView.leadingAnchor),
       header.trailingAnchor.constraint(equalTo: lyricsLayoutView.trailingAnchor),
-      headerHeightConstraint,
-      lyricsContainerView.topAnchor.constraint(equalTo: header.bottomAnchor),
+      header.heightAnchor.constraint(equalToConstant: CurrentlyPlayingTableCell.rowHeight),
+      lyricsBelowHeaderConstraint,
     ])
   }
 
