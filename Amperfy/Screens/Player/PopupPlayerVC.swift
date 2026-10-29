@@ -66,6 +66,13 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
   let lyricsLayoutView = UIView()
   let lyricsContainerView = UIView()
   var lyricsHeaderCell: CurrentlyPlayingTableCell?
+  private var lyricsHeaderHeightConstraint: NSLayoutConstraint?
+  /// Regular width in landscape: the player stays on the left, queue and lyrics are shown on the right.
+  private(set) var isSideBySide = false
+  private var stackedConstraints = [NSLayoutConstraint]()
+  private var sideBySideConstraints = [NSLayoutConstraint]()
+  private var playerColumnLeadingConstraint: NSLayoutConstraint?
+  private var playerColumnCenterConstraint: NSLayoutConstraint?
   var contextPrevQueueSectionHeader: ContextQueuePrevSectionHeader?
   var userQueueSectionHeader: UserQueueSectionHeader?
   var contextNextQueueSectionHeader: ContextQueueNextSectionHeader?
@@ -119,6 +126,7 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
       createdLargeCurrentlyPlayingView.prepare(toWorkOnRootView: self)
       largePlayerPlaceholderView.addSubview(createdLargeCurrentlyPlayingView)
     }
+    setupSideBySideLayout()
 
     setupTableView()
     fetchSongInfoAndUpdateViews()
@@ -214,6 +222,94 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
 
   override func viewWillLayoutSubviews() {
     adjustLayoutMargins()
+    refreshSideBySideMode()
+  }
+
+  /// The xib stacks player, queue and controls vertically. The side by side constraints put the
+  /// player (large view and controls) into a column on the left and queue and lyrics on the right.
+  private func setupSideBySideLayout() {
+    let stackedViews: [UIView] = [largePlayerPlaceholderView, tableView, controlPlaceholderView]
+    stackedConstraints = view.constraints.filter { constraint in
+      stackedViews.contains { $0 === constraint.firstItem || $0 === constraint.secondItem }
+    }
+
+    let topInset: CGFloat = 20.0
+    let columnSpacing: CGFloat = 30.0
+    // the list ends above the bottom row of the controls (airplay, lyrics, queue)
+    let listBottomAnchor = controlView?.optionsStackView.topAnchor ?? controlPlaceholderView
+      .bottomAnchor
+    sideBySideConstraints = [
+      largePlayerPlaceholderView.topAnchor.constraint(
+        equalTo: view.layoutMarginsGuide.topAnchor,
+        constant: topInset
+      ),
+      largePlayerPlaceholderView.widthAnchor.constraint(
+        equalTo: view.widthAnchor,
+        multiplier: 0.42
+      ),
+      controlPlaceholderView.topAnchor.constraint(equalTo: largePlayerPlaceholderView.bottomAnchor),
+      controlPlaceholderView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      controlPlaceholderView.leadingAnchor
+        .constraint(equalTo: largePlayerPlaceholderView.leadingAnchor),
+      controlPlaceholderView.trailingAnchor
+        .constraint(equalTo: largePlayerPlaceholderView.trailingAnchor),
+      tableView.topAnchor.constraint(
+        equalTo: view.layoutMarginsGuide.topAnchor,
+        constant: topInset
+      ),
+      tableView.bottomAnchor.constraint(equalTo: listBottomAnchor, constant: -10.0),
+      tableView.leadingAnchor.constraint(
+        equalTo: largePlayerPlaceholderView.trailingAnchor,
+        constant: columnSpacing
+      ),
+      tableView.trailingAnchor.constraint(
+        equalTo: view.layoutMarginsGuide.trailingAnchor,
+        constant: -columnSpacing
+      ),
+    ]
+    // without queue or lyrics the player column is centered
+    playerColumnLeadingConstraint = largePlayerPlaceholderView.leadingAnchor.constraint(
+      equalTo: view.layoutMarginsGuide.leadingAnchor,
+      constant: columnSpacing
+    )
+    playerColumnCenterConstraint = largePlayerPlaceholderView.centerXAnchor
+      .constraint(equalTo: view.centerXAnchor)
+  }
+
+  private var shouldDisplaySideBySide: Bool {
+    traitCollection.horizontalSizeClass == .regular && view.bounds.width > view.bounds.height
+  }
+
+  private func refreshSideBySideMode() {
+    let isSideBySideNeeded = shouldDisplaySideBySide
+    guard isSideBySideNeeded != isSideBySide else { return }
+    isSideBySide = isSideBySideNeeded
+    if isSideBySide {
+      NSLayoutConstraint.deactivate(stackedConstraints)
+      NSLayoutConstraint.activate(sideBySideConstraints)
+    } else {
+      playerColumnLeadingConstraint?.isActive = false
+      playerColumnCenterConstraint?.isActive = false
+      NSLayoutConstraint.deactivate(sideBySideConstraints)
+      NSLayoutConstraint.activate(stackedConstraints)
+    }
+    // the player column already shows title and artwork, queue and lyrics don't need their header
+    lyricsHeaderCell?.isHidden = isSideBySide
+    lyricsHeaderHeightConstraint?.constant = isSideBySide ? 0.0 : CurrentlyPlayingTableCell
+      .rowHeight
+    tableView.reloadData()
+    applyDisplayLayout(animated: false)
+  }
+
+  func setPlayerColumnCentered(_ isCentered: Bool) {
+    // deactivate first, both constraints at once would conflict
+    if isCentered {
+      playerColumnLeadingConstraint?.isActive = false
+      playerColumnCenterConstraint?.isActive = true
+    } else {
+      playerColumnCenterConstraint?.isActive = false
+      playerColumnLeadingConstraint?.isActive = true
+    }
   }
 
   /// Table view and lyrics layout share the same area, the lyrics layout has its own header row.
@@ -243,11 +339,14 @@ class PopupPlayerVC: UIViewController, UIScrollViewDelegate {
     header.backgroundColor = .clear
     header.translatesAutoresizingMaskIntoConstraints = false
     lyricsLayoutView.addSubview(header)
+    let headerHeightConstraint = header.heightAnchor
+      .constraint(equalToConstant: CurrentlyPlayingTableCell.rowHeight)
+    lyricsHeaderHeightConstraint = headerHeightConstraint
     NSLayoutConstraint.activate([
       header.topAnchor.constraint(equalTo: lyricsLayoutView.topAnchor),
       header.leadingAnchor.constraint(equalTo: lyricsLayoutView.leadingAnchor),
       header.trailingAnchor.constraint(equalTo: lyricsLayoutView.trailingAnchor),
-      header.heightAnchor.constraint(equalToConstant: CurrentlyPlayingTableCell.rowHeight),
+      headerHeightConstraint,
       lyricsContainerView.topAnchor.constraint(equalTo: header.bottomAnchor),
     ])
   }

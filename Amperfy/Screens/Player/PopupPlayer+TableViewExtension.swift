@@ -147,8 +147,8 @@ extension PopupPlayerVC: UITableViewDataSource, UITableViewDelegate {
     case .contextPrev: return 30.0 // bottom padding of prev section (space above currently playing cell)
     case .currentlyPlaying, .none, .userQueue: return 0.0
     case .contextNext: // calculate footer height to keep currently playing row on top of table view
-      let heightOfContextNextRows = tableView.frame.height - CurrentlyPlayingTableCell
-        .rowHeight - ContextQueueNextSectionHeader.frameHeight
+      let heightOfContextNextRows = tableView.frame.height - currentlyPlayingRowHeight -
+        ContextQueueNextSectionHeader.frameHeight
       let contextNextRowOccupiedHeight = CGFloat(player.nextQueueCount) * PlayableTableCell
         .rowHeight
       let offset = heightOfContextNextRows - contextNextRowOccupiedHeight
@@ -172,8 +172,23 @@ extension PopupPlayerVC: UITableViewDataSource, UITableViewDelegate {
     case .contextNext, .contextPrev, .none, .userQueue:
       return PlayableTableCell.rowHeight
     case .currentlyPlaying:
-      return CurrentlyPlayingTableCell.rowHeight
+      return currentlyPlayingRowHeight
     }
+  }
+
+  /// Side by side the player column shows the currently playing item, the queue doesn't repeat it.
+  private var currentlyPlayingRowHeight: CGFloat {
+    isSideBySide ? 0.0 : CurrentlyPlayingTableCell.rowHeight
+  }
+
+  func tableView(
+    _ tableView: UITableView,
+    willDisplay cell: UITableViewCell,
+    forRowAt indexPath: IndexPath
+  ) {
+    guard PlayerSectionCategory(rawValue: indexPath.section) == .currentlyPlaying else { return }
+    // the row has no height side by side, its content would still be drawn
+    cell.isHidden = isSideBySide
   }
 
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

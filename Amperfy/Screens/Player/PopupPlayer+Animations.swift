@@ -122,6 +122,11 @@ extension PopupPlayerVC {
       lyricsHeaderCell?.refresh()
     }
 
+    if isSideBySide {
+      applySideBySideLayout(target: target, animated: animated && previous != nil)
+      return
+    }
+
     let allViews: [UIView] = [largePlayerPlaceholderView, tableView, lyricsLayoutView]
     // the cells may not exist yet, the visibility must not depend on them
     func showInstantly() {
@@ -220,6 +225,49 @@ extension PopupPlayerVC {
         completion: nil
       )
     }
+  }
+
+  /// The large view stays visible in the player column, queue or lyrics fade in on the right.
+  private func applySideBySideLayout(target: PopupPlayerLayout, animated: Bool) {
+    let listView: UIView? = switch target {
+    case .large: nil
+    case .compact: tableView
+    case .lyrics: lyricsLayoutView
+    }
+    let otherListViews: [UIView] = [tableView, lyricsLayoutView].filter { $0 !== listView }
+    largePlayerPlaceholderView.isHidden = false
+    largePlayerPlaceholderView.alpha = 1.0
+    lyricsContainerView.alpha = 1.0
+    largeCurrentlyPlayingView?.refresh()
+    setPlayerColumnCentered(target == .large)
+    listView?.isHidden = false
+
+    guard animated else {
+      for otherView in otherListViews {
+        otherView.alpha = 0.0
+        otherView.isHidden = true
+      }
+      listView?.alpha = 1.0
+      return
+    }
+    UIView.animate(
+      withDuration: Self.displaStyleAnimationDuration * 1.5,
+      delay: 0,
+      options: .curveEaseInOut,
+      animations: {
+        self.view.layoutIfNeeded()
+        for otherView in otherListViews {
+          otherView.alpha = 0.0
+        }
+        listView?.alpha = 1.0
+      },
+      completion: { _ in
+        // a faded out view must not swallow touches, a later switch might have shown it again
+        for otherView in otherListViews where otherView.alpha == 0.0 {
+          otherView.isHidden = true
+        }
+      }
+    )
   }
 
   /// Frame of the view in the coordinate space of the player, limited to the placeholder.
