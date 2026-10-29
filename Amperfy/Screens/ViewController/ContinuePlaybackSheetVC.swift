@@ -54,7 +54,7 @@ class ContinuePlaybackSheetVC: UIViewController {
     super.viewDidLoad()
     // opaque, the default sheet background lets the content behind it shine through
     view.backgroundColor = UIColor {
-      $0.userInterfaceStyle == .dark ? .systemGray5.resolvedColor(with: $0) : .white
+      $0.userInterfaceStyle == .dark ? .systemGray6.resolvedColor(with: $0) : .white
     }
 
     contentStack.axis = .vertical
