@@ -222,27 +222,21 @@ struct PlayerSettingsView: View {
         )
 
         // Cache Format Settings
-        SettingsSection(content: {
-          SettingsRow(title: "Format") {
-            Menu(settings.cacheTranscodingFormatPreference.description) {
-              ForEach(CacheTranscodingFormatPreference.allCases, id: \.self) { format in
-                Button(format.description) {
-                  updateCacheFormat(format)
+        SettingsSection(
+          content: {
+            SettingsRow(title: "Format") {
+              Menu(settings.cacheTranscodingFormatPreference.description) {
+                ForEach(CacheTranscodingFormatPreference.allCases, id: \.self) { format in
+                  Button(format.description) {
+                    updateCacheFormat(format)
+                  }
                 }
               }
             }
-          }
-        }, footer: """
-        Format for cached songs. Changes will not apply to already downloaded songs; clear cache and redownload if needed.
-        \(
-          appDelegate.storage.settings.accounts.getSetting(settings.activeAccountInfo).read
-            .loginCredentials?.backendApi
-            .asServerApiType == .ampache ? "" :
-            """
-            For 'raw', Amperfy uses the Subsonic API's 'download' action, which skips transcoding. Other formats use the 'stream' action, which requires proper server configuration for transcoding.
-            """
+          },
+          footer: "Format for cached songs. Changes will not apply to already downloaded songs; clear cache and redownload if needed.",
+          header: "Cache Format"
         )
-        """, header: "Cache Format")
       }
     }
     .navigationTitle("Player, Stream & Scrobble")
