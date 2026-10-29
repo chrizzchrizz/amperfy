@@ -173,7 +173,11 @@ struct PlayerSettingsView: View {
               }
             }
             SettingsRow(title: "Bitrate Limit") {
-              Menu(settings.streamingMaxBitrateCellularPreference.description) {
+              Menu(
+                settings.streamingFormatCellularPreference == .raw
+                  ? "Not applicable"
+                  : settings.streamingMaxBitrateCellularPreference.description
+              ) {
                 ForEach(StreamingMaxBitratePreference.allCases, id: \.self) { bitrate in
                   Button(bitrate.description) {
                     updateBitrate(cellular: bitrate)
@@ -199,7 +203,11 @@ struct PlayerSettingsView: View {
               }
             }
             SettingsRow(title: "Bitrate Limit") {
-              Menu(settings.streamingMaxBitrateWifiPreference.description) {
+              Menu(
+                settings.streamingFormatWifiPreference == .raw
+                  ? "Not applicable"
+                  : settings.streamingMaxBitrateWifiPreference.description
+              ) {
                 ForEach(StreamingMaxBitratePreference.allCases, id: \.self) { bitrate in
                   Button(bitrate.description) {
                     updateBitrate(wifi: bitrate)
