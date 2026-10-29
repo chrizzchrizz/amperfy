@@ -235,7 +235,7 @@ struct PlayerSettingsView: View {
             }
           },
           footer: "Format for cached songs. Changes will not apply to already downloaded songs; clear cache and redownload if needed.",
-          header: "Cache Format"
+          header: "Download Format"
         )
       }
     }
