@@ -62,7 +62,7 @@ class GenericDetailTableHeader: UIView {
   var isEditing = false
 
   static let frameHeightCompact: CGFloat = 440.0
-  static let frameHeightRegular: CGFloat = 240.0
+  static let frameHeightRegular: CGFloat = 340.0
   static func frameHeight(traitCollection: UITraitCollection) -> CGFloat {
     if traitCollection.horizontalSizeClass == .compact {
       return GenericDetailTableHeader.frameHeightCompact
